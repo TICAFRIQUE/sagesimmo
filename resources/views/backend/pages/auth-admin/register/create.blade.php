@@ -17,7 +17,7 @@
                                 action="{{ route('admin-register.store') }}" enctype="multipart/form-data">
                                 @csrf
                                 <div class="mb-3">
-                                    <label for="username" class="form-label">Username</label>
+                                    <label for="username" class="form-label">Nom utilisateur</label>
                                     <input type="text" name="username" class="form-control" id="username" required>
                                 </div>
 
@@ -31,13 +31,24 @@
                                  <div class="mb-3">
                                     <label for="username" class="form-label">Telephone</label>
                                     <input type="number" name="phone" class="form-control" id="username"
-                                        required>
+                                        >
                                 </div>
 
                                  <div class="mb-3">
-                                    <label for="username" class="form-label">Mot de passe</label>
-                                    <input type="password" name="password" class="form-control" id="username"
-                                        required>
+                                    <label for="password" class="form-label">Mot de passe</label>
+                                    <div class="position-relative">
+                                        <input type="password" name="password" class="form-control pe-5" id="password"
+                                            required placeholder="Entrez votre mot de passe">
+                                        <button type="button" class="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted password-addon" 
+                                                style="padding: 0.5rem 0.75rem; height: 100%; border: none; background: none;"
+                                                id="password-toggle"
+                                                aria-label="Afficher/cacher le mot de passe">
+                                            <i class="ri-eye-off-line" id="password-icon"></i>
+                                        </button>
+                                    </div>
+                                    <div class="invalid-feedback">
+                                        Veuillez saisir un mot de passe valide
+                                    </div>
                                 </div>
 
                                  <div class="mb-3">
@@ -65,10 +76,55 @@
 </div>
 <!--end row-->
 
-{{-- @section('script')
-    <script src="{{ URL::asset('build/libs/prismjs/prism.js') }}"></script>
-    <script src="https://cdn.lordicon.com/libs/mssddfmo/lord-icon-2.1.0.js"></script>
-    <script src="{{ URL::asset('build/js/pages/modal.init.js') }}"></script>
+<style>
+    .password-addon {
+        cursor: pointer;
+        transition: color 0.3s ease;
+    }
+    
+    .password-addon:hover {
+        color: #495057 !important;
+    }
+    
+    .password-addon:focus {
+        box-shadow: none;
+        outline: none;
+    }
+    
+    .password-addon i {
+        font-size: 16px;
+    }
+</style>
 
-    <script src="{{ URL::asset('build/js/app.js') }}"></script>
-@endsection --}}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const passwordToggle = document.getElementById('password-toggle');
+        const passwordInput = document.getElementById('password');
+        const passwordIcon = document.getElementById('password-icon');
+        
+        if (passwordToggle && passwordInput && passwordIcon) {
+            passwordToggle.addEventListener('click', function() {
+                // Toggle password visibility
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    passwordIcon.className = 'ri-eye-line';
+                    passwordToggle.setAttribute('aria-label', 'Cacher le mot de passe');
+                } else {
+                    passwordInput.type = 'password';
+                    passwordIcon.className = 'ri-eye-off-line';
+                    passwordToggle.setAttribute('aria-label', 'Afficher le mot de passe');
+                }
+                
+                // Maintenir le focus sur l'input après le clic
+                passwordInput.focus();
+            });
+            
+            // Empêcher la soumission du formulaire lors du clic sur le bouton toggle
+            passwordToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+            });
+        }
+    });
+</script>
+
+

@@ -23,11 +23,11 @@ return new class extends Migration
             //infos application
             $table->string('nom_projet')->nullable();
             $table->longText('description_projet')->nullable();
-            $table->string('contact1')->nullable();
-            $table->string('contact2')->nullable();
-            $table->string('contact3')->nullable();
-            $table->string('email1')->nullable();
-            $table->string('email2')->nullable();
+            $table->string('contact_principal')->nullable();
+            $table->string('contact_secondaire')->nullable();
+            $table->string('contact_whatsapp')->nullable();
+            $table->string('email_principal')->nullable();
+            $table->string('email_secondaire')->nullable();
             $table->string('localisation')->nullable();
             $table->longText('google_maps')->nullable();
             $table->string('siege_social')->nullable();

@@ -75,23 +75,23 @@ class AdminController extends Controller
             $request->validate([
                 'username' => 'required',
                 'email' => 'required|email',
-                'phone' => 'required|',
+                'phone' => 'nullable|numeric',
                 'role' => 'required',
                 'password' => 'required|min:6',
             ]);
 
             // Vérifier si le téléphone existe déjà
-            if (User::where('phone', $request->phone)->exists()) {
+            if ($request->phone && User::where('phone', $request->phone)->exists()) {
                 Alert::error('Le numéro de téléphone existe déjà associé à un utilisateur', 'Erreur');
                 return back()->withInput();
             }
 
             // Vérification supplémentaire pour le numéro de téléphone
-            if (!preg_match('/^[0-9]{10}$/', $request->phone)) {
-                return back()->with('Erreur', 'Le numéro de téléphone doit contenir exactement 10 chiffres.');
-                // Alert::error('Erreur', 'Le numéro de téléphone doit contenir exactement 10 chiffres.');
-                // return back();
-            }
+            // if (!preg_match('/^[0-9]{10}$/', $request->phone)) {
+            //     return back()->with('Erreur', 'Le numéro de téléphone doit contenir exactement 10 chiffres.');
+            //     // Alert::error('Erreur', 'Le numéro de téléphone doit contenir exactement 10 chiffres.');
+            //     // return back();
+            // }
 
             // Vérifier si l'email existe déjà
             if (User::where('email', $request->email)->exists()) {

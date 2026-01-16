@@ -22,7 +22,7 @@ class ParametreController extends Controller
         $appName = config('app.name');
         $backup = Storage::disk('local')->files('' . $appName . '/');
 
-
+        
         // dd($data_parametre->toArray());
         return view('backend.pages.parametre.index', compact('data_parametre',  'backup'));
     }
@@ -53,24 +53,12 @@ class ParametreController extends Controller
     public function store(Request $request)
     {
         try {
-            //request validation................
-            // dd($request->all());
+            // Vérifier si un paramètre existe déjà
+            $data_parametre = Parametre::first();
 
-            //verify if data exist
-            $data_exist = Parametre::with('media')->first();
-
-
-            if ($data_exist) {
-                // dd($request->all());
-
-                $data_exist_ = Parametre::with('media')->first();
-                $media = $data_exist_->media;
-                // dd(count($data_exist_->media));
-
-
-                //insert data
-                //update data if record exist
-                $data_parametre = tap(Parametre::find($data_exist_['id']))->update([
+            if ($data_parametre) {
+                // Mettre à jour les données existantes
+                $data_parametre->update([
                     'lien_facebook' => $request['lien_facebook'],
                     'lien_instagram' => $request['lien_instagram'],
                     'lien_twitter' => $request['lien_twitter'],
@@ -80,45 +68,22 @@ class ParametreController extends Controller
                     //infos application
                     'nom_projet' => $request['nom_projet'],
                     'description_projet' => $request['description_projet'],
-                    'contact1' => $request['contact1'],
-                    'contact2' => $request['contact2'],
-                    'contact3' => $request['contact3'],
+                    'contact_principal' => $request['contact_principal'],
+                    'contact_secondaire' => $request['contact_secondaire'],
+                    'contact_whatsapp' => $request['contact_whatsapp'],
 
-                    'email1' => $request['email1'],
-                    'email2' => $request['email2'],
+                    'email_principal' => $request['email_principal'],
+                    'email_secondaire' => $request['email_secondaire'],
 
                     'localisation' => $request['localisation'],
                     'google_maps' => $request['google_maps'],
                     'siege_social' => $request['siege_social'],
-
-                    //security
-                    // 'mode_maintenance'=>'',
                 ]);
 
-                //insert image logo
-
-                if ($request->has('cover') && count($media) > 0) {
-                    $data_parametre->clearMediaCollection('cover');
-                    $data_parametre->addMediaFromRequest('cover')->toMediaCollection('cover');
-                } elseif ($request->has('cover')) {
-                    $data_parametre->addMediaFromRequest('cover')->toMediaCollection('cover');
-                }
-
-                if ($request->has('logo_header') && count($media) > 0) {
-                    $data_parametre->clearMediaCollection('logo_header');
-                    $data_parametre->addMediaFromRequest('logo_header')->toMediaCollection('logo_header');
-                } elseif ($request->has('logo_header')) {
-                    $data_parametre->addMediaFromRequest('logo_header')->toMediaCollection('logo_header');
-                }
-
-
-                if ($request->has('logo_footer') && count($media) > 0) {
-                    $data_parametre->clearMediaCollection('logo_footer');
-                    $data_parametre->addMediaFromRequest('logo_footer')->toMediaCollection('logo_footer');
-                } elseif ($request->has('logo_footer')) {
-                    $data_parametre->addMediaFromRequest('logo_footer')->toMediaCollection('logo_footer');
-                }
+                // Recharger l'instance pour avoir les dernières données
+                $data_parametre->refresh();
             } else {
+                // Créer un nouveau paramètre
                 $data_parametre = Parametre::create([
                     'lien_facebook' => $request['lien_facebook'],
                     'lien_instagram' => $request['lien_instagram'],
@@ -129,39 +94,41 @@ class ParametreController extends Controller
                     //infos application
                     'nom_projet' => $request['nom_projet'],
                     'description_projet' => $request['description_projet'],
-                    'contact1' => $request['contact1'],
-                    'contact2' => $request['contact2'],
-                    'contact3' => $request['contact3'],
+                    'contact_principal' => $request['contact_principal'],
+                    'contact_secondaire' => $request['contact_secondaire'],
+                    'contact_whatsapp' => $request['contact_whatsapp'],
 
-                    'email1' => $request['email1'],
-                    'email2' => $request['email2'],
+                    'email_principal' => $request['email_principal'],
+                    'email_secondaire' => $request['email_secondaire'],
 
                     'localisation' => $request['localisation'],
                     'google_maps' => $request['google_maps'],
                     'siege_social' => $request['siege_social'],
-
-                    //security
-                    // 'mode_maintenance'=>'',
                 ]);
+            }
 
-                //insert image logo
-                if ($request->has('logo_header')) {
-                    $data_parametre->addMediaFromRequest('logo_header')->toMediaCollection('logo_header');
-                }
-
-
-                if ($request->has('logo_footer')) {
-                    $data_parametre->addMediaFromRequest('logo_footer')->toMediaCollection('logo_footer');
+            // Gestion des images - logique simplifiée et corrigée
+            $mediaTypes = ['cover', 'logo_header', 'logo_footer'];
+            
+            foreach ($mediaTypes as $mediaType) {
+                if ($request->hasFile($mediaType)) {
+                    // Supprimer l'ancien média s'il existe
+                    if ($data_parametre->hasMedia($mediaType)) {
+                        $data_parametre->clearMediaCollection($mediaType);
+                    }
+                    
+                    // Ajouter le nouveau média
+                    $data_parametre->addMediaFromRequest($mediaType)
+                        ->toMediaCollection($mediaType);
                 }
             }
 
-
-
-            Alert::success('Operation réussi', 'Success Message');
-
+            Alert::success('Paramètres mis à jour avec succès', 'Succès');
             return back();
+            
         } catch (\Throwable $th) {
-            return back()->withError($th->getMessage());
+            Alert::error('Erreur: ' . $th->getMessage(), 'Erreur');
+            return back()->withInput();
         }
     }
 

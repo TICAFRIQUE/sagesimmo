@@ -1,6 +1,6 @@
 @extends('backend.layouts.master')
 @section('title')
-    @lang('translation.settings')
+    Profil Administrateur
 @endsection
 @section('content')
     <div class="row">
@@ -44,7 +44,7 @@
                                 <div class="mb-3">
                                     <label for="username" class="form-label">Telephone</label>
                                     <input type="number" value="{{ $data_admin['phone'] }}" name="phone"
-                                        class="form-control" id="username" required>
+                                        class="form-control" id="username">
                                 </div>
                                 <input type="text" name="role" value="{{$data_admin['roles'][0]['name']}}" hidden>
 

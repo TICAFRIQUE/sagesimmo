@@ -27,7 +27,7 @@
                      <div class="mb-3">
                          <label for="username" class="form-label">Telephone</label>
                          <input type="number" value="{{ $item['phone'] }}" name="phone" class="form-control"
-                             id="username" required>
+                             id="username" >
                      </div>
 
                      <div class="mb-3">

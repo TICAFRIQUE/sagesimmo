@@ -102,68 +102,22 @@
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
+
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
-    <script src="{{ URL::asset('build/js/pages/datatables.init.js') }}"></script>
 
+    <!-- pdfMake (ORDRE CRUCIAL) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+
+    <script src="{{ URL::asset('build/js/pages/datatables.init.js') }}"></script>
     <script src="{{ URL::asset('build/js/app.js') }}"></script>
 
+
     <script>
-        $(document).ready(function() {
-
-            var route = "register"
-            delete_row(route);
-        })
-        // $(document).ready(function() {
-        //     $('.delete').on("click", function(e) {
-        //         e.preventDefault();
-        //         var Id = $(this).attr('data-id');
-        //         Swal.fire({
-        //             title: 'Are you sure?',
-        //             text: "You won't be able to revert this!",
-        //             icon: 'warning',
-        //             showCancelButton: true,
-        //             confirmButtonText: 'Yes, delete it!',
-        //             cancelButtonText: 'No, cancel!',
-        //             customClass: {
-        //                 confirmButton: 'btn btn-primary w-xs me-2 mt-2',
-        //                 cancelButton: 'btn btn-danger w-xs mt-2',
-        //             },
-        //             buttonsStyling: false,
-        //             showCloseButton: true
-        //         }).then((result) => {
-        //             if (result.isConfirmed) {
-        //                 $.ajax({
-        //                     type: "GET",
-        //                     url: "/register/delete/" + Id,
-        //                     dataType: "json",
-        //                     // data: {
-        //                     //     _token: '{{ csrf_token() }}',
-
-        //                     // },
-        //                     success: function(response) {
-        //                         if (response.status == 200) {
-        //                             Swal.fire({
-        //                                 title: 'Deleted!',
-        //                                 text: 'Your file has been deleted.',
-        //                                 icon: 'success',
-        //                                 customClass: {
-        //                                     confirmButton: 'btn btn-primary w-xs mt-2',
-        //                                 },
-        //                                 buttonsStyling: false
-        //                             })
-
-        //                             $('#row_' + Id).remove();
-        //                         }
-        //                     }
-        //                 });
-        //             }
-        //         });
-        //     });
-        // });
+        window.routeName = "register";
     </script>
 @endsection

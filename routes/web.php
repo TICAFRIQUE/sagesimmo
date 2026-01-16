@@ -52,7 +52,7 @@ Route::middleware(['admin'])->prefix('admin')->group(function () {
         route::get('', 'index')->name('admin-register.index');
         route::post('store', 'store')->name('admin-register.store');
         route::post('update/{id}', 'update')->name('admin-register.update');
-        route::get('delete/{id}', 'delete')->name('admin-register.delete');
+        route::delete('delete/{id}', 'delete')->name('admin-register.delete');
         route::get('profil/{id}', 'profil')->name('admin-register.profil');
         route::post('change-password', 'changePassword')->name('admin-register.new-password');
     });
@@ -62,7 +62,7 @@ Route::middleware(['admin'])->prefix('admin')->group(function () {
         route::get('', 'index')->name('role.index');
         route::post('store', 'store')->name('role.store');
         route::post('update/{id}', 'update')->name('role.update');
-        route::get('delete/{id}', 'delete')->name('role.delete');
+        route::delete('delete/{id}', 'delete')->name('role.delete');
     });
 
     //permission
@@ -72,7 +72,7 @@ Route::middleware(['admin'])->prefix('admin')->group(function () {
         route::post('store', 'store')->name('permission.store');
         route::get('edit{id}', 'edit')->name('permission.edit');
         route::put('update/{id}', 'update')->name('permission.update');
-        route::get('delete/{id}', 'delete')->name('permission.delete');
+        route::delete('delete/{id}', 'delete')->name('permission.delete');
     });
 
     //module
@@ -80,23 +80,11 @@ Route::middleware(['admin'])->prefix('admin')->group(function () {
         route::get('', 'index')->name('module.index');
         route::post('store', 'store')->name('module.store');
         route::post('update/{id}', 'update')->name('module.update');
-        route::get('delete/{id}', 'delete')->name('module.delete');
+        route::delete('delete/{id}', 'delete')->name('module.delete');
     });
 
 
-    // newsletter subscribers
-    Route::prefix('newsletters')->controller(NewsLettersController::class)->group(function () {
-        route::get('', 'index')->name('newsletters.index');
-        route::post('store', 'store')->name('newsletter.store');
-        route::post('delete/{id}', 'destroy')->name('newsletters.destroy');
-        route::post('send', 'sendToAll')->name('newsletters.send');
-    });
-    // Commande Service Form Submission
-
-    Route::prefix('commande_web')->controller(CommandeServiceController::class)->group(function () {
-        Route::post('commander', 'store')->name('commande.service.store');
-        Route::get('', 'index')->name('commande.service.index');
-    });
+ 
 });
 
 
@@ -109,43 +97,6 @@ Route::middleware(['admin'])->prefix('admin')->group(function () {
 
 
 
-// ###############################
-// Frontend Routes
-// ###############################
-Route::prefix('/')->controller(BaseController::class)->group(function () {
-    route::get('', 'index')->name('frontend.index');
-});
 
 
-Route::prefix('domaines')->group(function () {
-    Route::get('researcher', function () {
-        return view('frontend.domaines.researcher');
-    })->name('domaine.researcher');
 
-    Route::get('transfer', function () {
-        return view('frontend.domaines.transfer');
-    })->name('domaine.transfer');
-
-    Route::get('renew', function () {
-        return view('frontend.domaines.renew');
-    })->name('domaine.renew');
-
-    // Ajax routes
-    Route::post('ajax/search', [NomDomaineController::class, 'search'])
-        ->name('domaine.ajax.search');
-    Route::post('ajax/transfer', [NomDomaineController::class, 'transfer'])
-        ->name('domaine.ajax.transfer');
-    Route::post('ajax/renew', [NomDomaineController::class, 'renew'])
-        ->name('domaine.ajax.renew');
-});
-
-
-Route::prefix('hebergements')->controller(HebergementController::class)->group(function () {
-    Route::get('mutualise', 'hebergement_mutualise')->name('hebergement.mutualise');
-    Route::get('cloud', 'hebergement_cloud')->name('hebergement.cloud');
-    Route::get('windows', 'hebergement_windows')->name('hebergement.windows');
-    Route::get('linux', 'hebergement_linux')->name('hebergement.linux');
-    Route::get('commander', 'commander_hebergement')->name('hebergement.commander');
-    // inscription hebergement cloud
-    Route::get('inscription', 'inscription')->name('hebergement.inscription');
-});

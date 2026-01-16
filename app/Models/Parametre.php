@@ -26,11 +26,11 @@ class Parametre extends Model implements HasMedia
         //infos application
         'nom_projet', //nom du projet || nom de l'entreprise
         'description_projet', //description du projet
-        'contact1',
-        'contact2',
-        'contact3',
-        'email1',
-        'email2',
+        'contact_principal',
+        'contact_secondaire',
+        'contact_whatsapp',
+        'email_principal',
+        'email_secondaire',
         'localisation',
         'google_maps',
         'siege_social',

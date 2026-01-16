@@ -3,10 +3,10 @@
    Login
 @endsection
 @section('content')
-    @if ($parametre != null)
+    @if ($data_parametre != null)
         <style>
             .auth-one-bg {
-                background-image: url('{{ $parametre->getFirstMediaUrl('cover') }}');
+                background-image: url('{{ $data_parametre->getFirstMediaUrl('cover') }}');
                 background-position: center;
                 background-size: cover;
             }
@@ -44,18 +44,18 @@
                         <div class="text-center mt-sm-5 mb-4 text-white-50">
                             <div>
 
-                                @if ($parametre != null)
+                                @if ($data_parametre != null)
                                     <a href="index" class="d-inline-block auth-logo">
-                                        <img src="{{ URL::asset($parametre->getFirstMediaUrl('logo_header')) }}"
+                                        <img src="{{ URL::asset($data_parametre?->getFirstMediaUrl('logo_header')) }}"
                                             alt=""  width="50" class="rounded-circle">
                                     </a>
-                                    <p class="mt-3 fs-15 fw-medium"> {{ $parametre['nom_projet'] ?? '' }} </p>
+                                    <p class="mt-3 fs-15 fw-medium"> {{ $data_parametre['nom_projet'] ?? '' }} </p>
                                 @else
                                     <h3>Nom du projet</h3>
                                 @endif
 
                             </div>
-                            <p class="mt-3 fs-15 fw-medium"> {{ $parametre['description_projet'] ?? '' }} </p>
+                            <p class="mt-3 fs-15 fw-medium"> {{ $data_parametre['description_projet'] ?? '' }} </p>
                         </div>
                     </div>
                 </div>
@@ -156,7 +156,7 @@
                                 document.write(new Date().getFullYear())
                             </script> {{ config('app.name') }}. Conçu avec <i
                                 class="mdi mdi-heart text-danger"></i> par
-                            Ticafrique</p>
+                            {{ config('app.name') }}</p>
                         </div>
                     </div>
                 </div>

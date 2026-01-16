@@ -61,7 +61,7 @@ class AppServiceProvider extends ServiceProvider
         }
 
         view()->share([
-            'parametre' => $data_parametre ?? null,
+            'data_parametre' => $data_parametre ?? null,
         ]);
     }
 }

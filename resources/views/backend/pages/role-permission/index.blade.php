@@ -1,7 +1,6 @@
-
 @extends('backend.layouts.master')
 @section('title')
-   Permission
+    Permission
 @endsection
 @section('css')
     <!--datatable css-->
@@ -14,10 +13,10 @@
 @section('content')
     @component('backend.components.breadcrumb')
         @slot('li_1')
-          Liste des rôles
+            Liste des rôles
         @endslot
         @slot('title')
-        Gestion des rôles et permissions
+            Gestion des rôles et permissions
         @endslot
     @endcomponent
 
@@ -46,13 +45,15 @@
                                         <td>{{ $loop->iteration }}</td>
                                         <td>{{ $role->name }}</td>
                                         <td>
-                                            @foreach($role->permissions as $permission)
+                                            @foreach ($role->permissions as $permission)
                                                 <span class="badge bg-info">{{ $permission->name }}</span>
                                             @endforeach
                                         </td>
                                         <td>
-                                            <a href="{{ route('permission.edit', $role->id) }}" class="btn btn-sm btn-primary"> <i class="ri ri-pencil-fill"></i> </a>
-                                            <button class="btn btn-sm btn-danger delete" data-id="{{ $role->id }}"> <i class="ri ri-delete-bin-2-fill"></i> </button>
+                                            <a href="{{ route('permission.edit', $role->id) }}"
+                                                class="btn btn-sm btn-primary"> <i class="ri ri-pencil-fill"></i> </a>
+                                            <button class="btn btn-sm btn-danger delete" data-id="{{ $role->id }}"> <i
+                                                    class="ri ri-delete-bin-2-fill"></i> </button>
                                         </td>
                                     </tr>
                                 @empty
@@ -80,37 +81,15 @@
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
 
     <script src="{{ URL::asset('build/js/pages/datatables.init.js') }}"></script>
 
     <script src="{{ URL::asset('build/js/app.js') }}"></script>
     <script>
-        $(document).ready(function(){
-        // Vérifiez si la DataTable est déjà initialisée
-        if ($.fn.DataTable.isDataTable('#buttons-datatables')) {
-                // Si déjà initialisée, détruisez l'instance existante
-                $('#buttons-datatables').DataTable().destroy();
-            }
-
-            // Initialisez la DataTable avec les options et le callback
-            var table = $('#buttons-datatables').DataTable({
-                dom: 'Bfrtip',
-                buttons: [
-                    'copy', 'csv', 'excel', 'pdf', 'print'
-                ],
-
-                // Utilisez drawCallback pour exécuter delete_row après chaque redessin
-                drawCallback: function(settings) {
-                    var route = "permission"
-                    delete_row(route);
-                }
-            });
-
-
-
-        })
-     </script>
+        window.routeName = "permission";
+    </script>
 @endsection

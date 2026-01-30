@@ -17,6 +17,14 @@
 @endif
 
 
+@if (session('success'))
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="ri-check-line me-2"></i>{{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
+
+
 
 
 
@@ -67,3 +75,14 @@
     <i class="ri-refresh-line me-3 align-middle fs-16 text-body"></i><strong>Dark</strong> - Top border alert
     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div> --}}
+
+
+<script>
+
+    // faire disparaitre les alertes apres 10 secondes
+    window.setTimeout(function() {
+        $(".alert").fadeTo(500, 0).slideUp(500, function(){
+            $(this).remove();
+        });
+    }, 10000);
+</script>

@@ -46,7 +46,7 @@
                                     <input type="number" value="{{ $data_admin['phone'] }}" name="phone"
                                         class="form-control" id="username">
                                 </div>
-                                <input type="text" name="role" value="{{$data_admin['roles'][0]['name']}}" hidden>
+                                <input type="text" name="role" value="{{ $data_admin['roles'][0]['name'] }}" hidden>
 
                                 {{-- <div class="mb-3">
                                     <label for="username" class="form-label">Mot de passe</label>
@@ -79,19 +79,20 @@
                         <div class="tab-pane" id="privacy" role="tabpanel">
                             <div class="mb-4 pb-2">
                                 <form class="needs-validation" novalidate method="POST"
-                                    action="{{ route('admin-register.new-password') }}"
-                                    enctype="multipart/form-data">
+                                    action="{{ route('admin-register.new-password') }}" enctype="multipart/form-data">
                                     @csrf
 
                                     <div class="mb-3">
                                         <label for="username" class="form-label">Ancien mot de passe</label>
-                                        <input type="password" name="old_password" class="form-control" id="username" required>
+                                        <input type="password" name="old_password" class="form-control" id="username"
+                                            required>
                                     </div>
 
 
-                                     <div class="mb-3">
+                                    <div class="mb-3">
                                         <label for="username" class="form-label">Nouveau mot de passe</label>
-                                        <input type="password" name="new_password" class="form-control" id="username" required>
+                                        <input type="password" name="new_password" class="form-control" id="username"
+                                            required>
                                     </div>
 
 

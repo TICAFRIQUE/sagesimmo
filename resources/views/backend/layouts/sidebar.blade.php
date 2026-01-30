@@ -37,6 +37,82 @@
                     </li>
                 @endcan
 
+                <!-- Configuration Immobilière -->
+                <li class="nav-item">
+                    <a class="nav-link menu-link" href="#sidebarImmobilier" data-bs-toggle="collapse" role="button"
+                        aria-expanded="false" aria-controls="sidebarImmobilier">
+                        <i class="ri-building-4-line me-2"></i> <span>Configuration</span>
+                    </a>
+                    <div class="collapse menu-dropdown {{ Route::is('backend.type-biens.*') || Route::is('backend.equipements.*') ? 'show' : '' }}"
+                        id="sidebarImmobilier">
+                        <ul class="nav nav-sm flex-column">
+                            <li class="nav-item">
+                                <a href="{{ route('backend.type-biens.index') }}"
+                                    class="nav-link {{ Route::is('backend.type-biens.*') ? 'active' : '' }}">
+                                    <i class="ri-home-3-line me-2"></i> Types de biens
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('backend.equipements.index') }}"
+                                    class="nav-link {{ Route::is('backend.equipements.*') ? 'active' : '' }}">
+                                    <i class="ri-tools-line me-2"></i> Équipements
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+
+
+                <!-- Annonces -->
+                @can('voir-annonce')
+                    <li class="nav-item">
+                        <a class="nav-link menu-link {{ Route::is('backend.annonces.*') ? 'active' : '' }} "
+                            href="{{ route('backend.annonces.index') }}">
+                            <i class="ri-home-4-line"></i> <span>Annonces</span>
+                        </a>
+                    </li>
+                @endcan
+
+                <!-- Demandes d'intérêt -->
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ Route::is('backend.demandes.*') ? 'active' : '' }} "
+                        href="{{ route('backend.demandes.index') }}">
+                        <i class="ri-message-3-line"></i> <span>Demandes</span>
+                    </a>
+                </li>
+
+                <!-- Utilisateurs -->
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ Route::is('backend.users.*') ? 'active' : '' }} "
+                        href="{{ route('backend.users.index') }}">
+                        <i class="ri-group-line"></i> <span>Clients</span>
+                    </a>
+                </li>
+
+                <!-- Suivi Location/Vente -->
+                <li class="nav-item">
+                    <a class="nav-link menu-link" href="#sidebarSuivi" data-bs-toggle="collapse" role="button"
+                        aria-expanded="false" aria-controls="sidebarSuivi">
+                        <i class="ri-line-chart-line me-2"></i> <span>Suivi Location/Vente</span>
+                    </a>
+                    <div class="collapse menu-dropdown {{ Route::is('backend.ventes.*') || Route::is('backend.locations.*') ? 'show' : '' }}"
+                        id="sidebarSuivi">
+                        <ul class="nav nav-sm flex-column">
+                            <li class="nav-item">
+                                <a href="{{ route('backend.ventes.index') }}"
+                                    class="nav-link {{ Route::is('backend.ventes.*') ? 'active' : '' }}">
+                                    <i class="ri-shopping-bag-line me-2"></i> Ventes
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('backend.locations.index') }}"
+                                    class="nav-link {{ Route::is('backend.locations.*') ? 'active' : '' }}">
+                                    <i class="ri-key-line me-2"></i> Locations
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
 
 
 

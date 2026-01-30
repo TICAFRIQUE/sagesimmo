@@ -29,8 +29,9 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between">
                     <h5 class="card-title mb-0">Liste des administrateurs</h5>
-                    <button type="button" class="btn btn-primary " data-bs-toggle="modal" data-bs-target="#myModal">Créer
-                        un administrateur</button>
+                    <a href="{{ route('admin-register.create') }}" class="btn btn-primary">
+                        <i class="ri-add-line me-1"></i> Créer un administrateur
+                    </a>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -62,18 +63,15 @@
                                                     <i class="ri-more-fill align-middle"></i>
                                                 </button>
                                                 <ul class="dropdown-menu dropdown-menu-end">
-                                                    {{-- <li><a href="#!" class="dropdown-item"><i
-                                                                class="ri-lock-fill align-bottom me-2 text-muted"></i>
-                                                            Change password</a>
-                                                    </li> --}}
-                                                    <li><a type="button" class="dropdown-item edit-item-btn"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#myModalEdit{{ $item['id'] }}"><i
-                                                                class="ri-pencil-fill align-bottom me-2 text-muted"></i>
-                                                            Modifier</a></li>
+                                                    <li>
+                                                        <a href="{{ route('admin-register.edit', $item['id']) }}" class="dropdown-item">
+                                                            <i class="ri-pencil-fill align-bottom me-2 text-muted"></i>
+                                                            Modifier
+                                                        </a>
+                                                    </li>
                                                     <li>
                                                         <a href="#" class="dropdown-item remove-item-btn delete"
-                                                            data-id={{ $item['id'] }}>
+                                                            data-id="{{ $item['id'] }}">
                                                             <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i>
                                                             Supprimer
                                                         </a>
@@ -82,10 +80,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                    @include('backend.pages.auth-admin.register.edit')
                                 @endforeach
-
-
                         </table>
                     </div>
                 </div>
@@ -93,7 +88,6 @@
         </div>
     </div>
     <!--end row-->
-    @include('backend.pages.auth-admin.register.create')
 @endsection
 @section('script')
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"

@@ -24,11 +24,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        //pagination bootstrap
+        \Illuminate\Pagination\Paginator::useBootstrap();
 
 
-
-        Schema::defaultStringLength(191);
+//
+        Schema::defaultStringLength(191); // Pour éviter les problèmes avec les anciennes versions de MySQL
 
 
         $this->app->booted(function () {

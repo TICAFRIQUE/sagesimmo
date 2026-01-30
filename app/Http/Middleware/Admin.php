@@ -16,8 +16,8 @@ class Admin
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Si l'utilisateur est authentifié et n'est pas un client
-        if (Auth::check() && Auth::user()->role !== 'client') {
+        // Si l'utilisateur est authentifié et n'est pas un client , proprietaire ou acheteur
+        if (Auth::check() && !in_array(Auth::user()->role, ['client', 'proprietaire', 'acheteur', 'locataire'])) {
             return $next($request);
         }
 

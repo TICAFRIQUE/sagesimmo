@@ -40,6 +40,10 @@ class UsersTableSeeder extends Seeder
                 'deleted_at' => NULL,
             ),
         ));
+
+        // Assigner le rôle développeur
+        $developer = User::where('email', 'developpeur@gmail.com')->first();
+        $developer->assignRole('developpeur');
         
         // Générer 20 utilisateurs clients avec rôles
         $this->command->info('Génération de 20 utilisateurs clients...');
@@ -61,6 +65,7 @@ class UsersTableSeeder extends Seeder
                 'username' => $prenom . ' ' . $nom,
                 'email' => $email,
                 'phone' => $phone,
+                'role' => $roleName,
                 'password' => Hash::make('password'),
                 'email_verified_at' => now(),
             ]);

@@ -37,6 +37,21 @@
                     </li>
                 @endcan
 
+                <!-- Alertes et Retards -->
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ Route::is('backend.alertes.*') ? 'active' : '' }}" 
+                        href="{{ route('backend.alertes.index') }}">
+                        <i class="ri-alarm-warning-line"></i> 
+                        <span>ALERTES & RETARDS</span>
+                        @php
+                            $nbAlertes = \App\Models\Echeance::enRetard()->count();
+                        @endphp
+                        @if($nbAlertes > 0)
+                            <span class="badge bg-danger rounded-pill ms-1">{{ $nbAlertes }}</span>
+                        @endif
+                    </a>
+                </li>
+
                 <!-- Configuration Immobilière -->
                 <li class="nav-item">
                     <a class="nav-link menu-link" href="#sidebarImmobilier" data-bs-toggle="collapse" role="button"
@@ -108,6 +123,31 @@
                                 <a href="{{ route('backend.locations.index') }}"
                                     class="nav-link {{ Route::is('backend.locations.*') ? 'active' : '' }}">
                                     <i class="ri-key-line me-2"></i> Locations
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+
+                <!-- Rapports & Statistiques -->
+                <li class="nav-item">
+                    <a class="nav-link menu-link" href="#sidebarRapports" data-bs-toggle="collapse" role="button"
+                        aria-expanded="false" aria-controls="sidebarRapports">
+                        <i class="ri-bar-chart-box-line me-2"></i> <span>Rapports & Statistiques</span>
+                    </a>
+                    <div class="collapse menu-dropdown {{ Route::is('backend.rapports.*') ? 'show' : '' }}"
+                        id="sidebarRapports">
+                        <ul class="nav nav-sm flex-column">
+                            <li class="nav-item">
+                                <a href="{{ route('backend.rapports.commissions') }}"
+                                    class="nav-link {{ Route::is('backend.rapports.commissions') ? 'active' : '' }}">
+                                    <i class="ri-percent-line me-2"></i> Commissions
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('backend.rapports.statistiques') }}"
+                                    class="nav-link {{ Route::is('backend.rapports.statistiques') ? 'active' : '' }}">
+                                    <i class="ri-line-chart-line me-2"></i> Statistiques
                                 </a>
                             </li>
                         </ul>

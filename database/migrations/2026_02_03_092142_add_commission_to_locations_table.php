@@ -12,7 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('locations', function (Blueprint $table) {
-            $table->integer('nombre_cautions')->default(2)->after('loyer_mensuel');
+            $table->decimal('commission_agence', 10, 2)->nullable()->after('montant_frais_agence')
+                  ->comment('Commission de l\'agence (pourcentage ou montant fixe)');
+            $table->enum('type_commission', ['pourcentage', 'montant'])->nullable()->after('commission_agence')
+                  ->comment('Type de commission: pourcentage du loyer ou montant fixe');
         });
     }
 
@@ -22,7 +25,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('locations', function (Blueprint $table) {
-            $table->dropColumn('nombre_cautions');
+            $table->dropColumn(['commission_agence', 'type_commission']);
         });
     }
 };

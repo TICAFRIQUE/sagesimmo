@@ -44,7 +44,36 @@ class DemandeInteretController extends Controller
     }
 
     /**
-     * Planifier une visite
+     * Envoyer le contrat par email
+     */
+    public function envoyerContrat(Request $request, $id)
+    {
+        $request->validate([
+            'contrat' => 'required|file|mimes:pdf|max:10240',
+            'note_admin' => 'nullable|string',
+        ]);
+
+        $demande = DemandeInteret::findOrFail($id);
+        
+        // Sauvegarder le contrat
+        if ($request->hasFile('contrat')) {
+            $demande->addMediaFromRequest('contrat')
+                ->toMediaCollection('contrat');
+        }
+        
+        $demande->update([
+            'statut' => 'contrat_envoye',
+            'note_admin' => $request->note_admin,
+        ]);
+
+        // TODO: Envoyer email au client avec le contrat
+
+        return redirect()->route('backend.demandes.show', $id)
+                         ->with('success', 'Contrat envoyé au client par email.');
+    }
+
+    /**
+     * Planifier une visite (après accord client)
      */
     public function planifierVisite(Request $request, $id)
     {
@@ -55,22 +84,10 @@ class DemandeInteretController extends Controller
 
         $demande = DemandeInteret::findOrFail($id);
         
-        Log::info('Planification visite', [
-            'demande_id' => $id,
-            'ancien_statut' => $demande->statut,
-            'date_visite' => $request->date_visite,
-            'note_admin' => $request->note_admin,
-        ]);
-        
         $demande->update([
             'statut' => 'visite_planifiee',
             'date_visite' => $request->date_visite,
             'note_admin' => $request->note_admin,
-        ]);
-
-        Log::info('Visite planifiée avec succès', [
-            'demande_id' => $id,
-            'nouveau_statut' => $demande->fresh()->statut,
         ]);
 
         return redirect()->route('backend.demandes.show', $id)
@@ -92,9 +109,10 @@ class DemandeInteretController extends Controller
         // Si client non intéressé, clôturer
         if (!$request->client_interesse_apres_visite) {
             $demande->update([
-                'statut' => 'cloture_non_interesse',
+                'statut' => 'cloture',
                 'compte_rendu_visite' => $request->compte_rendu_visite,
                 'client_interesse_apres_visite' => false,
+                'motif_cloture' => 'Client non intéressé après la visite',
                 'note_admin' => $request->note_admin,
             ]);
             return back()->with('info', 'Demande clôturée - Client non intéressé après la visite.');
@@ -111,97 +129,82 @@ class DemandeInteretController extends Controller
     }
 
     /**
-     * Demander des pièces au client
+     * Configurer le paiement
      */
-    public function demanderPieces(Request $request, $id)
+    public function configurerPaiement(Request $request, $id)
     {
         $request->validate([
-            'pieces_demandees' => 'required|string',
+            'montant_caution' => 'required|numeric|min:0',
+            'montant_loyer_premier' => 'required|numeric|min:0',
+            'montant_frais_agence' => 'required|numeric|min:0',
         ]);
 
         $demande = DemandeInteret::findOrFail($id);
         
-        $demande->update([
-            'pieces_demandees' => $request->pieces_demandees,
-            'note_admin' => $request->note_admin,
-        ]);
-
-        return back()->with('success', 'Demande de pièces envoyée au client.');
-    }
-
-    /**
-     * Confirmer réception des documents
-     */
-    public function documentsRecus(Request $request, $id)
-    {
-        $demande = DemandeInteret::findOrFail($id);
+        $montantTotal = $request->montant_caution + $request->montant_loyer_premier + $request->montant_frais_agence;
         
         $demande->update([
-            'statut' => 'documents_recus',
+            'statut' => 'paiement_en_attente',
+            'montant_caution' => $request->montant_caution,
+            'montant_loyer_premier' => $request->montant_loyer_premier,
+            'montant_frais_agence' => $request->montant_frais_agence,
+            'montant_total_paiement' => $montantTotal,
             'note_admin' => $request->note_admin,
         ]);
 
-        return back()->with('success', 'Documents marqués comme reçus.');
+        return back()->with('success', 'Paiement configuré. Montant total : ' . number_format($montantTotal, 0, ',', ' ') . ' FCFA');
     }
 
     /**
-     * Valider le dossier
+     * Valider le paiement et remettre les clés
      */
-    public function validerDossier(Request $request, $id)
-    {
-        $demande = DemandeInteret::findOrFail($id);
-        
-        $demande->update([
-            'statut' => 'dossier_valide',
-            'note_admin' => $request->note_admin,
-        ]);
-
-        return back()->with('success', 'Dossier validé avec succès.');
-    }
-
-    /**
-     * Refuser le dossier
-     */
-    public function refuserDossier(Request $request, $id)
+    public function validerPaiement(Request $request, $id)
     {
         $request->validate([
-            'raison_refus_dossier' => 'required|string',
+            'details_paiement' => 'nullable|string',
         ]);
 
         $demande = DemandeInteret::findOrFail($id);
         
         $demande->update([
-            'statut' => 'cloture_refus',
-            'raison_refus_dossier' => $request->raison_refus_dossier,
+            'statut' => 'paiement_valide',
+            'statut_paiement' => 'valide',
+            'details_paiement' => ['note' => $request->details_paiement],
+            'date_finalisation' => now(),
             'note_admin' => $request->note_admin,
         ]);
 
-        return back()->with('success', 'Dossier refusé.');
-    }
-
-    /**
-     * Générer le contrat
-     */
-    public function genererContrat(Request $request, $id)
-    {
-        $request->validate([
-            'contrat' => 'required|file|mimes:pdf|max:10240',
-        ]);
-
-        $demande = DemandeInteret::findOrFail($id);
-        
-        // Sauvegarder le contrat
-        if ($request->hasFile('contrat')) {
-            $demande->addMediaFromRequest('contrat')
-                ->toMediaCollection('contrat');
+        // Marquer le bien comme loué/vendu et le dépublier
+        $annonce = $demande->annonce;
+        if ($annonce) {
+            $statut = $annonce->type_transaction == 'location' ? 'loue' : 'vendu';
+            $annonce->update([
+                'statut' => $statut,
+                'statut_publication' => 0,
+            ]);
         }
+
+        return back()->with('success', 'Paiement validé et clés remises. Le bien a été marqué comme ' . ($annonce->type_transaction == 'location' ? 'loué' : 'vendu') . '.');
+    }
+
+    /**
+     * Clôturer une demande
+     */
+    public function cloturerDemande(Request $request, $id)
+    {
+        $request->validate([
+            'motif_cloture' => 'required|string',
+        ]);
+
+        $demande = DemandeInteret::findOrFail($id);
         
         $demande->update([
-            'statut' => 'contrat_genere',
+            'statut' => 'cloture',
+            'motif_cloture' => $request->motif_cloture,
             'note_admin' => $request->note_admin,
         ]);
 
-        return back()->with('success', 'Contrat généré avec succès. Vous pouvez maintenant créer le suivi de ' . ($demande->annonce->type_transaction == 'location' ? 'location' : 'vente') . '.');
+        return back()->with('success', 'Demande clôturée.');
     }
 
     /**
@@ -228,25 +231,5 @@ class DemandeInteretController extends Controller
 
         return back()->with('success', 'La demande a été supprimée.');
     }
-
-    /**
-     * Revenir à l'étape précédente
-     */
-    public function changerStatut(Request $request, $id)
-    {
-        $request->validate([
-            'statut' => 'required|string',
-            'motif_refus' => 'nullable|string',
-        ]);
-
-        $demande = DemandeInteret::findOrFail($id);
-        
-        $demande->update([
-            'statut' => $request->statut,
-            'motif_refus' => $request->motif_refus,
-            'note_admin' => $request->note_admin,
-        ]);
-
-        return back()->with('success', 'Statut modifié avec succès.');
-    }
 }
+

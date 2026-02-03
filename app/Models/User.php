@@ -103,4 +103,20 @@ class User extends Authenticatable implements HasMedia
     {
         return $this->hasMany(DemandeInteret::class);
     }
+
+    /**
+     * Relation avec les locations (en tant que locataire)
+     */
+    public function locations()
+    {
+        return $this->hasMany(Location::class, 'locataire_id');
+    }
+
+    /**
+     * Relation avec les ventes (en tant qu'acheteur)
+     */
+    public function ventes()
+    {
+        return $this->hasMany(Vente::class, 'acheteur_id');
+    }
 }

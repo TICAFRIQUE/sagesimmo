@@ -135,13 +135,26 @@ class PropertyController extends Controller
         // Récupérer les informations de l'utilisateur connecté
         $user = Auth::user();
         
-        // Sauvegarder la demande dans la base de données
-        DemandeInteret::create([
-            'user_id' => $user->id,
-            'annonce_id' => $bien->id,
-            'message' => $request->message,
-            'statut' => 'nouvelle',
-        ]);
+        // Créer directement une vente ou location selon le type de transaction
+        if ($bien->type_transaction == 'vente') {
+            \App\Models\Vente::create([
+                'annonce_id' => $bien->id,
+                'client_id' => $user->id,
+                'message_client' => $request->message,
+                'prix_vente' => $bien->prix,
+                'date_vente' => now(),
+                'statut' => 'demande_client',
+            ]);
+        } else {
+            \App\Models\Location::create([
+                'annonce_id' => $bien->id,
+                'locataire_id' => $user->id,
+                'message_client' => $request->message,
+                'loyer_mensuel' => $bien->prix,
+                'date_debut' => now(),
+                'statut' => 'demande_client',
+            ]);
+        }
 
         return back()->with('success', 'Votre demande a été envoyée avec succès. Nous vous recontacterons bientôt.');
     }

@@ -13,13 +13,24 @@ return new class extends Migration
     {
         Schema::create('ventes', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('demande_interet_id')->nullable()->constrained('demande_interets')->onDelete('set null');
             $table->foreignId('annonce_id')->constrained('annonces')->onDelete('cascade');
-            $table->foreignId('client_id')->constrained('users')->onDelete('cascade');
-            $table->decimal('prix_vente', 15, 2);
-            $table->date('date_vente');
+            $table->foreignId('acheteur_id')->constrained('users')->onDelete('cascade');
+            $table->text('message_client')->nullable();
+            
+            // Configuration de la vente
+            $table->decimal('prix_vente', 15, 2)->nullable();
+            $table->decimal('commission_agence', 10, 2)->nullable();
+            $table->enum('type_commission', ['pourcentage', 'montant'])->default('montant');
+            
+            // Workflow
+            $table->dateTime('date_visite')->nullable();
+            $table->text('compte_rendu_visite')->nullable();
             $table->date('date_signature')->nullable();
-            $table->enum('statut', ['en_cours', 'completé', 'annulé'])->default('en_cours');
-            $table->text('notes')->nullable();
+            $table->dateTime('date_finalisation')->nullable();
+            $table->enum('statut', ['demande_client', 'brouillon', 'fiche_envoyee', 'visite_planifiee', 'offre_acceptee', 'terminee', 'annulee'])->default('demande_client');
+            $table->text('note_admin')->nullable();
+            
             $table->timestamps();
         });
     }

@@ -108,6 +108,22 @@ class AnnoncesTableSeederFast extends Seeder
             ];
             $prix = round($prixBase * $multiplicateurs[$ville['nom']], -3);
 
+            // Génération des commissions
+            $typeCommission = rand(0, 1) ? 'pourcentage' : 'fixe';
+            if ($typeCommission === 'pourcentage') {
+                // Commission en pourcentage (entre 2% et 10%)
+                $commission = rand(2, 10);
+            } else {
+                // Commission fixe (basée sur le prix)
+                if ($typeTransaction === 'location') {
+                    // Pour les locations: entre 50 000 et 150 000 FCFA
+                    $commission = rand(50, 150) * 1000;
+                } else {
+                    // Pour les ventes: entre 0,5% et 2% du prix (arrondi)
+                    $commission = round($prix * rand(5, 20) / 1000, -3);
+                }
+            }
+
             // Génération de la description
             $descTemplate = $descriptionsTemplates[array_rand($descriptionsTemplates)];
             $description = str_replace(
@@ -141,6 +157,8 @@ class AnnoncesTableSeederFast extends Seeder
                 'type_transaction' => $typeTransaction,
                 'type_bien_id' => $typeBien->id,
                 'prix' => $prix,
+                'commission' => $commission,
+                'type_commission' => $typeCommission,
                 'surface' => $surface,
                 'nombre_chambres' => $nombreChambres,
                 'nombre_salles_bain' => $nombreSallesBain,

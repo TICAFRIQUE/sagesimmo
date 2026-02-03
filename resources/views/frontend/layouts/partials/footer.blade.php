@@ -46,11 +46,11 @@
                 <ul class="footer-links">
                     <li>
                         <i class="ri-map-pin-line"></i> 
-                        123 Avenue des Champs, Paris
+                        123 Rue de l'Abidjan, Côte d'Ivoire
                     </li>
                     <li>
                         <i class="ri-phone-line"></i> 
-                        +33 1 23 45 67 89
+                       +225 00 00 00 00
                     </li>
                     <li>
                         <i class="ri-mail-line"></i> 

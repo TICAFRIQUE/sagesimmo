@@ -95,13 +95,7 @@
                                             @endif
                                         </td>
                                         <td>
-                                            @if($location->statut == 'actif')
-                                                <span class="badge bg-success">Actif</span>
-                                            @elseif($location->statut == 'terminé')
-                                                <span class="badge bg-secondary">Terminé</span>
-                                            @else
-                                                <span class="badge bg-danger">Résilié</span>
-                                            @endif
+                                            {!! $location->statut_badge !!}
                                         </td>
                                         <td>
                                             <a href="{{ route('backend.locations.show', $location) }}" class="btn btn-sm btn-info" title="Voir détails">

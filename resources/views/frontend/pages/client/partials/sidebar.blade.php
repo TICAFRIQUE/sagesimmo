@@ -23,9 +23,17 @@
             <span>Mon Profil</span>
         </a>
         <a href="{{ route('client.demandes') }}" 
-           class="nav-link {{ request()->routeIs('client.demandes*') ? 'active' : '' }}">
+           class="nav-link d-flex align-items-center {{ request()->routeIs('client.demandes*') ? 'active' : '' }}">
             <i class="ri-message-3-line"></i>
-            <span>Mes Demandes</span>
+            <span class="flex-grow-1">Mes Demandes</span>
+            @php
+                $demandesEnCours = \App\Models\DemandeInteret::where('user_id', Auth::id())
+                    ->whereNotIn('statut', ['cloture', 'paiement_valide'])
+                    ->count();
+            @endphp
+            @if($demandesEnCours > 0)
+                <span class="badge bg-danger rounded-pill">{{ $demandesEnCours }}</span>
+            @endif
         </a>
         <a href="{{ route('properties.index') }}" class="nav-link">
             <i class="ri-search-line"></i>

@@ -42,6 +42,40 @@
     </div>
 </div>
 
+<!-- Modal Envoyer Contrat -->
+<div class="modal fade" id="envoyerContratModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ route('backend.demandes.envoyer-contrat', $demande->id) }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title">Envoyer le contrat par email</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="ri-information-line"></i> Le contrat sera uploadé et envoyé par email au client : <strong>{{ $demande->user->email }}</strong>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Fichier contrat (PDF) *</label>
+                        <input type="file" name="contrat" class="form-control" accept=".pdf" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Note interne (optionnel)</label>
+                        <textarea name="note_admin" class="form-control" rows="2">{{ $demande->note_admin }}</textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-info">
+                        <i class="ri-mail-send-line"></i> Envoyer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Modal Visite Effectuée -->
 <div class="modal fade" id="visiteEffectueeModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
@@ -82,179 +116,6 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
                     <button type="submit" class="btn btn-success">
                         <i class="ri-check-line"></i> Enregistrer
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Demander Pièces -->
-<div class="modal fade" id="demanderPiecesModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form action="{{ route('backend.demandes.demander-pieces', $demande->id) }}" method="POST">
-                @csrf
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title">Demander des pièces au client</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Pièces à demander *</label>
-                        <div class="form-check">
-                            <input class="form-check-input piece-checkbox" type="checkbox" value="CNI ou Passeport" id="cni">
-                            <label class="form-check-label" for="cni">CNI ou Passeport</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input piece-checkbox" type="checkbox" value="Bulletins de salaire (3 derniers mois)" id="salaire">
-                            <label class="form-check-label" for="salaire">Bulletins de salaire (3 derniers mois)</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input piece-checkbox" type="checkbox" value="Attestation de travail" id="travail">
-                            <label class="form-check-label" for="travail">Attestation de travail</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input piece-checkbox" type="checkbox" value="Justificatif de domicile" id="domicile">
-                            <label class="form-check-label" for="domicile">Justificatif de domicile</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input piece-checkbox" type="checkbox" value="RIB" id="rib">
-                            <label class="form-check-label" for="rib">RIB</label>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Autres pièces</label>
-                        <textarea class="form-control" id="autresPieces" rows="2" placeholder="Précisez d'autres pièces..."></textarea>
-                    </div>
-                    <input type="hidden" name="pieces_demandees" id="piecesDemandeesInput">
-                    <div class="mb-3">
-                        <label class="form-label">Note interne (optionnel)</label>
-                        <textarea name="note_admin" class="form-control" rows="2">{{ $demande->note_admin }}</textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-primary" onclick="collectPieces()">
-                        <i class="ri-file-list-line"></i> Demander
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Documents Reçus -->
-<div class="modal fade" id="documentsRecusModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form action="{{ route('backend.demandes.documents-recus', $demande->id) }}" method="POST">
-                @csrf
-                <div class="modal-header bg-purple text-white">
-                    <h5 class="modal-title">Confirmer réception des documents</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Confirmez que vous avez bien reçu tous les documents demandés au client.</p>
-                    <div class="mb-3">
-                        <label class="form-label">Note interne (optionnel)</label>
-                        <textarea name="note_admin" class="form-control" rows="2">{{ $demande->note_admin }}</textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-purple">
-                        <i class="ri-check-line"></i> Confirmer
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Valider Dossier -->
-<div class="modal fade" id="validerDossierModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form action="{{ route('backend.demandes.valider-dossier', $demande->id) }}" method="POST">
-                @csrf
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title">Valider le dossier</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Le dossier client a été vérifié et est complet ?</p>
-                    <div class="mb-3">
-                        <label class="form-label">Note interne (optionnel)</label>
-                        <textarea name="note_admin" class="form-control" rows="2">{{ $demande->note_admin }}</textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-success">
-                        <i class="ri-check-double-line"></i> Valider
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Refuser Dossier -->
-<div class="modal fade" id="refuserDossierModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form action="{{ route('backend.demandes.refuser-dossier', $demande->id) }}" method="POST">
-                @csrf
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title">Refuser le dossier</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Raison du refus *</label>
-                        <textarea name="raison_refus_dossier" class="form-control" rows="3" required></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Note interne (optionnel)</label>
-                        <textarea name="note_admin" class="form-control" rows="2">{{ $demande->note_admin }}</textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-danger">
-                        <i class="ri-close-line"></i> Refuser
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Générer Contrat -->
-<div class="modal fade" id="genererContratModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form action="{{ route('backend.demandes.generer-contrat', $demande->id) }}" method="POST" enctype="multipart/form-data">
-                @csrf
-                <div class="modal-header bg-teal text-white">
-                    <h5 class="modal-title">Générer et uploader le contrat</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Fichier contrat (PDF) *</label>
-                        <input type="file" name="contrat" class="form-control" accept=".pdf" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Note interne (optionnel)</label>
-                        <textarea name="note_admin" class="form-control" rows="2">{{ $demande->note_admin }}</textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-teal">
-                        <i class="ri-file-upload-line"></i> Générer
                     </button>
                 </div>
             </form>
@@ -306,7 +167,7 @@
                                         <label class="form-label">Type commission</label>
                                         <select name="type_commission" id="type_commission_config" class="form-select @error('type_commission') is-invalid @enderror">
                                             <option value="pourcentage" {{ old('type_commission', $demande->annonce->type_commission ?? 'pourcentage') == 'pourcentage' ? 'selected' : '' }}>Pourcentage (%)</option>
-                                            <option value="fixe" {{ old('type_commission', $demande->annonce->type_commission) == 'fixe' ? 'selected' : '' }}>Montant fixe</option>
+                                            <option value="montant" {{ old('type_commission', $demande->annonce->type_commission) == 'montant' ? 'selected' : '' }}>Montant fixe</option>
                                         </select>
                                         @error('type_commission')
                                             <div class="invalid-feedback">{{ $message }}</div>
@@ -545,53 +406,20 @@
     });
 </script>
 
-<!-- Modal Refuser Demande (nouvelle demande) -->
-<div class="modal fade" id="refuserDemandeModal" tabindex="-1">
+<!-- Modal Clôturer Demande -->
+<div class="modal fade" id="cloturerDemandeModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="{{ route('backend.demandes.changer-statut', $demande->id) }}" method="POST">
+            <form action="{{ route('backend.demandes.cloturer', $demande->id) }}" method="POST">
                 @csrf
                 <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title">Refuser la demande</h5>
+                    <h5 class="modal-title">Clôturer la demande</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="hidden" name="statut" value="cloture_refus">
-                    <div class="mb-3">
-                        <label class="form-label">Motif du refus *</label>
-                        <textarea name="motif_refus" class="form-control" rows="3" required placeholder="Expliquez pourquoi cette demande est refusée..."></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Note interne (optionnel)</label>
-                        <textarea name="note_admin" class="form-control" rows="2">{{ $demande->note_admin }}</textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-danger">
-                        <i class="ri-close-line"></i> Refuser
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Clôturer Non Intéressé -->
-<div class="modal fade" id="cloturerNonInteresseModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form action="{{ route('backend.demandes.changer-statut', $demande->id) }}" method="POST">
-                @csrf
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title">Clôturer - Client non intéressé</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" name="statut" value="cloture_non_interesse">
                     <div class="mb-3">
                         <label class="form-label">Motif de clôture *</label>
-                        <textarea name="motif_refus" class="form-control" rows="3" required placeholder="Expliquez pourquoi le client n'est plus intéressé..."></textarea>
+                        <textarea name="motif_cloture" class="form-control" rows="3" required placeholder="Expliquez la raison de la clôture..."></textarea>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Note interne (optionnel)</label>
@@ -608,19 +436,3 @@
         </div>
     </div>
 </div>
-
-<script>
-function collectPieces() {
-    let pieces = [];
-    document.querySelectorAll('.piece-checkbox:checked').forEach(function(checkbox) {
-        pieces.push(checkbox.value);
-    });
-    
-    let autres = document.getElementById('autresPieces').value;
-    if (autres) {
-        pieces.push(autres);
-    }
-    
-    document.getElementById('piecesDemandeesInput').value = pieces.join(', ');
-}
-</script>

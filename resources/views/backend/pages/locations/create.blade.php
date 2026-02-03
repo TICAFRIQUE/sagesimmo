@@ -55,6 +55,31 @@
                         </div>
 
                         <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Point de départ du workflow <span class="text-danger">*</span></label>
+                                <select name="statut_initial" class="form-select @error('statut_initial') is-invalid @enderror" required>
+                                    <option value="brouillon" {{ old('statut_initial', 'brouillon') == 'brouillon' ? 'selected' : '' }}>
+                                        🔵 Brouillon - Je configurerai les détails et enverrai la fiche plus tard
+                                    </option>
+                                    <option value="fiche_envoyee" {{ old('statut_initial') == 'fiche_envoyee' ? 'selected' : '' }}>
+                                        📄 Fiche déjà envoyée - Je peux directement planifier une visite
+                                    </option>
+                                    <option value="demande_client" {{ old('statut_initial') == 'demande_client' ? 'selected' : '' }}>
+                                        💬 Demande client - Le client a fait une demande, je dois lui envoyer la fiche
+                                    </option>
+                                </select>
+                                <small class="text-muted">
+                                    <i class="ri-information-line"></i> 
+                                    <strong>Recommandé:</strong> Choisissez "Brouillon" pour une création manuelle depuis l'admin.
+                                    Choisissez "Demande client" uniquement si le client a fait une demande depuis le site.
+                                </small>
+                                @error('statut_initial')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="row">
                             <div class="col-md-3 mb-3">
                                 <label class="form-label">Loyer mensuel (FCFA) <span class="text-danger">*</span></label>
                                 <input type="number" name="loyer_mensuel" id="loyer_mensuel" class="form-control @error('loyer_mensuel') is-invalid @enderror" 

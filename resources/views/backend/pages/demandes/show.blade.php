@@ -458,8 +458,29 @@
                                 @case('nouvelle')
                                     <div class="col-md-6">
                                         <div class="action-card info p-3 h-100">
+                                            <h6><i class="ri-mail-send-line me-2"></i>Envoyer le contrat</h6>
+                                            <p class="text-muted small mb-2">Envoyer les documents du contrat par email</p>
+                                            <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#envoyerContratModal">
+                                                Envoyer
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="action-card danger p-3 h-100">
+                                            <h6><i class="ri-close-line me-2"></i>Clôturer la demande</h6>
+                                            <p class="text-muted small mb-2">Refuser ou abandonner</p>
+                                            <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#cloturerDemandeModal">
+                                                Clôturer
+                                            </button>
+                                        </div>
+                                    </div>
+                                @break
+
+                                @case('contrat_envoye')
+                                    <div class="col-md-6">
+                                        <div class="action-card info p-3 h-100">
                                             <h6><i class="ri-calendar-line me-2"></i>Planifier une visite</h6>
-                                            <p class="text-muted small mb-2">Proposer une date de visite au client</p>
+                                            <p class="text-muted small mb-2">Après accord du client (externe)</p>
                                             <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#planifierVisiteModal">
                                                 Planifier
                                             </button>
@@ -467,10 +488,10 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="action-card danger p-3 h-100">
-                                            <h6><i class="ri-close-line me-2"></i>Refuser la demande</h6>
-                                            <p class="text-muted small mb-2">Clôturer avec refus</p>
-                                            <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#refuserDemandeModal">
-                                                Refuser
+                                            <h6><i class="ri-close-line me-2"></i>Clôturer</h6>
+                                            <p class="text-muted small mb-2">Si pas d'accord ou abandon</p>
+                                            <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#cloturerDemandeModal">
+                                                Clôturer
                                             </button>
                                         </div>
                                     </div>
@@ -490,84 +511,50 @@
 
                                 @case('visite_effectuee')
                                     <div class="col-md-6">
-                                        <div class="action-card primary p-3 h-100">
-                                            <h6><i class="ri-file-list-line me-2"></i>Demander des pièces</h6>
-                                            <p class="text-muted small mb-2">Liste des documents à fournir</p>
-                                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#demanderPiecesModal">
-                                                Demander
+                                        <div class="action-card warning p-3 h-100">
+                                            <h6><i class="ri-money-dollar-circle-line me-2"></i>Configurer le paiement</h6>
+                                            <p class="text-muted small mb-2">Définir les montants à payer</p>
+                                            <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#configurerPaiementModal">
+                                                Configurer
                                             </button>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="action-card danger p-3 h-100">
-                                            <h6><i class="ri-close-line me-2"></i>Client non intéressé</h6>
-                                            <p class="text-muted small mb-2">Clôturer la demande</p>
-                                            <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#cloturerNonInteresseModal">
+                                            <h6><i class="ri-close-line me-2"></i>Clôturer</h6>
+                                            <p class="text-muted small mb-2">Si abandon</p>
+                                            <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#cloturerDemandeModal">
                                                 Clôturer
                                             </button>
                                         </div>
                                     </div>
                                 @break
 
-                                @case('documents_recus')
+                                @case('paiement_en_attente')
                                     <div class="col-md-6">
                                         <div class="action-card success p-3 h-100">
-                                            <h6><i class="ri-shield-check-line me-2"></i>Valider le dossier</h6>
-                                            <p class="text-muted small mb-2">Le dossier est complet</p>
-                                            <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#validerDossierModal">
+                                            <h6><i class="ri-check-double-line me-2"></i>Valider le paiement</h6>
+                                            <p class="text-muted small mb-2">Confirmer réception et remettre les clés</p>
+                                            <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#validerPaiementModal">
                                                 Valider
                                             </button>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="action-card danger p-3 h-100">
-                                            <h6><i class="ri-close-line me-2"></i>Refuser le dossier</h6>
-                                            <p class="text-muted small mb-2">Documents insuffisants</p>
-                                            <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#refuserDossierModal">
-                                                Refuser
+                                            <h6><i class="ri-close-line me-2"></i>Clôturer</h6>
+                                            <p class="text-muted small mb-2">Si paiement non reçu</p>
+                                            <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#cloturerDemandeModal">
+                                                Clôturer
                                             </button>
                                         </div>
                                     </div>
                                 @break
 
-                                @case('dossier_valide')
+                                @case('paiement_valide')
                                     <div class="col-md-12">
-                                        <div class="action-card success p-3" style="border-color: #14b8a6; background: #f0fdfa;">
-                                            <h6><i class="ri-file-text-line me-2"></i>Générer et uploader le contrat</h6>
-                                            <p class="text-muted small mb-2">Télécharger le contrat PDF signé</p>
-                                            <button class="btn btn-teal" data-bs-toggle="modal" data-bs-target="#genererContratModal">
-                                                Uploader le contrat
-                                            </button>
-                                        </div>
-                                    </div>
-                                @break
-
-                                @case('contrat_genere')
-                                    <div class="col-md-12">
-                                        <div class="action-card success p-3">
-                                            <h6><i class="ri-file-add-line me-2"></i>
-                                                @if($demande->annonce->type_transaction == 'location')
-                                                    Créer le suivi de location
-                                                @else
-                                                    Créer le suivi de vente
-                                                @endif
-                                            </h6>
-                                            <p class="text-muted small mb-2">
-                                                @if($demande->annonce->type_transaction == 'location')
-                                                    Créer un suivi de location pour gérer les loyers et échéances
-                                                @else
-                                                    Créer un suivi de vente pour gérer les paiements
-                                                @endif
-                                            </p>
-                                            @if($demande->annonce->type_transaction == 'location')
-                                                <a href="{{ route('backend.locations.create-from-demande', $demande->id) }}" class="btn btn-success btn-lg">
-                                                    <i class="ri-calendar-check-line me-2"></i>Créer le suivi de location
-                                                </a>
-                                            @else
-                                                <a href="{{ route('backend.ventes.create-from-demande', $demande->id) }}" class="btn btn-success btn-lg">
-                                                    <i class="ri-shopping-bag-line me-2"></i>Créer le suivi de vente
-                                                </a>
-                                            @endif
+                                        <div class="alert alert-success">
+                                            <i class="ri-check-double-line me-2"></i>Transaction finalisée ! Le bien a été marqué comme {{ $demande->annonce->type_transaction == 'location' ? 'loué' : 'vendu' }}.
                                         </div>
                                     </div>
                                 @break

@@ -60,81 +60,54 @@
                             </div>
                         </div>
 
-                        <!-- Visite planifiée -->
+                        <!-- Fiche envoyée -->
                         @if($demande->progression >= 20)
-                            <div class="timeline-item {{ $demande->statut == 'visite_planifiee' ? 'active' : ($demande->progression > 20 ? 'completed' : '') }}">
+                            <div class="timeline-item {{ $demande->statut == 'contrat_envoye' ? 'active' : ($demande->progression > 20 ? 'completed' : '') }}">
+                                <div class="timeline-marker">
+                                    <i class="ri-file-list-3-line"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <h6>Fiche d'information envoyée</h6>
+                                    <p>Vous avez reçu la fiche du bien par email</p>
+                                </div>
+                            </div>
+                        @endif
+
+                        <!-- Visite planifiée -->
+                        @if($demande->progression >= 35)
+                            <div class="timeline-item {{ $demande->statut == 'visite_planifiee' ? 'active' : ($demande->progression > 35 ? 'completed' : '') }}">
                                 <div class="timeline-marker">
                                     <i class="ri-calendar-check-line"></i>
                                 </div>
                                 <div class="timeline-content">
                                     <h6>Visite planifiée</h6>
                                     @if($demande->date_visite)
-                                        <p>{{ \Carbon\Carbon::parse($demande->date_visite)->format('d/m/Y à H:i') }}</p>
+                                        <p><strong>{{ \Carbon\Carbon::parse($demande->date_visite)->format('d/m/Y à H:i') }}</strong></p>
+                                        <p class="text-muted mb-0">Présentez-vous à l'heure pour la visite du bien</p>
                                     @endif
                                 </div>
                             </div>
                         @endif
 
                         <!-- Visite effectuée -->
-                        @if($demande->progression >= 35)
-                            <div class="timeline-item {{ $demande->statut == 'visite_effectuee' ? 'active' : ($demande->progression > 35 ? 'completed' : '') }}">
+                        @if($demande->progression >= 50)
+                            <div class="timeline-item {{ $demande->statut == 'visite_effectuee' ? 'active' : ($demande->progression > 50 ? 'completed' : '') }}">
                                 <div class="timeline-marker">
                                     <i class="ri-home-smile-line"></i>
                                 </div>
                                 <div class="timeline-content">
                                     <h6>Visite effectuée</h6>
                                     @if($demande->compte_rendu_visite)
-                                        <p>{{ Str::limit($demande->compte_rendu_visite, 100) }}</p>
-                                    @endif
-                                </div>
-                            </div>
-                        @endif
-
-                        <!-- Documents reçus -->
-                        @if($demande->progression >= 50)
-                            <div class="timeline-item {{ $demande->statut == 'documents_recus' ? 'active' : ($demande->progression > 50 ? 'completed' : '') }}">
-                                <div class="timeline-marker">
-                                    <i class="ri-file-upload-line"></i>
-                                </div>
-                                <div class="timeline-content">
-                                    <h6>Documents reçus</h6>
-                                    <p>Vos documents sont en cours de vérification</p>
-                                </div>
-                            </div>
-                        @endif
-
-                        <!-- Dossier validé -->
-                        @if($demande->progression >= 65)
-                            <div class="timeline-item {{ $demande->statut == 'dossier_valide' ? 'active' : ($demande->progression > 65 ? 'completed' : '') }}">
-                                <div class="timeline-marker">
-                                    <i class="ri-checkbox-circle-line"></i>
-                                </div>
-                                <div class="timeline-content">
-                                    <h6>Dossier validé</h6>
-                                    <p>Votre dossier a été accepté</p>
-                                </div>
-                            </div>
-                        @endif
-
-                        <!-- Contrat généré -->
-                        @if($demande->progression >= 80)
-                            <div class="timeline-item {{ $demande->statut == 'contrat_genere' ? 'active' : ($demande->progression > 80 ? 'completed' : '') }}">
-                                <div class="timeline-marker">
-                                    <i class="ri-file-text-line"></i>
-                                </div>
-                                <div class="timeline-content">
-                                    <h6>Contrat généré</h6>
-                                    @if($demande->hasMedia('contrat'))
-                                        <a href="{{ $demande->getFirstMediaUrl('contrat') }}" target="_blank" class="btn btn-sm btn-primary">
-                                            <i class="ri-download-line"></i> Télécharger le contrat
-                                        </a>
+                                        <p>{{ Str::limit($demande->compte_rendu_visite, 150) }}</p>
+                                    @else
+                                        <p>La visite a été effectuée avec succès</p>
                                     @endif
                                 </div>
                             </div>
                         @endif
 
                         <!-- Paiement -->
-                        @if($demande->progression >= 90)
+                        @if($demande->progression >= 75)
                             <div class="timeline-item {{ in_array($demande->statut, ['paiement_en_attente', 'paiement_valide']) ? 'active' : '' }}">
                                 <div class="timeline-marker">
                                     <i class="ri-money-dollar-circle-line"></i>
@@ -143,11 +116,14 @@
                                     <h6>Paiement</h6>
                                     @if($demande->montant_total_paiement)
                                         <p><strong>Montant total:</strong> {{ number_format($demande->montant_total_paiement, 0, ',', ' ') }} FCFA</p>
-                                        @if($demande->statut_paiement == 'complet')
-                                            <span class="badge bg-success">Paiement validé</span>
+                                        @if($demande->statut_paiement == 'complet' || $demande->statut == 'paiement_valide')
+                                            <span class="badge bg-success">✅ Paiement validé</span>
                                         @else
-                                            <span class="badge bg-warning">En attente de paiement</span>
+                                            <span class="badge bg-warning">⏳ En attente de paiement</span>
+                                            <p class="text-muted mb-0 mt-2">Veuillez contacter l'agence pour les modalités de paiement</p>
                                         @endif
+                                    @else
+                                        <p>En attente des informations de paiement</p>
                                     @endif
                                 </div>
                             </div>
@@ -164,67 +140,42 @@
                                     @if($demande->date_finalisation)
                                         <p>{{ $demande->date_finalisation->format('d/m/Y') }}</p>
                                     @endif
-                                    <span class="badge bg-success">Félicitations ! Le bien est à vous !</span>
+                                    <span class="badge bg-success fs-6">✅ Félicitations ! Le bien est à vous !</span>
+                                    
+                                    @if($demande->is_convertie)
+                                        <div class="alert alert-info mt-3 mb-0">
+                                            <i class="ri-information-line"></i>
+                                            @if($demande->location)
+                                                Votre contrat de location a été créé. Vous recevrez les échéances de paiement par email.
+                                            @elseif($demande->vente)
+                                                Votre acte de vente a été finalisé. Bienvenue dans votre nouveau bien !
+                                            @endif
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
+                        
+                        <!-- Clôture -->
+                        @if($demande->statut == 'cloture')
+                            <div class="timeline-item">
+                                <div class="timeline-marker" style="background: #dc3545; color: white;">
+                                    <i class="ri-close-circle-line"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <h6>Demande clôturée</h6>
+                                    @if($demande->motif_cloture)
+                                        <p>{{ $demande->motif_cloture }}</p>
+                                    @endif
+                                    @if($demande->date_finalisation)
+                                        <p class="text-muted mb-0">{{ $demande->date_finalisation->format('d/m/Y') }}</p>
+                                    @endif
                                 </div>
                             </div>
                         @endif
                     </div>
                 </div>
             </div>
-
-            <!-- Zone d'upload de documents -->
-            @if($demande->pieces_demandees && $demande->statut == 'visite_effectuee')
-                <div class="card mb-4 border-warning">
-                    <div class="card-header bg-warning text-white">
-                        <h5 class="mb-0">
-                            <i class="ri-file-upload-line"></i> Documents demandés
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <p><strong>Pièces à fournir:</strong></p>
-                        <p>{{ $demande->pieces_demandees }}</p>
-
-                        <hr>
-
-                        <form action="{{ route('client.demandes.upload-documents', $demande->id) }}" 
-                              method="POST" 
-                              enctype="multipart/form-data">
-                            @csrf
-                            <div class="mb-3">
-                                <label for="documents" class="form-label">Uploader vos documents *</label>
-                                <input type="file" 
-                                       class="form-control" 
-                                       id="documents" 
-                                       name="documents[]" 
-                                       multiple 
-                                       accept=".pdf,.jpg,.jpeg,.png"
-                                       required>
-                                <small class="text-muted">
-                                    Formats acceptés: PDF, JPG, PNG. Taille max: 5 MB par fichier.
-                                </small>
-                            </div>
-                            <button type="submit" class="btn btn-warning">
-                                <i class="ri-upload-2-line"></i> Envoyer les documents
-                            </button>
-                        </form>
-
-                        @if($demande->hasMedia('documents_client'))
-                            <hr>
-                            <h6>Documents déjà envoyés:</h6>
-                            <div class="list-group">
-                                @foreach($demande->getMedia('documents_client') as $media)
-                                    <a href="{{ $media->getUrl() }}" 
-                                       class="list-group-item list-group-item-action"
-                                       target="_blank">
-                                        <i class="ri-file-line"></i> {{ $media->file_name }}
-                                        <small class="text-muted">({{ $media->human_readable_size }})</small>
-                                    </a>
-                                @endforeach
-                            </div>
-                        @endif
-                    </div>
-                </div>
-            @endif
 
             <!-- Détails paiement -->
             @if($demande->statut_paiement)

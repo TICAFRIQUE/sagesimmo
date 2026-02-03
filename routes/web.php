@@ -63,7 +63,6 @@ Route::middleware(['auth'])->prefix('mon-espace')->controller(DashboardClientCon
     Route::get('/demandes', 'demandes')->name('client.demandes');
     Route::get('/demandes/{id}', 'showDemande')->name('client.demandes.show');
     Route::delete('/demandes/{id}', 'cancelDemande')->name('client.demandes.cancel');
-    Route::post('/demandes/{id}/upload-documents', 'uploadDocuments')->name('client.demandes.upload-documents');
 });
 
 
@@ -90,6 +89,12 @@ Route::middleware(['admin'])->prefix('admin')->group(function () {
 
     // dashboard admin
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard.index');
+
+    // Alertes et retards
+    Route::prefix('alertes')->name('backend.alertes.')->controller(App\Http\Controllers\Backend\AlerteController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('mettre-a-jour', 'mettreAJourStatuts')->name('mettre-a-jour');
+    });
 
     // parametre application
     Route::prefix('parametre')->controller(ParametreController::class)->group(function () {
@@ -190,16 +195,12 @@ Route::middleware(['admin'])->prefix('admin')->group(function () {
     Route::prefix('demandes')->controller(DemandeInteretController::class)->group(function () {
         route::get('', 'index')->name('backend.demandes.index');
         route::get('{id}', 'show')->name('backend.demandes.show');
+        route::post('{id}/envoyer-contrat', 'envoyerContrat')->name('backend.demandes.envoyer-contrat');
         route::post('{id}/planifier-visite', 'planifierVisite')->name('backend.demandes.planifier-visite');
         route::post('{id}/visite-effectuee', 'visiteEffectuee')->name('backend.demandes.visite-effectuee');
-        route::post('{id}/demander-pieces', 'demanderPieces')->name('backend.demandes.demander-pieces');
-        route::post('{id}/documents-recus', 'documentsRecus')->name('backend.demandes.documents-recus');
-        route::post('{id}/valider-dossier', 'validerDossier')->name('backend.demandes.valider-dossier');
-        route::post('{id}/refuser-dossier', 'refuserDossier')->name('backend.demandes.refuser-dossier');
-        route::post('{id}/generer-contrat', 'genererContrat')->name('backend.demandes.generer-contrat');
         route::post('{id}/configurer-paiement', 'configurerPaiement')->name('backend.demandes.configurer-paiement');
         route::post('{id}/valider-paiement', 'validerPaiement')->name('backend.demandes.valider-paiement');
-        route::post('{id}/changer-statut', 'changerStatut')->name('backend.demandes.changer-statut');
+        route::post('{id}/cloturer', 'cloturerDemande')->name('backend.demandes.cloturer');
         route::post('{id}/update-note', 'updateNote')->name('backend.demandes.update-note');
         route::delete('{id}', 'destroy')->name('backend.demandes.destroy');
     });
@@ -216,6 +217,14 @@ Route::middleware(['admin'])->prefix('admin')->group(function () {
         route::put('{vente}', 'update')->name('backend.ventes.update');
         route::delete('{vente}', 'destroy')->name('backend.ventes.destroy');
         route::post('{vente}/paiement', 'addPaiement')->name('backend.ventes.add-paiement');
+        
+        // Actions du workflow
+        route::post('{vente}/envoyer-fiche', 'envoyerFiche')->name('backend.ventes.envoyer-fiche');
+        route::post('{vente}/planifier-visite', 'planifierVisite')->name('backend.ventes.planifier-visite');
+        route::post('{vente}/visite-effectuee', 'visiteEffectuee')->name('backend.ventes.visite-effectuee');
+        route::post('{vente}/configurer-paiement', 'configurerPaiement')->name('backend.ventes.configurer-paiement');
+        route::post('{vente}/valider-paiement', 'validerPaiement')->name('backend.ventes.valider-paiement');
+        route::post('{vente}/annuler', 'annulerVente')->name('backend.ventes.annuler');
     });
 
     // Gestion des locations
@@ -229,7 +238,23 @@ Route::middleware(['admin'])->prefix('admin')->group(function () {
         route::get('{location}/edit', 'edit')->name('backend.locations.edit');
         route::put('{location}', 'update')->name('backend.locations.update');
         route::delete('{location}', 'destroy')->name('backend.locations.destroy');
-        route::post('{location}/paiement', 'addPaiement')->name('backend.locations.add-paiement');
-        route::put('echeance/{echeance}', 'updateEcheance')->name('backend.locations.update-echeance');
+        
+        // Actions du workflow
+        route::post('{location}/envoyer-fiche', 'envoyerFiche')->name('backend.locations.envoyer-fiche');
+        route::post('{location}/marquer-fiche-envoyee', 'marquerFicheEnvoyee')->name('backend.locations.marquer-fiche-envoyee');
+        route::post('{location}/planifier-visite', 'planifierVisite')->name('backend.locations.planifier-visite');
+        route::post('{location}/visite-effectuee', 'visiteEffectuee')->name('backend.locations.visite-effectuee');
+        route::post('{location}/configurer-paiement', 'configurerPaiement')->name('backend.locations.configurer-paiement');
+        route::post('{location}/enregistrer-premier-paiement', 'enregistrerPremierPaiement')->name('backend.locations.enregistrer-premier-paiement');
+        route::post('{location}/valider-premier-paiement', 'validerPremierPaiement')->name('backend.locations.valider-premier-paiement');
+        route::post('echeance/{echeance}/enregistrer-paiement-loyer', 'enregistrerPaiementLoyer')->name('backend.locations.enregistrer-paiement-loyer');
+        route::post('{location}/generer-nouvelles-echeances', 'genererNouvellesEcheances')->name('backend.locations.generer-nouvelles-echeances');
+        route::post('{location}/resilier', 'resilierLocation')->name('backend.locations.resilier');
+    });
+
+    // Rapports et statistiques
+    Route::prefix('rapports')->group(function () {
+        Route::get('commissions', [\App\Http\Controllers\RapportController::class, 'commissions'])->name('backend.rapports.commissions');
+        Route::get('statistiques', [\App\Http\Controllers\RapportController::class, 'statistiques'])->name('backend.rapports.statistiques');
     });
 });

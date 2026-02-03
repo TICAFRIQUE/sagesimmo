@@ -16,12 +16,19 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('annonce_id')->constrained('annonces')->onDelete('cascade');
             $table->text('message');
-            $table->enum('statut', ['en_attente', 'acceptee', 'refusee', 'visite_proposee', 'pieces_demandees'])->default('en_attente');
+            $table->enum('statut', [
+                'nouvelle',
+                'contrat_envoye',
+                'visite_planifiee',
+                'visite_effectuee',
+                'paiement_en_attente',
+                'paiement_valide',
+                'cloture'
+            ])->default('nouvelle');
             $table->dateTime('date_visite')->nullable();
-            $table->text('pieces_demandees')->nullable(); // Liste des pièces demandées
-            $table->text('pieces_fournies')->nullable(); // Chemin des pièces fournies (JSON)
-            $table->text('motif_refus')->nullable();
-            $table->text('note_admin')->nullable(); // Notes internes de l'admin
+            $table->dateTime('date_finalisation')->nullable();
+            $table->text('motif_cloture')->nullable();
+            $table->text('note_admin')->nullable();
             $table->timestamps();
         });
     }

@@ -78,7 +78,7 @@
                                 <label class="form-label">Type commission</label>
                                 <select name="type_commission" id="type_commission" class="form-select @error('type_commission') is-invalid @enderror">
                                     <option value="pourcentage" {{ old('type_commission', 'pourcentage') == 'pourcentage' ? 'selected' : '' }}>Pourcentage (%)</option>
-                                    <option value="fixe" {{ old('type_commission') == 'fixe' ? 'selected' : '' }}>Montant fixe</option>
+                                    <option value="montant" {{ old('type_commission') == 'montant' ? 'selected' : '' }}>Montant fixe</option>
                                 </select>
                                 @error('type_commission')
                                     <div class="invalid-feedback">{{ $message }}</div>

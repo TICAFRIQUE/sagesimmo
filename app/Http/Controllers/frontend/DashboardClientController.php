@@ -21,7 +21,7 @@ class DashboardClientController extends Controller
         // Statistiques
         $totalDemandes = DemandeInteret::where('user_id', $user->id)->count();
         $demandesEnCours = DemandeInteret::where('user_id', $user->id)
-            ->whereNotIn('statut', ['cloture_refus', 'cloture_non_interesse', 'paiement_valide'])
+            ->whereNotIn('statut', ['cloture', 'paiement_valide'])
             ->count();
         $demandesFinalisees = DemandeInteret::where('user_id', $user->id)
             ->where('statut', 'paiement_valide')
@@ -46,13 +46,32 @@ class DashboardClientController extends Controller
             ->orderBy('date_visite', 'asc')
             ->get();
         
+        // Biens loués/achetés
+        $biensLoues = DemandeInteret::with('annonce')
+            ->where('user_id', $user->id)
+            ->where('statut', 'paiement_valide')
+            ->whereHas('annonce', function($q) {
+                $q->where('type_transaction', 'location');
+            })
+            ->get();
+            
+        $biensAchetes = DemandeInteret::with('annonce')
+            ->where('user_id', $user->id)
+            ->where('statut', 'paiement_valide')
+            ->whereHas('annonce', function($q) {
+                $q->where('type_transaction', 'vente');
+            })
+            ->get();
+        
         return view('frontend.pages.client.dashboard', compact(
             'totalDemandes',
             'demandesEnCours',
             'demandesFinalisees',
             'demandesVisites',
             'dernieresDemandes',
-            'prochainesVisites'
+            'prochainesVisites',
+            'biensLoues',
+            'biensAchetes'
         ));
     }
 
@@ -154,30 +173,5 @@ class DashboardClientController extends Controller
         
         return redirect()->route('client.demandes')->with('success', 'Demande annulée avec succès.');
     }
-
-    /**
-     * Uploader des documents
-     */
-    public function uploadDocuments(Request $request, $id)
-    {
-        $request->validate([
-            'documents.*' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
-        ]);
-
-        $demande = DemandeInteret::where('user_id', Auth::id())->findOrFail($id);
-
-        if ($request->hasFile('documents')) {
-            foreach ($request->file('documents') as $document) {
-                $demande->addMedia($document)
-                    ->toMediaCollection('documents_client');
-            }
-        }
-
-        // Mettre à jour le statut si nécessaire
-        if ($demande->statut == 'visite_effectuee') {
-            $demande->update(['statut' => 'documents_recus']);
-        }
-
-        return back()->with('success', 'Documents envoyés avec succès.');
-    }
 }
+

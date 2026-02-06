@@ -97,7 +97,7 @@
     </nav>
 
     @if (session('success'))
-        <div class="alert alert-success alert-dismissible fade show m-0 rounded-0" role="alert">
+        <div class="alert alert-success alert-dismissible fade show m-0 rounded-0 alert-front" role="alert">
             <div class="container">
                 {{ session('success') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -106,11 +106,40 @@
     @endif
 
     @if (session('error'))
-        <div class="alert alert-danger alert-dismissible fade show m-0 rounded-0" role="alert">
+        <div class="alert alert-danger alert-dismissible fade show m-0 rounded-0 alert-front" role="alert">
             <div class="container">
                 {{ session('error') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         </div>
     @endif
+
+    <!--script to auto-hide alerts after 5 seconds-->
+    <script>
+        // faire disparaitre les alertes apres 5 secondes
+        window.setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert-front');
+            alerts.forEach(function(alert) {
+                // Fade out avec transition
+                alert.style.transition = 'opacity 0.5s ease-in-out';
+                alert.style.opacity = '0';
+
+                // Slide up et suppression après le fade
+                setTimeout(function() {
+                    alert.style.transition = 'all 0.5s ease-in-out';
+                    alert.style.maxHeight = '0';
+                    alert.style.padding = '0';
+                    alert.style.margin = '0';
+                    alert.style.overflow = 'hidden';
+
+                    // Supprimer complètement l'élément après l'animation
+                    setTimeout(function() {
+                        alert.remove();
+                    }, 500);
+                }, 500);
+            });
+        }, 5000);
+    </script>
+
+    {{-- @include('backend.components.alertMessage') --}}
 </header>

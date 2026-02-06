@@ -171,14 +171,14 @@
                                             @foreach($topBiens as $index => $bien)
                                             <tr>
                                                 <td>
-                                                    @if($index == 0)
+                                                    @if($loop->iteration == 1)
                                                         <i class="ri-trophy-fill text-warning"></i>
-                                                    @elseif($index == 1)
+                                                    @elseif($loop->iteration == 2)
                                                         <i class="ri-medal-fill text-secondary"></i>
-                                                    @elseif($index == 2)
+                                                    @elseif($loop->iteration == 3)
                                                         <i class="ri-medal-2-fill" style="color: #cd7f32;"></i>
                                                     @else
-                                                        {{ $index + 1 }}
+                                                        {{ $loop->iteration }}
                                                     @endif
                                                 </td>
                                                 <td>{{ $bien['reference'] }}</td>

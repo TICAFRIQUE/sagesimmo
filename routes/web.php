@@ -12,7 +12,8 @@ use App\Http\Controllers\backend\RoleController;
 use App\Http\Controllers\backend\TypeBienController;
 use App\Http\Controllers\backend\CommandeServiceController;
 use App\Http\Controllers\backend\UserController;
-use App\Http\Controllers\backend\DemandeInteretController;
+use App\Http\Controllers\backend\NotificationController;
+
 use App\Http\Controllers\frontend\BaseController;
 use App\Http\Controllers\frontend\HebergementController;
 use App\Http\Controllers\frontend\NomDomaineController;use App\Http\Controllers\frontend\DashboardClientController;use App\Http\Controllers\frontend\HomeController;
@@ -63,6 +64,15 @@ Route::middleware(['auth'])->prefix('mon-espace')->controller(DashboardClientCon
     Route::get('/demandes', 'demandes')->name('client.demandes');
     Route::get('/demandes/{id}', 'showDemande')->name('client.demandes.show');
     Route::delete('/demandes/{id}', 'cancelDemande')->name('client.demandes.cancel');
+    
+    // Espaces spécifiques par rôle
+    Route::get('/proprietaire', 'espaceProprietaire')->name('client.proprietaire');
+    Route::get('/proprietaire/locations', 'espaceProprietaireLocations')->name('client.proprietaire.locations');
+    Route::get('/proprietaire/ventes', 'espaceProprietaireVentes')->name('client.proprietaire.ventes');
+    Route::get('/proprietaire/historique', 'espaceProprietaireHistorique')->name('client.proprietaire.historique');
+    
+    Route::get('/locataire', 'espaceLocataire')->name('client.locataire');
+    Route::get('/acheteur', 'espaceAcheteur')->name('client.acheteur');
 });
 
 
@@ -145,6 +155,14 @@ Route::middleware(['admin'])->prefix('admin')->group(function () {
         route::delete('delete/{id}', 'delete')->name('module.delete');
     });
 
+    // Gestion des notifications
+    Route::prefix('notifications')->controller(NotificationController::class)->group(function () {
+        route::get('', 'index')->name('backend.notifications.index');
+        route::get('{id}/read', 'markAsRead')->name('backend.notifications.read');
+        route::post('read-all', 'markAllAsRead')->name('backend.notifications.read-all');
+        route::get('unread', 'unread')->name('backend.notifications.unread');
+    });
+
     // Gestion des annonces immobilières
     Route::prefix('annonces')->controller(AnnonceController::class)->group(function () {
         route::get('', 'index')->name('backend.annonces.index');
@@ -191,28 +209,15 @@ Route::middleware(['admin'])->prefix('admin')->group(function () {
         route::post('delete-media', 'deleteMedia')->name('backend.users.delete-media');
     });
 
-    // Gestion des demandes d'intérêt
-    Route::prefix('demandes')->controller(DemandeInteretController::class)->group(function () {
-        route::get('', 'index')->name('backend.demandes.index');
-        route::get('{id}', 'show')->name('backend.demandes.show');
-        route::post('{id}/envoyer-contrat', 'envoyerContrat')->name('backend.demandes.envoyer-contrat');
-        route::post('{id}/planifier-visite', 'planifierVisite')->name('backend.demandes.planifier-visite');
-        route::post('{id}/visite-effectuee', 'visiteEffectuee')->name('backend.demandes.visite-effectuee');
-        route::post('{id}/configurer-paiement', 'configurerPaiement')->name('backend.demandes.configurer-paiement');
-        route::post('{id}/valider-paiement', 'validerPaiement')->name('backend.demandes.valider-paiement');
-        route::post('{id}/cloturer', 'cloturerDemande')->name('backend.demandes.cloturer');
-        route::post('{id}/update-note', 'updateNote')->name('backend.demandes.update-note');
-        route::delete('{id}', 'destroy')->name('backend.demandes.destroy');
-    });
+
 
     // Gestion des ventes
     Route::prefix('ventes')->controller(\App\Http\Controllers\VenteController::class)->group(function () {
         route::get('', 'index')->name('backend.ventes.index');
         route::get('create', 'create')->name('backend.ventes.create');
         route::post('store', 'store')->name('backend.ventes.store');
-        route::get('demande/{demande}/create', 'createFromDemande')->name('backend.ventes.create-from-demande');
-        route::post('demande/{demande}/store', 'storeFromDemande')->name('backend.ventes.store-from-demande');
         route::get('{vente}', 'show')->name('backend.ventes.show');
+        route::get('{vente}/fiche', 'fiche')->name('backend.ventes.fiche');
         route::get('{vente}/edit', 'edit')->name('backend.ventes.edit');
         route::put('{vente}', 'update')->name('backend.ventes.update');
         route::delete('{vente}', 'destroy')->name('backend.ventes.destroy');
@@ -232,8 +237,6 @@ Route::middleware(['admin'])->prefix('admin')->group(function () {
         route::get('', 'index')->name('backend.locations.index');
         route::get('create', 'create')->name('backend.locations.create');
         route::post('store', 'store')->name('backend.locations.store');
-        route::get('demande/{demande}/create', 'createFromDemande')->name('backend.locations.create-from-demande');
-        route::post('demande/{demande}/store', 'storeFromDemande')->name('backend.locations.store-from-demande');
         route::get('{location}', 'show')->name('backend.locations.show');
         route::get('{location}/edit', 'edit')->name('backend.locations.edit');
         route::put('{location}', 'update')->name('backend.locations.update');
@@ -250,6 +253,7 @@ Route::middleware(['admin'])->prefix('admin')->group(function () {
         route::post('echeance/{echeance}/enregistrer-paiement-loyer', 'enregistrerPaiementLoyer')->name('backend.locations.enregistrer-paiement-loyer');
         route::post('{location}/generer-nouvelles-echeances', 'genererNouvellesEcheances')->name('backend.locations.generer-nouvelles-echeances');
         route::post('{location}/resilier', 'resilierLocation')->name('backend.locations.resilier');
+        route::get('paiement/{paiement}/recu', 'genererRecuPaiement')->name('backend.locations.recu-paiement');
     });
 
     // Rapports et statistiques

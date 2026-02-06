@@ -15,8 +15,10 @@
     <div class="row">
         <div class="col-lg-12">
             <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Modifier la location</h5>
+                <div class="card-header bg-primary bg-opacity-10">
+                    <h5 class="card-title mb-0 text-primary">
+                        <i class="ri-edit-line me-2"></i>Modifier la location #{{ $location->id }}
+                    </h5>
                 </div>
                 <div class="card-body">
                     <form action="{{ route('backend.locations.update', $location) }}" method="POST">
@@ -54,70 +56,27 @@
                         </div>
 
                         <div class="row">
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-12 mb-3">
                                 <label class="form-label">Loyer mensuel (FCFA) <span class="text-danger">*</span></label>
-                                <input type="number" name="loyer_mensuel" class="form-control @error('loyer_mensuel') is-invalid @enderror" 
-                                       value="{{ old('loyer_mensuel', $location->loyer_mensuel) }}" required step="0.01">
+                                <input type="text" id="loyer_mensuel_display" class="form-control @error('loyer_mensuel') is-invalid @enderror" 
+                                       value="{{ old('loyer_mensuel') ? number_format(old('loyer_mensuel'), 0, ',', ' ') : number_format($location->loyer_mensuel ?? 0, 0, ',', ' ') }}" required placeholder="Ex: 150 000">
+                                <input type="hidden" name="loyer_mensuel" id="loyer_mensuel" value="{{ old('loyer_mensuel', $location->loyer_mensuel) }}">
                                 @error('loyer_mensuel')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Caution (FCFA)</label>
-                                <input type="number" name="caution" class="form-control @error('caution') is-invalid @enderror" 
-                                       value="{{ old('caution', $location->caution) }}" step="0.01">
-                                @error('caution')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Jour de paiement <span class="text-danger">*</span></label>
-                                <input type="number" name="jour_paiement" class="form-control @error('jour_paiement') is-invalid @enderror" 
-                                       value="{{ old('jour_paiement', $location->jour_paiement) }}" required min="1" max="31">
-                                @error('jour_paiement')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Date de début <span class="text-danger">*</span></label>
-                                <input type="date" name="date_debut" class="form-control @error('date_debut') is-invalid @enderror" 
-                                       value="{{ old('date_debut', $location->date_debut->format('Y-m-d')) }}" required>
-                                @error('date_debut')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Date de fin</label>
-                                <input type="date" name="date_fin" class="form-control @error('date_fin') is-invalid @enderror" 
-                                       value="{{ old('date_fin', $location->date_fin ? $location->date_fin->format('Y-m-d') : '') }}">
-                                @error('date_fin')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Statut <span class="text-danger">*</span></label>
-                                <select name="statut" class="form-select @error('statut') is-invalid @enderror" required>
-                                    <option value="actif" {{ $location->statut == 'actif' ? 'selected' : '' }}>Actif</option>
-                                    <option value="terminé" {{ $location->statut == 'terminé' ? 'selected' : '' }}>Terminé</option>
-                                    <option value="résilié" {{ $location->statut == 'résilié' ? 'selected' : '' }}>Résilié</option>
-                                </select>
-                                @error('statut')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
+                        <div class="alert alert-info">
+                            <i class="ri-information-line me-2"></i>
+                            <strong>Note:</strong> La modification réinitialisera le workflow à "Demande client". 
+                            Les détails financiers (loyer, caution, dates) se configurent dans le workflow "Configuration paiement".
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Conditions du contrat</label>
-                            <textarea name="conditions" class="form-control @error('conditions') is-invalid @enderror" rows="4">{{ old('conditions', $location->conditions) }}</textarea>
-                            @error('conditions')
+                            <label class="form-label">Message / Notes</label>
+                            <textarea name="message" class="form-control @error('message') is-invalid @enderror" rows="4" placeholder="Notes ou message du client...">{{ old('message', $location->message) }}</textarea>
+                            @error('message')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
@@ -135,20 +94,50 @@
 
 @section('script')
 <script>
-    // Calculer la caution automatiquement
-    function calculerCaution() {
-        const loyer = parseFloat(document.getElementById('loyer_mensuel').value) || 0;
-        const nombreCautions = parseFloat(document.getElementById('nombre_cautions').value) || 0;
-        const caution = loyer * nombreCautions;
-        
-        document.getElementById('caution').value = caution;
+    // Fonction pour formater le montant avec des espaces
+    function formatMontant(value) {
+        let numStr = value.replace(/[^\d]/g, '');
+        return numStr.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
     }
-
-    // Écouter les changements sur le loyer et le nombre de cautions
-    document.getElementById('loyer_mensuel').addEventListener('input', calculerCaution);
-    document.getElementById('nombre_cautions').addEventListener('input', calculerCaution);
-
-    // Calculer au chargement
-    window.addEventListener('DOMContentLoaded', calculerCaution);
+    
+    // Fonction pour obtenir la valeur numérique
+    function getMontantNumeric(value) {
+        return parseFloat(value.replace(/\s/g, '')) || 0;
+    }
+    
+    const loyerDisplay = document.getElementById('loyer_mensuel_display');
+    const loyerInput = document.getElementById('loyer_mensuel');
+    
+    // Formater le loyer lors de la saisie
+    loyerDisplay.addEventListener('input', function(e) {
+        let cursorPos = this.selectionStart;
+        let oldLength = this.value.length;
+        
+        let formatted = formatMontant(this.value);
+        this.value = formatted;
+        
+        loyerInput.value = getMontantNumeric(formatted);
+        
+        let newLength = formatted.length;
+        cursorPos += (newLength - oldLength);
+        this.setSelectionRange(cursorPos, cursorPos);
+    });
+    
+    // Prévenir la double soumission et validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const loyerNumeric = getMontantNumeric(loyerDisplay.value);
+        
+        if (!loyerNumeric || loyerNumeric <= 0) {
+            e.preventDefault();
+            alert('Veuillez saisir un loyer mensuel valide.');
+            return false;
+        }
+        
+        loyerInput.value = loyerNumeric;
+        
+        const submitBtn = this.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Mise à jour...';
+    });
 </script>
 @endsection

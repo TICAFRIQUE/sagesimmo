@@ -88,14 +88,6 @@
                     </li>
                 @endcan
 
-                <!-- Demandes d'intérêt -->
-                <li class="nav-item">
-                    <a class="nav-link menu-link {{ Route::is('backend.demandes.*') ? 'active' : '' }} "
-                        href="{{ route('backend.demandes.index') }}">
-                        <i class="ri-message-3-line"></i> <span>Demandes</span>
-                    </a>
-                </li>
-
                 <!-- Utilisateurs -->
                 <li class="nav-item">
                     <a class="nav-link menu-link {{ Route::is('backend.users.*') ? 'active' : '' }} "
@@ -104,11 +96,31 @@
                     </a>
                 </li>
 
+                <!-- Notifications -->
+                {{-- <li class="nav-item">
+                    <a class="nav-link menu-link {{ Route::is('backend.notifications.*') ? 'active' : '' }}" 
+                        href="{{ route('backend.notifications.index') }}">
+                        <i class="ri-notification-3-line"></i> 
+                        <span>Notifications</span>
+                        @if(auth()->user()->unreadNotifications->count() > 0)
+                            <span class="badge rounded-pill bg-danger ms-auto">{{ auth()->user()->unreadNotifications->count() }}</span>
+                        @endif
+                    </a>
+                </li> --}}
+
                 <!-- Suivi Location/Vente -->
                 <li class="nav-item">
                     <a class="nav-link menu-link" href="#sidebarSuivi" data-bs-toggle="collapse" role="button"
                         aria-expanded="false" aria-controls="sidebarSuivi">
-                        <i class="ri-line-chart-line me-2"></i> <span>Suivi Location/Vente</span>
+                        <i class="ri-line-chart-line me-2"></i> 
+                        <span>Suivi Location/Vente</span>
+                        @php
+                            $nouvellesDemandes = \App\Models\Vente::where('statut', 'demande_client')->count() + 
+                                                 \App\Models\Location::where('statut', 'demande_client')->count();
+                        @endphp
+                        @if($nouvellesDemandes > 0)
+                            <span class="badge rounded-pill bg-danger ms-auto">{{ $nouvellesDemandes }}</span>
+                        @endif
                     </a>
                     <div class="collapse menu-dropdown {{ Route::is('backend.ventes.*') || Route::is('backend.locations.*') ? 'show' : '' }}"
                         id="sidebarSuivi">
@@ -117,12 +129,24 @@
                                 <a href="{{ route('backend.ventes.index') }}"
                                     class="nav-link {{ Route::is('backend.ventes.*') ? 'active' : '' }}">
                                     <i class="ri-shopping-bag-line me-2"></i> Ventes
+                                    @php
+                                        $nouvellesVentes = \App\Models\Vente::where('statut', 'demande_client')->count();
+                                    @endphp
+                                    @if($nouvellesVentes > 0)
+                                        <span class="badge rounded-pill bg-danger ms-2">{{ $nouvellesVentes }}</span>
+                                    @endif
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a href="{{ route('backend.locations.index') }}"
                                     class="nav-link {{ Route::is('backend.locations.*') ? 'active' : '' }}">
                                     <i class="ri-key-line me-2"></i> Locations
+                                    @php
+                                        $nouvellesLocations = \App\Models\Location::where('statut', 'demande_client')->count();
+                                    @endphp
+                                    @if($nouvellesLocations > 0)
+                                        <span class="badge rounded-pill bg-danger ms-2">{{ $nouvellesLocations }}</span>
+                                    @endif
                                 </a>
                             </li>
                         </ul>

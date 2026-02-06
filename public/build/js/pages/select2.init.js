@@ -8,6 +8,35 @@ File: select2 init js
 
 // In your Javascript (external .js resource or <script> tag)
 $(document).ready(function() {
+    // Initialize Select2 on all select elements with Bootstrap 5 styling
+    $('select').not('.no-select2').select2({
+        theme: 'bootstrap-5',
+        width: '100%',
+        placeholder: function() {
+            return $(this).data('placeholder') || $(this).attr('placeholder') || 'Sélectionnez une option';
+        },
+        allowClear: true,
+        language: {
+            noResults: function() {
+                return "Aucun résultat trouvé";
+            },
+            searching: function() {
+                return "Recherche en cours...";
+            },
+            inputTooShort: function(args) {
+                var remainingChars = args.minimum - args.input.length;
+                return "Veuillez entrer " + remainingChars + " caractère(s) supplémentaire(s)";
+            },
+            loadingMore: function() {
+                return "Chargement de plus de résultats...";
+            },
+            maximumSelected: function(args) {
+                return "Vous pouvez seulement sélectionner " + args.maximum + " élément(s)";
+            }
+        }
+    });
+
+    // Legacy support for specific classes
     $('.js-example-basic-single').select2();
 
     $('.js-example-basic-multiple').select2();

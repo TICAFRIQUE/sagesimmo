@@ -13,14 +13,14 @@ return new class extends Migration
     {
         Schema::create('ventes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('demande_interet_id')->nullable()->constrained('demande_interets')->onDelete('set null');
             $table->foreignId('annonce_id')->constrained('annonces')->onDelete('cascade');
-            $table->foreignId('acheteur_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('client_id')->constrained('users')->onDelete('cascade');
             $table->text('message_client')->nullable();
+            $table->date('date_vente')->nullable();
             
             // Configuration de la vente
-            $table->decimal('prix_vente', 15, 2)->nullable();
-            $table->decimal('commission_agence', 10, 2)->nullable();
+            $table->unsignedBigInteger('prix_vente')->nullable();
+            $table->unsignedBigInteger('commission_agence')->nullable();
             $table->enum('type_commission', ['pourcentage', 'montant'])->default('montant');
             
             // Workflow

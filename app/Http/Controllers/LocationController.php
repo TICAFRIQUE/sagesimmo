@@ -10,16 +10,43 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use RealRashid\SweetAlert\Facades\Alert;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class LocationController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $locations = Location::with(['annonce', 'locataire', 'echeances', 'demandeInteret'])
-            ->latest()
-            ->paginate(15);
-        
-        return view('backend.pages.locations.index', compact('locations'));
+        $query = Location::with(['annonce', 'locataire', 'echeances']);
+
+        // Filtre par statut
+        if ($request->filled('statut')) {
+            $query->where('statut', $request->statut);
+        }
+
+        // Filtre par locataire
+        if ($request->filled('locataire')) {
+            $query->where('locataire_id', $request->locataire);
+        }
+
+        // Filtre par période
+        if ($request->filled('date_debut')) {
+            $query->whereDate('date_debut', '>=', $request->date_debut);
+        }
+        if ($request->filled('date_fin')) {
+            $query->whereDate('date_debut', '<=', $request->date_fin);
+        }
+
+        $locations = $query->latest()->get();
+
+        // Récupérer tous les locataires qui ont au moins une location
+        $locataires = User::whereHas('locations')->orderBy('username')->get();
+
+        // Confirmation de suppression
+        $title = 'Suppression de location';
+        $text = "Êtes-vous sûr de vouloir supprimer cette location ?";
+        confirmDelete($title, $text);
+
+        return view('backend.pages.locations.index', compact('locations', 'locataires'));
     }
 
     public function create()
@@ -28,10 +55,10 @@ class LocationController extends Controller
             ->where('type_transaction', 'location')
             ->get();
         // Récupérer tous les utilisateurs qui ont des rôles de locataires
-        $locataires = User::whereHas('roles', function($q) {
+        $locataires = User::whereHas('roles', function ($q) {
             $q->where('name', 'locataire');
         })->get();
-        
+
         return view('backend.pages.locations.create', compact('annonces', 'locataires'));
     }
 
@@ -40,74 +67,68 @@ class LocationController extends Controller
         $validated = $request->validate([
             'annonce_id' => 'required|exists:annonces,id',
             'locataire_id' => 'required|exists:users,id',
-            'message_client' => 'nullable|string',
-            'loyer_mensuel' => 'nullable|numeric|min:0',
-            'nombre_cautions' => 'nullable|integer|min:0',
-            'caution' => 'nullable|numeric|min:0',
-            'montant_frais_agence' => 'nullable|numeric|min:0',
-            'date_debut' => 'nullable|date',
-            'date_fin' => 'nullable|date|after:date_debut',
-            'jour_paiement' => 'nullable|integer|min:1|max:31',
-            'conditions' => 'nullable|string',
-            'statut_initial' => 'nullable|in:demande_client,brouillon,fiche_envoyee',
+            'loyer_mensuel' => 'required|integer|min:0',
+            'message' => 'nullable|string',
         ]);
 
-        // Utiliser le statut choisi par l'admin, sinon 'brouillon' par défaut pour création admin
-        $validated['statut'] = $request->statut_initial ?? 'brouillon';
-        unset($validated['statut_initial']);
-        
+        // Créer la location avec le statut initial de demande client
+        $validated['statut'] = 'demande_client';
         $location = Location::create($validated);
 
-        $message = 'Location enregistrée avec succès.';
-        if ($validated['statut'] == 'brouillon') {
-            $message .= ' Configurez les détails et envoyez la fiche pour démarrer le workflow.';
-        } elseif ($validated['statut'] == 'demande_client') {
-            $message .= ' Vous devrez envoyer la fiche au client pour continuer.';
-        } elseif ($validated['statut'] == 'fiche_envoyee') {
-            $message .= ' Vous pouvez maintenant planifier une visite.';
-        }
-        
-        Alert::success('Succès', $message);
+        Alert::success('Succès', 'Location créée avec succès. Vous devez maintenant envoyer la fiche au client, puis configurer les détails financiers dans "Configuration paiement".');
         return redirect()->route('backend.locations.show', $location);
     }
 
     public function show(Location $location)
     {
         $location->load(['annonce', 'locataire', 'echeances', 'paiements']);
+
+        // Confirmation de suppression
+        $title = 'Suppression d\'utilisateur';
+        $text = "Êtes-vous sûr de vouloir supprimer cet utilisateur ?";
+        confirmDelete($title, $text);
         return view('backend.pages.locations.show', compact('location'));
     }
 
     public function edit(Location $location)
     {
+        // Bloquer la modification si des paiements existent
+        if ($location->paiements()->count() > 0) {
+            Alert::warning('Modification impossible', 'Cette location ne peut plus être modifiée car des paiements ont déjà été enregistrés.');
+            return redirect()->route('backend.locations.show', $location);
+        }
+
         $annonces = Annonce::all();
-        $locataires = User::whereDoesntHave('roles', function($q) {
+        $locataires = User::whereDoesntHave('roles', function ($q) {
             $q->where('name', 'superadmin')
-              ->orWhere('name', 'developpeur')
-              ->orWhere('name', 'admin');
+                ->orWhere('name', 'developpeur')
+                ->orWhere('name', 'admin');
         })->get();
-        
+
         return view('backend.pages.locations.edit', compact('location', 'annonces', 'locataires'));
     }
 
     public function update(Request $request, Location $location)
     {
+        // Bloquer la modification si des paiements existent
+        if ($location->paiements()->count() > 0) {
+            Alert::warning('Modification impossible', 'Cette location ne peut plus être modifiée car des paiements ont déjà été enregistrés.');
+            return redirect()->route('backend.locations.show', $location);
+        }
+
         $validated = $request->validate([
             'annonce_id' => 'required|exists:annonces,id',
             'locataire_id' => 'required|exists:users,id',
-            'loyer_mensuel' => 'required|numeric|min:0',
-            'nombre_cautions' => 'required|integer|min:0',
-            'caution' => 'nullable|numeric|min:0',
-            'montant_frais_agence' => 'nullable|numeric|min:0',
-            'date_debut' => 'required|date',
-            'date_fin' => 'nullable|date|after:date_debut',
-            'statut' => 'required|in:demande_client,fiche_envoyee,visite_planifiee,en_attente_paiement,actif,termine,resilie',
-            'jour_paiement' => 'required|integer|min:1|max:31',
-            'conditions' => 'nullable|string',
+            'loyer_mensuel' => 'required|integer|min:0',
+            'message' => 'nullable|string',
         ]);
+
+        // Réinitialiser le workflow à demande_client
+        $validated['statut'] = 'demande_client';
 
         $location->update($validated);
 
-        Alert::success('Succès', 'Location modifiée avec succès');
+        Alert::success('Succès', 'Location modifiée avec succès. Le workflow a été réinitialisé à "Demande client".');
         return redirect()->route('backend.locations.show', $location);
     }
 
@@ -115,7 +136,7 @@ class LocationController extends Controller
     {
         $annonce = $location->annonce;
         $annonce->update(['statut' => 'disponible']);
-        
+
         $location->delete();
 
         Alert::success('Succès', 'Location supprimée avec succès');
@@ -202,7 +223,7 @@ class LocationController extends Controller
     public function visiteEffectuee(Request $request, Location $location)
     {
         $request->validate([
-            'compte_rendu_visite' => 'required|string',
+            'compte_rendu_visite' => 'nullable|string',
             'client_interesse' => 'required|boolean',
             'note_admin' => 'nullable|string',
         ]);
@@ -234,11 +255,11 @@ class LocationController extends Controller
     public function configurerPaiement(Request $request, Location $location)
     {
         $request->validate([
-            'loyer_mensuel' => 'required|numeric|min:0',
+            'loyer_mensuel' => 'required|integer|min:0',
             'nombre_cautions' => 'required|integer|min:0',
             'avance_sur_loyer' => 'required|integer|min:0|max:12',
-            'montant_frais_agence' => 'nullable|numeric|min:0',
-            'commission_agence' => 'nullable|numeric|min:0',
+            'montant_frais_agence' => 'nullable|integer|min:0',
+            'commission_agence' => 'nullable|integer|min:0',
             'type_commission' => 'nullable|in:pourcentage,montant',
             'date_debut' => 'required|date',
             'date_fin' => 'nullable|date|after:date_debut',
@@ -249,7 +270,7 @@ class LocationController extends Controller
 
         // Calculer automatiquement la caution (nombre de cautions * loyer mensuel)
         $caution = $request->loyer_mensuel * $request->nombre_cautions;
-        
+
         // Calculer le montant de l'avance (avance_sur_loyer * loyer mensuel)
         $montantAvance = $request->loyer_mensuel * $request->avance_sur_loyer;
 
@@ -281,9 +302,9 @@ class LocationController extends Controller
     public function enregistrerPremierPaiement(Request $request, Location $location)
     {
         $validated = $request->validate([
-            'montant_caution' => 'nullable|numeric|min:0',
-            'montant_avance' => 'nullable|numeric|min:0',
-            'montant_frais' => 'nullable|numeric|min:0',
+            'montant_caution' => 'nullable|integer|min:0',
+            'montant_avance' => 'nullable|integer|min:0',
+            'montant_frais' => 'nullable|integer|min:0',
             'date_paiement' => 'required|date',
             'methode_paiement' => 'required|in:espèces,virement,chèque,carte_bancaire,mobile_money,autre',
             'reference' => 'nullable|string',
@@ -370,12 +391,12 @@ class LocationController extends Controller
     public function enregistrerPaiementLoyer(Request $request, Echeance $echeance)
     {
         $validated = $request->validate([
-            'montant' => 'required|numeric|min:0',
+            'montant' => 'required|integer|min:0',
             'date_paiement' => 'required|date',
             'methode_paiement' => 'required|in:espèces,virement,chèque,carte_bancaire,mobile_money,autre',
             'reference' => 'nullable|string',
             'notes' => 'nullable|string',
-            'commission_agence' => 'nullable|numeric|min:0',
+            'commission_agence' => 'nullable|integer|min:0',
             'type_commission' => 'nullable|in:pourcentage,montant',
         ]);
 
@@ -453,74 +474,39 @@ class LocationController extends Controller
         return back();
     }
 
-    public function createFromDemande($demandeId)
+    /**
+     * Générer un reçu PDF pour un paiement
+     */
+    public function genererRecuPaiement(Paiement $paiement)
     {
-        $demande = \App\Models\DemandeInteret::with(['annonce', 'user'])->findOrFail($demandeId);
+        // Charger les relations nécessaires
+        $paiement->load('payable', 'echeance');
         
-        // Vérifier si une location existe déjà pour cette demande
-        if ($demande->location) {
-            Alert::warning('Attention', 'Une location existe déjà pour cette demande');
-            return redirect()->route('backend.locations.show', $demande->location);
+        // Vérifier que le payable est bien une Location
+        if (!$paiement->payable instanceof Location) {
+            Alert::error('Erreur', 'Ce paiement n\'est pas associé à une location.');
+            return back();
         }
-
-        return view('backend.pages.locations.create-from-demande', compact('demande'));
-    }
-
-    public function storeFromDemande(Request $request, $demandeId)
-    {
-        $demande = \App\Models\DemandeInteret::findOrFail($demandeId);
         
-        $validated = $request->validate([
-            'loyer_mensuel' => 'required|numeric|min:0',
-            'nombre_cautions' => 'required|integer|min:0',
-            'caution' => 'nullable|numeric|min:0',
-            'date_debut' => 'required|date',
-            'date_fin' => 'nullable|date|after:date_debut',
-            'jour_paiement' => 'required|integer|min:1|max:31',
-            'conditions' => 'nullable|string',
-        ]);
-
-        $validated['demande_interet_id'] = $demande->id;
-        $validated['annonce_id'] = $demande->annonce_id;
-        $validated['locataire_id'] = $demande->user_id;
-        $validated['statut'] = 'actif';
-
-        $location = Location::create($validated);
-
-        // Mettre à jour le statut de l'annonce
-        $demande->annonce->update(['statut' => 'loue']);
+        $location = $paiement->payable;
+        $echeance = $paiement->echeance;
         
-        // Mettre à jour le statut de la demande
-        $demande->update(['statut' => 'paiement_valide']);
-
-        // Créer les échéances
-        $this->genererEcheances($location);
+        // Charger les relations supplémentaires
+        $location->load('annonce.typeBien', 'locataire');
         
-        // Si un paiement a été effectué dans la demande, créer un paiement pour la première échéance
-        if ($demande->details_paiement && isset($demande->details_paiement['montant']) && $demande->details_paiement['montant'] > 0) {
-            $premiereEcheance = $location->echeances()->orderBy('date_echeance', 'asc')->first();
-            
-            if ($premiereEcheance) {
-                $montantPaye = $demande->details_paiement['montant'];
-                
-                // Créer le paiement
-                \App\Models\Paiement::create([
-                    'echeance_id' => $premiereEcheance->id,
-                    'montant' => $montantPaye,
-                    'date_paiement' => $demande->details_paiement['date_paiement'] ?? now(),
-                    'mode_paiement' => $demande->details_paiement['mode_paiement'] ?? 'Non spécifié',
-                    'reference' => $demande->details_paiement['reference'] ?? null,
-                    'notes' => $demande->details_paiement['notes'] ?? 'Paiement initial depuis la demande',
-                ]);
-                
-                // Mettre à jour l'échéance
-                $premiereEcheance->montant_paye = $montantPaye;
-                $premiereEcheance->save();
-                $premiereEcheance->updateStatut();
-            }
-        }
+        $data = [
+            'paiement' => $paiement,
+            'location' => $location,
+            'echeance' => $echeance,
+            'locataire' => $location->locataire,
+            'bien' => $location->annonce,
+        ];
 
-        Alert::success('Succès', 'Location créée avec succès depuis la demande. Le paiement initial a été pris en compte.');
-        return redirect()->route('backend.locations.show', $location);
+        $pdf = Pdf::loadView('backend.pages.locations.recu-paiement', $data)
+            ->setPaper('a4', 'portrait');
+
+        $filename = 'recu-paiement-' . $paiement->id . '-' . Carbon::now()->format('Ymd') . '.pdf';
+        
+        return $pdf->download($filename);
     }
 }

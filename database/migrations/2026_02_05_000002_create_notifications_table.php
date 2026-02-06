@@ -11,8 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('paiements', function (Blueprint $table) {
-            $table->enum('type_commission', ['pourcentage', 'fixe'])->nullable()->after('commission_agence');
+        Schema::create('notifications', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->string('type');
+            $table->morphs('notifiable');
+            $table->text('data');
+            $table->timestamp('read_at')->nullable();
+            $table->timestamps();
         });
     }
 
@@ -21,8 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('paiements', function (Blueprint $table) {
-            $table->dropColumn('type_commission');
-        });
+        Schema::dropIfExists('notifications');
     }
 };

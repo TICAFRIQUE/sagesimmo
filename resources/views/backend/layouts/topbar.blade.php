@@ -38,7 +38,74 @@
 
             <div class="d-flex align-items-center">
 
+                <!-- Notifications -->
+                <div class="dropdown topbar-head-dropdown ms-1 header-item">
+                    <button type="button" class="btn btn-icon btn-topbar material-shadow-none btn-ghost-secondary rounded-circle" 
+                            id="page-header-notifications-dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class='bx bx-bell fs-22'></i>
+                        @if(auth()->user()->unreadNotifications->count() > 0)
+                            <span class="position-absolute topbar-badge fs-10 translate-middle badge rounded-pill bg-danger">
+                                {{ auth()->user()->unreadNotifications->count() }}
+                                <span class="visually-hidden">messages non lus</span>
+                            </span>
+                        @endif
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end p-0" aria-labelledby="page-header-notifications-dropdown">
+                        <div class="dropdown-head bg-primary bg-pattern rounded-top">
+                            <div class="p-3">
+                                <div class="row align-items-center">
+                                    <div class="col">
+                                        <h6 class="m-0 fs-16 fw-semibold text-white">Notifications</h6>
+                                    </div>
+                                    <div class="col-auto dropdown-tabs">
+                                        <span class="badge bg-light text-body fs-13">{{ auth()->user()->unreadNotifications->count() }} Nouvelles</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
+                        <div class="tab-content position-relative" id="notificationItemsTabContent">
+                            <div class="tab-pane fade show active py-2 ps-2" id="all-noti-tab" role="tabpanel">
+                                <div data-simplebar style="max-height: 300px;" class="pe-2">
+                                    @forelse(auth()->user()->notifications->take(5) as $notification)
+                                        <div class="text-reset notification-item d-block dropdown-item {{ $notification->read_at ? '' : 'active' }} position-relative">
+                                            <div class="d-flex">
+                                                <div class="avatar-xs me-3 flex-shrink-0">
+                                                    <span class="avatar-title bg-info-subtle text-info rounded-circle fs-16">
+                                                        <i class="bx {{ $notification->data['type'] == 'demande_vente' ? 'bx-shopping-bag' : 'bx-home' }}"></i>
+                                                    </span>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <a href="{{ route('backend.notifications.read', $notification->id) }}" class="stretched-link">
+                                                        <h6 class="mt-0 mb-2 lh-base">{{ $notification->data['message'] ?? 'Nouvelle notification' }}</h6>
+                                                    </a>
+                                                    <p class="mb-0 fs-11 fw-medium text-uppercase text-muted">
+                                                        <span><i class="mdi mdi-clock-outline"></i> {{ $notification->created_at->diffForHumans() }}</span>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @empty
+                                        <div class="w-25 w-sm-50 pt-3 mx-auto">
+                                            <img src="{{ URL::asset('build/images/svg/bell.svg') }}" class="img-fluid" alt="user-pic">
+                                        </div>
+                                        <div class="text-center pb-5 mt-2">
+                                            <h6 class="fs-18 fw-semibold lh-base">Aucune notification</h6>
+                                        </div>
+                                    @endforelse
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="notification-actions" id="notification-actions">
+                            <div class="d-flex text-muted justify-content-center">
+                                <a href="{{ route('backend.notifications.index') }}" class="btn btn-sm btn-link text-decoration-underline fw-medium">
+                                    Voir toutes les notifications <i class="ri-arrow-right-line align-middle"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="ms-1 header-item d-none d-sm-flex">
                     <button type="button"

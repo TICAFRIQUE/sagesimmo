@@ -26,8 +26,8 @@ class Paiement extends Model
 
     protected $casts = [
         'date_paiement' => 'date',
-        'montant' => 'decimal:2',
-        'commission_agence' => 'decimal:2',
+        'montant' => 'integer',
+        'commission_agence' => 'integer',
     ];
 
     // Relations

@@ -353,18 +353,257 @@
                 </div>
             </div>
 
+            <!-- Biens achetés -->
+            @if($user->ventes->count() > 0)
+            <div class="card">
+                <div class="card-header bg-primary-subtle">
+                    <h5 class="card-title mb-0">
+                        <i class="ri-shopping-cart-line me-2"></i>Biens achetés
+                        <span class="badge bg-primary ms-2">{{ $user->ventes->count() }}</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @foreach($user->ventes as $vente)
+                        <div class="border rounded p-3 mb-3">
+                            <div class="row align-items-center">
+                                <div class="col-md-2">
+                                    @if($vente->annonce->hasMedia('images'))
+                                        <img src="{{ $vente->annonce->getFirstMediaUrl('images') }}" 
+                                             class="img-fluid rounded" 
+                                             alt="{{ $vente->annonce->titre }}">
+                                    @else
+                                        <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 80px;">
+                                            <i class="ri-home-4-line display-5 text-muted"></i>
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="col-md-7">
+                                    <h6 class="mb-1">
+                                        <a href="{{ route('backend.ventes.show', $vente) }}" class="text-dark">
+                                            {{ $vente->annonce->titre }}
+                                        </a>
+                                    </h6>
+                                    <p class="text-muted mb-1">
+                                        <i class="ri-map-pin-line me-1"></i>
+                                        {{ $vente->annonce->ville }}, {{ $vente->annonce->quartier }}
+                                    </p>
+                                    <div>
+                                        <span class="badge {{ $vente->statut_badge }}">
+                                            {{ ucfirst(str_replace('_', ' ', $vente->statut)) }}
+                                        </span>
+                                        @if($vente->date_finalisation)
+                                            <small class="text-muted ms-2">
+                                                <i class="ri-calendar-check-line"></i>
+                                                Finalisée le {{ $vente->date_finalisation->format('d/m/Y') }}
+                                            </small>
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="col-md-3 text-end">
+                                    <div class="mb-2">
+                                        <small class="text-muted d-block">Prix</small>
+                                        <strong class="text-primary">
+                                            {{ number_format($vente->annonce->prix, 0, ',', ' ') }} FCFA
+                                        </strong>
+                                    </div>
+                                    @if($vente->paiements->count() > 0)
+                                        @php
+                                            $totalPaye = $vente->paiements->sum('montant');
+                                            $pourcentagePaye = ($totalPaye / $vente->annonce->prix) * 100;
+                                        @endphp
+                                        <div>
+                                            <small class="text-muted d-block">Payé</small>
+                                            <strong class="text-success">
+                                                {{ number_format($totalPaye, 0, ',', ' ') }} FCFA
+                                            </strong>
+                                            <div class="progress mt-1" style="height: 5px;">
+                                                <div class="progress-bar bg-success" 
+                                                     style="width: {{ $pourcentagePaye }}%"></div>
+                                            </div>
+                                        </div>
+                                    @endif
+                                    <a href="{{ route('backend.ventes.show', $vente) }}" 
+                                       class="btn btn-sm btn-outline-primary mt-2">
+                                        <i class="ri-eye-line me-1"></i>Détails
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
+            <!-- Biens loués -->
+            @if($user->locations->count() > 0)
+            <div class="card">
+                <div class="card-header bg-info-subtle">
+                    <h5 class="card-title mb-0">
+                        <i class="ri-home-heart-line me-2"></i>Biens loués
+                        <span class="badge bg-info ms-2">{{ $user->locations->count() }}</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @foreach($user->locations as $location)
+                        <div class="border rounded p-3 mb-3">
+                            <div class="row align-items-center">
+                                <div class="col-md-2">
+                                    @if($location->annonce->hasMedia('images'))
+                                        <img src="{{ $location->annonce->getFirstMediaUrl('images') }}" 
+                                             class="img-fluid rounded" 
+                                             alt="{{ $location->annonce->titre }}">
+                                    @else
+                                        <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 80px;">
+                                            <i class="ri-home-4-line display-5 text-muted"></i>
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="col-md-7">
+                                    <h6 class="mb-1">
+                                        <a href="{{ route('backend.locations.show', $location) }}" class="text-dark">
+                                            {{ $location->annonce->titre }}
+                                        </a>
+                                    </h6>
+                                    <p class="text-muted mb-1">
+                                        <i class="ri-map-pin-line me-1"></i>
+                                        {{ $location->annonce->ville }}, {{ $location->annonce->quartier }}
+                                    </p>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge {{ $location->statut_badge }}">
+                                            {{ ucfirst(str_replace('_', ' ', $location->statut)) }}
+                                        </span>
+                                        @if($location->date_debut)
+                                            <small class="text-muted">
+                                                <i class="ri-calendar-line"></i>
+                                                Du {{ \Carbon\Carbon::parse($location->date_debut)->format('d/m/Y') }}
+                                                @if($location->date_fin)
+                                                    au {{ \Carbon\Carbon::parse($location->date_fin)->format('d/m/Y') }}
+                                                @endif
+                                            </small>
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="col-md-3 text-end">
+                                    <div class="mb-2">
+                                        <small class="text-muted d-block">Loyer mensuel</small>
+                                        <strong class="text-info">
+                                            {{ number_format($location->loyer_mensuel ?? $location->annonce->prix, 0, ',', ' ') }} FCFA
+                                        </strong>
+                                    </div>
+                                    @if($location->echeances->count() > 0)
+                                        @php
+                                            $echeancesPayees = $location->echeances->where('statut', 'paye')->count();
+                                            $totalEcheances = $location->echeances->count();
+                                        @endphp
+                                        <div class="mb-2">
+                                            <small class="text-muted d-block">Échéances payées</small>
+                                            <strong class="text-success">{{ $echeancesPayees }}/{{ $totalEcheances }}</strong>
+                                            <div class="progress mt-1" style="height: 5px;">
+                                                <div class="progress-bar bg-success" 
+                                                     style="width: {{ ($echeancesPayees / $totalEcheances) * 100 }}%"></div>
+                                            </div>
+                                        </div>
+                                    @endif
+                                    <a href="{{ route('backend.locations.show', $location) }}" 
+                                       class="btn btn-sm btn-outline-info mt-2">
+                                        <i class="ri-eye-line me-1"></i>Détails
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
+            @if($user->ventes->count() === 0 && $user->locations->count() === 0)
             <div class="card">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">Activités récentes</h5>
+                    <h5 class="card-title mb-0">Biens achetés/loués</h5>
                 </div>
                 <div class="card-body">
                     <div class="text-center py-4 text-muted">
-                        <i class="ri-time-line display-4"></i>
-                        <p class="mt-2">Aucune activité pour le moment</p>
-                        <small>Les activités de l'utilisateur s'afficheront ici</small>
+                        <i class="ri-home-4-line display-4"></i>
+                        <p class="mt-2">Aucun bien acheté ou loué</p>
+                        <small>Les biens achetés ou loués par ce client s'afficheront ici</small>
                     </div>
                 </div>
             </div>
+            @endif
+
+            <!-- Biens du propriétaire -->
+            @if($user->annonces->count() > 0)
+            <div class="card">
+                <div class="card-header bg-success-subtle">
+                    <h5 class="card-title mb-0">
+                        <i class="ri-building-line me-2"></i>Biens en propriété
+                        <span class="badge bg-success ms-2">{{ $user->annonces->count() }}</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @foreach($user->annonces as $annonce)
+                        <div class="border rounded p-3 mb-3">
+                            <div class="row align-items-center">
+                                <div class="col-md-2">
+                                    @if($annonce->hasMedia('images'))
+                                        <img src="{{ $annonce->getFirstMediaUrl('images') }}" 
+                                             class="img-fluid rounded" 
+                                             alt="{{ $annonce->titre }}">
+                                    @else
+                                        <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 80px;">
+                                            <i class="ri-home-4-line display-5 text-muted"></i>
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="col-md-7">
+                                    <h6 class="mb-1">
+                                        <a href="{{ route('backend.annonces.show', $annonce) }}" class="text-dark">
+                                            {{ $annonce->titre }}
+                                        </a>
+                                    </h6>
+                                    <p class="text-muted mb-1">
+                                        <i class="ri-map-pin-line me-1"></i>
+                                        {{ $annonce->ville }}, {{ $annonce->quartier }}
+                                    </p>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge {{ $annonce->statut == 'disponible' ? 'bg-success' : ($annonce->statut == 'loue' ? 'bg-warning' : 'bg-danger') }}">
+                                            {{ ucfirst($annonce->statut) }}
+                                        </span>
+                                        <span class="badge bg-secondary">
+                                            {{ $annonce->type_transaction == 'location' ? 'À louer' : 'À vendre' }}
+                                        </span>
+                                        @if($annonce->typeBien)
+                                            <span class="badge bg-info">
+                                                {{ $annonce->typeBien->nom }}
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="col-md-3 text-end">
+                                    <div class="mb-2">
+                                        <small class="text-muted d-block">Prix</small>
+                                        <strong class="text-success">
+                                            {{ number_format($annonce->prix, 0, ',', ' ') }} FCFA
+                                            @if($annonce->type_transaction == 'location')
+                                                <small>/mois</small>
+                                            @endif
+                                        </strong>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted d-block">Surface</small>
+                                        <strong>{{ $annonce->surface }} m²</strong>
+                                    </div>
+                                    <a href="{{ route('backend.annonces.show', $annonce) }}" 
+                                       class="btn btn-sm btn-outline-success mt-2">
+                                        <i class="ri-eye-line me-1"></i>Détails
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 @endsection

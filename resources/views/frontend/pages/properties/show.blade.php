@@ -759,32 +759,46 @@
                             </div>
                         @endif
 
+                        @if (session('error'))
+                            <div class="alert alert-danger alert-dismissible fade show">
+                                {{ session('error') }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        @endif
+
                         @auth
-                            <form action="{{ route('properties.contact', $bien->slug) }}" method="POST">
-                                @csrf
-                                <div class="row g-3">
-                                    <div class="col-12">
-                                        <div class="alert alert-info">
-                                            <i class="ri-user-line"></i> Vous êtes connecté en tant que <strong>{{ Auth::user()->username }}</strong>
+                            @if($demandeExistante)
+                                <div class="alert alert-warning">
+                                    <i class="ri-information-line"></i> Vous avez déjà une demande en cours pour ce bien.
+                                    <a href="{{ route('client.demandes') }}" class="alert-link">Consulter mes demandes</a>
+                                </div>
+                            @else
+                                <form action="{{ route('properties.contact', $bien->slug) }}" method="POST">
+                                    @csrf
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <div class="alert alert-info">
+                                                <i class="ri-user-line"></i> Vous êtes connecté en tant que <strong>{{ Auth::user()->username }}</strong>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12">
+                                            <label for="message" class="form-label">Message *</label>
+                                            <textarea class="form-control @error('message') is-invalid @enderror" id="message" name="message" rows="4"
+                                                required>{{ old('message', 'Bonjour, je suis intéressé(e) par ce bien. Pouvez-vous me contacter pour plus d\'informations ?') }}</textarea>
+                                            @error('message')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+
+                                        <div class="col-12">
+                                            <button type="submit" class="btn btn-accent btn-lg w-100">
+                                                <i class="ri-send-plane-fill"></i> Envoyer la demande
+                                            </button>
                                         </div>
                                     </div>
-
-                                    <div class="col-12">
-                                        <label for="message" class="form-label">Message *</label>
-                                        <textarea class="form-control @error('message') is-invalid @enderror" id="message" name="message" rows="4"
-                                            required>{{ old('message', 'Bonjour, je suis intéressé(e) par ce bien. Pouvez-vous me contacter pour plus d\'informations ?') }}</textarea>
-                                        @error('message')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-
-                                    <div class="col-12">
-                                        <button type="submit" class="btn btn-accent btn-lg w-100">
-                                            <i class="ri-send-plane-fill"></i> Envoyer la demande
-                                        </button>
-                                    </div>
-                                </div>
-                            </form>
+                                </form>
+                            @endif
                         @else
                             <div class="alert alert-warning">
                                 <i class="ri-lock-line"></i> Vous devez être connecté pour envoyer une demande d'intérêt.

@@ -12,13 +12,10 @@ class Vente extends Model implements HasMedia
     use HasFactory, InteractsWithMedia;
 
     protected $fillable = [
-        'demande_interet_id',
         'annonce_id',
         'client_id',
         'message_client',
         'prix_vente',
-        'montant_caution',
-        'montant_frais_agence',
         'commission_agence',
         'type_commission',
         'date_vente',
@@ -27,7 +24,6 @@ class Vente extends Model implements HasMedia
         'compte_rendu_visite',
         'date_finalisation',
         'statut',
-        'notes',
         'note_admin',
     ];
 
@@ -36,16 +32,9 @@ class Vente extends Model implements HasMedia
         'date_signature' => 'date',
         'date_visite' => 'datetime',
         'date_finalisation' => 'datetime',
-        'prix_vente' => 'decimal:2',
-        'montant_caution' => 'decimal:2',
-        'montant_frais_agence' => 'decimal:2',
-        'commission_agence' => 'decimal:2',
+        'prix_vente' => 'integer',
+        'commission_agence' => 'integer',
     ];
-
-    public function demandeInteret()
-    {
-        return $this->belongsTo(DemandeInteret::class, 'demande_interet_id');
-    }
 
     public function annonce()
     {
@@ -57,21 +46,73 @@ class Vente extends Model implements HasMedia
         return $this->belongsTo(User::class, 'client_id');
     }
 
+    /**
+     * Alias pour client() - pour compatibilité
+     */
+    public function acheteur()
+    {
+        return $this->client();
+    }
+
     public function paiements()
     {
         return $this->morphMany(Paiement::class, 'payable');
     }
 
-    public function montantTotal()
+    /**
+     * Montant total à payer (seulement le prix de vente)
+     */
+    public function montantTotalAPayer()
     {
-        return $this->paiements()->sum('montant');
+        return $this->prix_vente;
     }
 
+    /**
+     * Montant déjà payé (somme de tous les paiements)
+     */
+    public function montantTotalPaye()
+    {
+        return $this->paiements()->where('statut', 'paye')->sum('montant');
+    }
+
+    /**
+     * Reste à payer
+     */
     public function resteAPayer()
     {
-        return $this->prix_vente - $this->montantTotal();
+        return max(0, $this->montantTotalAPayer() - $this->montantTotalPaye());
     }
 
+    /**
+     * Alias de montantTotalPaye() pour compatibilité
+     */
+    public function montantTotal()
+    {
+        return $this->montantTotalPaye();
+    }
+
+    /**
+     * Vérifier si le paiement est complet
+     */
+    public function estEntierementPaye()
+    {
+        return $this->resteAPayer() <= 0;
+    }
+
+    /**
+     * Pourcentage de paiement
+     */
+    public function pourcentagePaiement()
+    {
+        if ($this->montantTotalAPayer() == 0) {
+            return 0;
+        }
+        return min(100, ($this->montantTotalPaye() / $this->montantTotalAPayer()) * 100);
+    }
+
+    /**
+     * Calculer la commission d'agence en FCFA
+     */
     public function calculerCommission()
     {
         if (!$this->commission_agence) {
@@ -86,6 +127,26 @@ class Vente extends Model implements HasMedia
     }
 
     /**
+     * Obtenir le total des commissions perçues
+     */
+    public function totalCommissionsPercues()
+    {
+        // Pour les ventes, la commission est perçue lorsque la vente est finalisée
+        if (in_array($this->statut, ['terminee'])) {
+            return $this->calculerCommission();
+        }
+        return 0;
+    }
+
+    /**
+     * Obtenir la commission attendue
+     */
+    public function getCommissionAttendue()
+    {
+        return $this->calculerCommission();
+    }
+
+    /**
      * Obtenir le badge de statut formaté
      */
     public function getStatutBadgeAttribute()
@@ -94,9 +155,9 @@ class Vente extends Model implements HasMedia
             'demande_client' => '<span class="badge bg-primary">Demande client</span>',
             'fiche_envoyee' => '<span class="badge bg-info">Fiche envoyée</span>',
             'visite_planifiee' => '<span class="badge bg-cyan">Visite planifiée</span>',
-            'en_attente_paiement' => '<span class="badge bg-warning">En attente paiement</span>',
-            'paiement_valide' => '<span class="badge bg-success">Finalisé</span>',
-            'annule' => '<span class="badge bg-danger">Annulé</span>',
+            'offre_acceptee' => '<span class="badge bg-warning">Offre acceptée</span>',
+            'terminee' => '<span class="badge bg-success">Finalisé</span>',
+            'annulee' => '<span class="badge bg-danger">Annulé</span>',
         ];
 
         return $badges[$this->statut] ?? '<span class="badge bg-secondary">Inconnu</span>';
@@ -111,9 +172,9 @@ class Vente extends Model implements HasMedia
             'demande_client' => 20,
             'fiche_envoyee' => 40,
             'visite_planifiee' => 60,
-            'en_attente_paiement' => 80,
-            'paiement_valide' => 100,
-            'annule' => 0,
+            'offre_acceptee' => 80,
+            'terminee' => 100,
+            'annulee' => 0,
         ];
 
         return $progressions[$this->statut] ?? 0;

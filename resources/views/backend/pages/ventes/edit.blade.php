@@ -54,73 +54,27 @@
                         </div>
 
                         <div class="row">
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-12 mb-3">
                                 <label class="form-label">Prix de vente (FCFA) <span class="text-danger">*</span></label>
-                                <input type="number" name="prix_vente" id="prix_vente" class="form-control @error('prix_vente') is-invalid @enderror" 
-                                       value="{{ old('prix_vente', $vente->prix_vente) }}" required step="0.01">
+                                <input type="text" id="prix_vente_display" class="form-control @error('prix_vente') is-invalid @enderror" 
+                                       value="{{ old('prix_vente') ? number_format(old('prix_vente'), 0, ',', ' ') : number_format($vente->prix_vente, 0, ',', ' ') }}" required placeholder="Ex: 5 000 000">
+                                <input type="hidden" name="prix_vente" id="prix_vente" value="{{ old('prix_vente', $vente->prix_vente) }}">
                                 @error('prix_vente')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Commission agence</label>
-                                <input type="number" name="commission_agence" id="commission_agence" class="form-control @error('commission_agence') is-invalid @enderror" 
-                                       value="{{ old('commission_agence', $vente->commission_agence) }}" step="0.01" min="0">
-                                <small class="text-muted" id="commission-info"></small>
-                                @error('commission_agence')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Type commission</label>
-                                <select name="type_commission" id="type_commission" class="form-select @error('type_commission') is-invalid @enderror">
-                                    <option value="pourcentage" {{ old('type_commission', $vente->type_commission) == 'pourcentage' ? 'selected' : '' }}>Pourcentage (%)</option>
-                                    <option value="montant" {{ old('type_commission', $vente->type_commission) == 'montant' ? 'selected' : '' }}>Montant fixe</option>
-                                </select>
-                                @error('type_commission')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Date de vente <span class="text-danger">*</span></label>
-                                <input type="date" name="date_vente" class="form-control @error('date_vente') is-invalid @enderror" 
-                                       value="{{ old('date_vente', $vente->date_vente->format('Y-m-d')) }}" required>
-                                @error('date_vente')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Date de signature</label>
-                                <input type="date" name="date_signature" class="form-control @error('date_signature') is-invalid @enderror" 
-                                       value="{{ old('date_signature', $vente->date_signature ? $vente->date_signature->format('Y-m-d') : '') }}">
-                                @error('date_signature')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Statut <span class="text-danger">*</span></label>
-                                <select name="statut" class="form-select @error('statut') is-invalid @enderror" required>
-                                    <option value="en_cours" {{ $vente->statut == 'en_cours' ? 'selected' : '' }}>En cours</option>
-                                    <option value="completé" {{ $vente->statut == 'completé' ? 'selected' : '' }}>Complété</option>
-                                    <option value="annulé" {{ $vente->statut == 'annulé' ? 'selected' : '' }}>Annulé</option>
-                                </select>
-                                @error('statut')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
+                        <div class="alert alert-info">
+                            <i class="ri-information-line me-2"></i>
+                            <strong>Note:</strong> La commission est configurée lors du premier paiement. 
+                            Le statut est géré automatiquement selon le workflow (demande, fiche, visite, paiement).
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Notes</label>
-                            <textarea name="notes" class="form-control @error('notes') is-invalid @enderror" rows="4">{{ old('notes', $vente->notes) }}</textarea>
-                            @error('notes')
+                            <label class="form-label">Message / Notes</label>
+                            <textarea name="message" class="form-control @error('message') is-invalid @enderror" rows="4" placeholder="Notes ou message du client...">{{ old('message', $vente->message) }}</textarea>
+                            @error('message')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
@@ -149,31 +103,51 @@
 
 @section('script')
 <script>
-    // Calculer et afficher la commission
-    function calculerCommission() {
-        const prix = parseFloat(document.getElementById('prix_vente').value) || 0;
-        const commission = parseFloat(document.getElementById('commission_agence').value) || 0;
-        const type = document.getElementById('type_commission').value;
-        const infoDiv = document.getElementById('commission-info');
-        
-        if (commission > 0) {
-            if (type === 'pourcentage') {
-                const montant = (prix * commission) / 100;
-                infoDiv.textContent = `${commission}% = ${new Intl.NumberFormat('fr-FR').format(montant)} FCFA`;
-            } else {
-                infoDiv.textContent = `Montant fixe: ${new Intl.NumberFormat('fr-FR').format(commission)} FCFA`;
-            }
-        } else {
-            infoDiv.textContent = '';
-        }
+    // Fonction pour formater le montant avec des espaces
+    function formatMontant(value) {
+        let numStr = value.replace(/[^\d.,]/g, '');
+        numStr = numStr.replace(',', '.');
+        let parts = numStr.split('.');
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+        return parts.join('.');
     }
-
-    // Écouter les changements
-    document.getElementById('prix_vente').addEventListener('input', calculerCommission);
-    document.getElementById('commission_agence').addEventListener('input', calculerCommission);
-    document.getElementById('type_commission').addEventListener('change', calculerCommission);
-
-    // Calculer au chargement
-    window.addEventListener('DOMContentLoaded', calculerCommission);
+    
+    // Fonction pour obtenir la valeur numérique
+    function getMontantNumeric(value) {
+        return parseFloat(value.replace(/\s/g, '').replace(',', '.')) || 0;
+    }
+    
+    const prixVenteDisplay = document.getElementById('prix_vente_display');
+    const prixVenteInput = document.getElementById('prix_vente');
+    
+    // Formater le prix lors de la saisie
+    prixVenteDisplay.addEventListener('input', function(e) {
+        let cursorPos = this.selectionStart;
+        let oldLength = this.value.length;
+        
+        let formatted = formatMontant(this.value);
+        this.value = formatted;
+        
+        // Mettre à jour le champ hidden avec la valeur numérique
+        prixVenteInput.value = getMontantNumeric(formatted);
+        
+        let newLength = formatted.length;
+        cursorPos += (newLength - oldLength);
+        this.setSelectionRange(cursorPos, cursorPos);
+    });
+    
+    // Validation avant soumission
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const prixNumeric = getMontantNumeric(prixVenteDisplay.value);
+        
+        if (!prixNumeric || prixNumeric <= 0) {
+            e.preventDefault();
+            alert('Veuillez saisir un prix de vente valide.');
+            return false;
+        }
+        
+        // S'assurer que le champ hidden a la bonne valeur
+        prixVenteInput.value = prixNumeric;
+    });
 </script>
 @endsection

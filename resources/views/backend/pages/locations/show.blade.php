@@ -306,6 +306,7 @@
                                                                 <th>Date</th>
                                                                 <th>Méthode</th>
                                                                 <th>Statut</th>
+                                                                <th width="100">Actions</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
@@ -322,6 +323,17 @@
                                                                         <span class="badge bg-warning">En attente</span>
                                                                     @endif
                                                                 </td>
+                                                                <td>
+                                                                    @if($paiementCaution)
+                                                                        <a href="{{ route('backend.locations.recu-paiement', $paiementCaution) }}" 
+                                                                           class="btn btn-sm btn-outline-primary" 
+                                                                           title="Télécharger le reçu">
+                                                                            <i class="ri-file-download-line"></i>
+                                                                        </a>
+                                                                    @else
+                                                                        -
+                                                                    @endif
+                                                                </td>
                                                             </tr>
                                                             @if($location->avance_sur_loyer > 0)
                                                             <tr class="{{ $paiementAvance ? 'table-success' : '' }}">
@@ -335,6 +347,17 @@
                                                                         <span class="badge bg-success">Payé</span>
                                                                     @else
                                                                         <span class="badge bg-warning">En attente</span>
+                                                                    @endif
+                                                                </td>
+                                                                <td>
+                                                                    @if($paiementAvance)
+                                                                        <a href="{{ route('backend.locations.recu-paiement', $paiementAvance) }}" 
+                                                                           class="btn btn-sm btn-outline-primary" 
+                                                                           title="Télécharger le reçu">
+                                                                            <i class="ri-file-download-line"></i>
+                                                                        </a>
+                                                                    @else
+                                                                        -
                                                                     @endif
                                                                 </td>
                                                             </tr>
@@ -353,13 +376,24 @@
                                                                         <span class="badge bg-warning">En attente</span>
                                                                     @endif
                                                                 </td>
+                                                                <td>
+                                                                    @if($paiementFrais)
+                                                                        <a href="{{ route('backend.locations.recu-paiement', $paiementFrais) }}" 
+                                                                           class="btn btn-sm btn-outline-primary" 
+                                                                           title="Télécharger le reçu">
+                                                                            <i class="ri-file-download-line"></i>
+                                                                        </a>
+                                                                    @else
+                                                                        -
+                                                                    @endif
+                                                                </td>
                                                             </tr>
                                                             @endif
                                                         </tbody>
                                                         <tfoot class="table-light">
                                                             <tr>
                                                                 <th colspan="2">Total payé</th>
-                                                                <th colspan="4">
+                                                                <th colspan="5">
                                                                     <strong class="text-success">{{ number_format($totalPaye, 0, ',', ' ') }} FCFA</strong>
                                                                     / {{ number_format($montantPremierPaiement, 0, ',', ' ') }} FCFA
                                                                 </th>
@@ -402,7 +436,7 @@
                                         <div class="alert alert-warning mt-3">
                                             <i class="ri-alert-line me-1"></i>
                                             <strong>Configuration requise :</strong> Vous devez d'abord configurer les
-                                            paramètres de paiement (loyer mensuel, caution, jour de paiement) avant de
+                                            paramètres de paiement (loyer mensuel, caution, avance sur loyer ,  jour de paiement) avant de
                                             pouvoir enregistrer des paiements.
                                         </div>
                                         <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
@@ -467,7 +501,7 @@
                     @if ($location->statut == 'actif')
                         <div class="workflow-step completed">
                             <div class="d-flex justify-content-between align-items-center">
-                                <div>
+                                <div class="w-100">
                                     <h6 class="mb-1"><i class="ri-trophy-line me-1"></i>Location active</h6>
                                     <p class="mb-0">Le bien a été marqué comme loué. Les échéances ont été générées.</p>
                                     
@@ -479,22 +513,96 @@
                                         </div>
                                     @endif
                                     
-                                    <div class="d-flex gap-2 mt-2">
-                                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                            data-bs-target="#echeancesModal">
-                                            <i class="ri-calendar-line me-1"></i>Voir les échéances et paiements
-                                        </button>
-                                        <button class="btn btn-sm btn-success" data-bs-toggle="modal"
-                                            data-bs-target="#genererEcheancesModal">
-                                            <i class="ri-add-line me-1"></i>Générer nouvelles échéances
-                                        </button>
-                                        <button class="btn btn-sm btn-warning" data-bs-toggle="modal"
-                                            data-bs-target="#resilierModal">
-                                            <i class="ri-close-line me-1"></i>Résilier la location
-                                        </button>
+                                    @php
+                                        $echeances = $location->echeances()->orderBy('date_echeance')->get();
+                                        $nombreMoisPayes = $echeances->where('statut', 'paye')->count();
+                                        $totalPaye = $echeances->sum('montant_paye');
+                                        $echeancesImpayees = $echeances->whereIn('statut', ['impaye'])->count();
+                                        $echeancesEnRetard = $echeances->whereIn('statut', ['en_retard'])->count();
+                                        $montantImpaye = $echeances->whereIn('statut', ['impaye', 'en_retard'])->sum(function($e) {
+                                            return $e->montant_du - $e->montant_paye;
+                                        });
+                                        $prochaineEcheance = $echeances->where('statut', '!=', 'paye')
+                                            ->where('date_echeance', '>=', now())
+                                            ->sortBy('date_echeance')
+                                            ->first();
+                                    @endphp
+                                    
+                                    <!-- Statistiques -->
+                                    <div class="row mt-3 mb-3">
+                                        <div class="col-md-3">
+                                            <div class="card border-info mb-0">
+                                                <div class="card-body text-center py-2">
+                                                    <small class="text-muted d-block"><i class="ri-calendar-check-line"></i> Mois payés</small>
+                                                    <h5 class="text-info mb-0">{{ $nombreMoisPayes }}<small class="text-muted">/{{ $echeances->count() }}</small></h5>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="card border-success mb-0">
+                                                <div class="card-body text-center py-2">
+                                                    <small class="text-muted d-block"><i class="ri-money-dollar-circle-line"></i> Total payé</small>
+                                                    <h5 class="text-success mb-0">{{ number_format($totalPaye, 0, ',', ' ') }}</h5>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="card border-warning mb-0">
+                                                <div class="card-body text-center py-2">
+                                                    <small class="text-muted d-block"><i class="ri-alarm-warning-line"></i> En retard</small>
+                                                    <h5 class="text-warning mb-0">{{ $echeancesEnRetard }}</h5>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="card border-danger mb-0">
+                                                <div class="card-body text-center py-2">
+                                                    <small class="text-muted d-block"><i class="ri-alert-line"></i> Impayés</small>
+                                                    <h5 class="text-danger mb-0">{{ $echeancesImpayees }}</h5>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Prochaine échéance -->
+                                    @if($prochaineEcheance)
+                                    <div class="alert alert-info mb-3">
+                                        <div class="d-flex align-items-center">
+                                            <i class="ri-calendar-event-line me-2" style="font-size: 20px;"></i>
+                                            <div>
+                                                <strong>Prochaine échéance :</strong> 
+                                                {{ \Carbon\Carbon::parse($prochaineEcheance->date_echeance)->format('d/m/Y') }}
+                                                <span class="ms-2">
+                                                    <strong>Montant :</strong> {{ number_format($prochaineEcheance->montant_du, 0, ',', ' ') }} FCFA
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endif
+                                    
+                                    <!-- Boutons d'action -->
+                                    <div class="row g-2 mt-2">
+                                        <div class="col-md-4">
+                                            <button class="btn btn-primary w-100" data-bs-toggle="modal"
+                                                data-bs-target="#echeancesModal">
+                                                <i class="ri-calendar-line me-1"></i>Voir échéances & paiements
+                                            </button>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <button class="btn btn-success w-100" data-bs-toggle="modal"
+                                                data-bs-target="#genererEcheancesModal">
+                                                <i class="ri-add-line me-1"></i>Générer nouvelles échéances
+                                            </button>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <button class="btn btn-warning w-100" data-bs-toggle="modal"
+                                                data-bs-target="#resilierModal">
+                                                <i class="ri-close-line me-1"></i>Résilier la location
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-                                <i class="ri-checkbox-circle-fill text-success" style="font-size: 24px;"></i>
+                                <i class="ri-checkbox-circle-fill text-success ms-3" style="font-size: 24px;"></i>
                             </div>
                         </div>
                     @endif
@@ -589,9 +697,15 @@
                     <h5 class="card-title mb-0"><i class="ri-tools-line me-2"></i>Actions</h5>
                 </div>
                 <div class="card-body">
-                    <a href="{{ route('backend.locations.edit', $location) }}" class="btn btn-primary btn-sm w-100 mb-2">
-                        <i class="ri-edit-line me-1"></i>Modifier
-                    </a>
+                    @if($location->paiements->count() == 0)
+                        <a href="{{ route('backend.locations.edit', $location) }}" class="btn btn-primary btn-sm w-100 mb-2">
+                            <i class="ri-edit-line me-1"></i>Modifier
+                        </a>
+                    @else
+                        <button class="btn btn-secondary btn-sm w-100 mb-2" disabled title="Modification impossible : des paiements ont été enregistrés">
+                            <i class="ri-lock-line me-1"></i>Modification verrouillée
+                        </button>
+                    @endif
                     <form action="{{ route('backend.locations.destroy', $location) }}" method="POST"
                         onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette location ?');">
                         @csrf
@@ -632,11 +746,11 @@
                             <textarea name="message_email" class="form-control" rows="3"
                                 placeholder="Message qui sera inclus dans l'email au client"></textarea>
                         </div>
-                        <div class="mb-3">
+                        {{-- <div class="mb-3">
                             <label class="form-label">Note interne (optionnelle)</label>
                             <textarea name="note_admin" class="form-control" rows="2"
                                 placeholder="Note interne concernant l'envoi de la fiche"></textarea>
-                        </div>
+                        </div> --}}
                         <div class="alert alert-info">
                             <i class="ri-information-line me-1"></i>
                             Un email sera envoyé au client avec la fiche à remplir et les documents joints.
@@ -713,14 +827,14 @@
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Compte rendu de la visite <span class="text-danger">*</span></label>
-                            <textarea name="compte_rendu_visite" class="form-control" rows="4" required
+                            <label class="form-label">Compte rendu de la visite </label>
+                            <textarea name="compte_rendu_visite" class="form-control" rows="4" 
                                 placeholder="Décrivez comment s'est passée la visite..."></textarea>
                         </div>
-                        <div class="mb-3">
+                        {{-- <div class="mb-3">
                             <label class="form-label">Note additionnelle (optionnelle)</label>
                             <textarea name="note_admin" class="form-control" rows="2"></textarea>
-                        </div>
+                        </div> --}}
                         <div class="alert alert-warning">
                             <i class="ri-alert-line me-1"></i>
                             Si le client n'est pas intéressé, la location sera automatiquement résiliée.
@@ -761,7 +875,7 @@
                                 <input type="number" name="montant_caution" class="form-control"
                                     value="{{ $location->caution ?? 0 }}"
                                     placeholder="{{ number_format($location->caution ?? 0, 0, ',', ' ') }}" required
-                                    step="0.01" min="0">
+                                    step="1" min="0">
                                 <small class="text-muted">Requis: {{ number_format($location->caution ?? 0, 0, ',', ' ') }} FCFA</small>
                             </div>
 
@@ -770,7 +884,7 @@
                                 <input type="number" name="montant_avance" class="form-control"
                                     value="{{ $location->montant_avance ?? 0 }}"
                                     placeholder="{{ number_format($location->montant_avance ?? 0, 0, ',', ' ') }}"
-                                    step="0.01" min="0">
+                                    step="1" min="0">
                                 <small class="text-muted">Requis: {{ number_format($location->montant_avance ?? 0, 0, ',', ' ') }} FCFA</small>
                             </div>
 
@@ -779,7 +893,7 @@
                                 <input type="number" name="montant_frais" class="form-control"
                                     value="{{ $location->montant_frais_agence ?? 0 }}"
                                     placeholder="{{ number_format($location->montant_frais_agence ?? 0, 0, ',', ' ') }}"
-                                    step="0.01" min="0">
+                                    step="1" min="0">
                                 <small class="text-muted">Requis: {{ number_format($location->montant_frais_agence ?? 0, 0, ',', ' ') }} FCFA</small>
                             </div>
                         </div>
@@ -848,7 +962,8 @@
                                 <label class="form-label">Loyer mensuel <span class="text-danger">*</span></label>
                                 <input type="number" name="loyer_mensuel" id="loyer_mensuel" class="form-control"
                                     value="{{ $location->loyer_mensuel ?? $location->annonce->prix }}" required
-                                    step="0.01" min="0">
+                                    step="1" min="0">
+                                    
                                 <small class="text-muted">Prix de l'annonce :
                                     {{ number_format($location->annonce->prix, 0, ',', ' ') }} FCFA (négociable)</small>
                             </div>
@@ -882,7 +997,7 @@
                         <div class="mb-3">
                             <label class="form-label">Frais d'agence (optionnels)</label>
                             <input type="number" name="montant_frais_agence" class="form-control"
-                                value="{{ $location->montant_frais_agence }}" step="0.01" min="0">
+                                value="{{ $location->montant_frais_agence }}" step="1" min="0">
                         </div>
 
                         <hr>
@@ -898,7 +1013,7 @@
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Commission agence</label>
                                 <input type="number" name="commission_agence" class="form-control"
-                                    value="{{ $location->commission_agence }}" step="0.01" min="0">
+                                    value="{{ $location->commission_agence }}" step="1" min="0">
                                 <small class="text-muted">Appliquée sur chaque paiement de loyer (pas sur la caution)</small>
                             </div>
                         </div>
@@ -916,7 +1031,7 @@
                                     value="{{ $location->date_fin ? $location->date_fin->format('Y-m-d') : '' }}">
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label">Jour de paiement <span class="text-danger">*</span></label>
+                                <label class="form-label">Jour de paiement (1-31 du mois) <span class="text-danger">*</span></label>
                                 <input type="number" name="jour_paiement" class="form-control"
                                     value="{{ $location->jour_paiement }}" required min="1" max="31">
                             </div>
@@ -1014,7 +1129,7 @@
                         <div class="mb-3">
                             <label class="form-label">Montant de la commission <span class="text-danger">*</span></label>
                             <input type="number" name="commission_agence" id="commission_agence_modal" class="form-control"
-                                value="{{ $location->commission_agence ?? 0 }}" required step="0.01" min="0">
+                                value="{{ $location->commission_agence ?? 0 }}" required step="1" min="0">
                             <small class="text-muted" id="commission_hint">
                                 @if($location->type_commission == 'pourcentage')
                                     Ex: 10 pour 10% du loyer mensuel
@@ -1073,10 +1188,22 @@
                         @endphp
                         
                         @if($derniereEcheance)
-                            <div class="mb-3">
+                            <div class="mb-3 bg-light p-3 rounded">
                                 <p class="mb-2"><strong>Dernière échéance :</strong> {{ $derniereEcheance->date_echeance->format('d/m/Y') }}</p>
-                                <p class="mb-2"><strong>Échéances futures :</strong> {{ $echeancesFutures }} mois</p>
-                                <p class="mb-0"><strong>Montant mensuel :</strong> {{ number_format($location->montant_loyer, 0, ',', ' ') }} FCFA</p>
+                                <p class="mb-2">
+                                    <strong>Échéances déjà programmées :</strong> 
+                                    <span class="badge {{ $echeancesFutures < 3 ? 'bg-danger' : ($echeancesFutures < 6 ? 'bg-warning text-dark' : 'bg-success') }}">
+                                        {{ $echeancesFutures }} mois à venir
+                                    </span>
+                                </p>
+                                <p class="mb-0"><strong>Montant mensuel :</strong> {{ number_format($location->loyer_mensuel, 0, ',', ' ') }} FCFA</p>
+                                
+                                @if($echeancesFutures >= 6)
+                                    <div class="alert alert-success mt-2 mb-0">
+                                        <i class="ri-information-line me-1"></i>
+                                        Vous avez déjà {{ $echeancesFutures }} mois d'échéances programmées. Vous pouvez quand même en générer plus si nécessaire.
+                                    </div>
+                                @endif
                             </div>
                         @endif
                         
@@ -1141,7 +1268,7 @@
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title"><i class="ri-calendar-line me-1"></i>Échéances et Historique des Paiements</h5>
+                    <h5 class="modal-title text-white"><i class="ri-calendar-line me-1"></i>Échéances et Historique des Paiements</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -1149,36 +1276,83 @@
                         $echeances = $location->echeances()->orderBy('date_echeance')->get();
                         $totalDu = $echeances->sum('montant_du');
                         $totalPaye = $echeances->sum('montant_paye');
+                        
+                        // Statistiques demandées
+                        $nombreMoisPayes = $echeances->where('statut', 'paye')->count();
+                        $echeancesImpayees = $echeances->whereIn('statut', ['impaye'])->count();
+                        $echeancesEnRetard = $echeances->whereIn('statut', ['en_retard'])->count();
+                        $montantImpaye = $echeances->whereIn('statut', ['impaye', 'en_retard'])->sum(function($e) {
+                            return $e->montant_du - $e->montant_paye;
+                        });
+                        
+                        // Prochaine échéance
+                        $prochaineEcheance = $echeances->where('statut', '!=', 'paye')
+                            ->where('date_echeance', '>=', now())
+                            ->sortBy('date_echeance')
+                            ->first();
                     @endphp
                     
                     @if($echeances->count() > 0)
-                        <!-- Résumé global -->
+                        <!-- Résumé global amélioré -->
                         <div class="row mb-4">
-                            <div class="col-md-4">
-                                <div class="card border-primary">
+                            <div class="col-md-3">
+                                <div class="card border-info">
                                     <div class="card-body text-center">
-                                        <h6 class="text-muted">Total dû</h6>
-                                        <h4 class="text-primary">{{ number_format($totalDu, 0, ',', ' ') }} FCFA</h4>
+                                        <h6 class="text-muted mb-2"><i class="ri-calendar-check-line"></i> Mois payés</h6>
+                                        <h4 class="text-info mb-0">{{ $nombreMoisPayes }}</h4>
+                                        <small class="text-muted">sur {{ $echeances->count() }} échéances</small>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <div class="card border-success">
                                     <div class="card-body text-center">
-                                        <h6 class="text-muted">Total payé</h6>
-                                        <h4 class="text-success">{{ number_format($totalPaye, 0, ',', ' ') }} FCFA</h4>
+                                        <h6 class="text-muted mb-2"><i class="ri-money-dollar-circle-line"></i> Total payé</h6>
+                                        <h4 class="text-success mb-0">{{ number_format($totalPaye, 0, ',', ' ') }}</h4>
+                                        <small class="text-muted">FCFA</small>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
+                                <div class="card border-warning">
+                                    <div class="card-body text-center">
+                                        <h6 class="text-muted mb-2"><i class="ri-alarm-warning-line"></i> En retard</h6>
+                                        <h4 class="text-warning mb-0">{{ $echeancesEnRetard }}</h4>
+                                        <small class="text-muted">échéance(s)</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
                                 <div class="card border-danger">
                                     <div class="card-body text-center">
-                                        <h6 class="text-muted">Reste à payer</h6>
-                                        <h4 class="text-danger">{{ number_format($totalDu - $totalPaye, 0, ',', ' ') }} FCFA</h4>
+                                        <h6 class="text-muted mb-2"><i class="ri-alert-line"></i> Impayés</h6>
+                                        <h4 class="text-danger mb-0">{{ $echeancesImpayees }}</h4>
+                                        <small class="text-muted">{{ number_format($montantImpaye, 0, ',', ' ') }} FCFA</small>
                                     </div>
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Prochaine échéance -->
+                        @if($prochaineEcheance)
+                        <div class="alert alert-info mb-4">
+                            <div class="d-flex align-items-center">
+                                <i class="ri-calendar-event-line me-3" style="font-size: 24px;"></i>
+                                <div>
+                                    <strong>Prochaine échéance :</strong> 
+                                    {{ \Carbon\Carbon::parse($prochaineEcheance->date_echeance)->format('d/m/Y') }}
+                                    <span class="ms-3">
+                                        <strong>Montant :</strong> {{ number_format($prochaineEcheance->montant_du, 0, ',', ' ') }} FCFA
+                                    </span>
+                                    @if($prochaineEcheance->montant_paye > 0)
+                                        <span class="ms-3 text-success">
+                                            ({{ number_format($prochaineEcheance->montant_paye, 0, ',', ' ') }} FCFA déjà payés)
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                        @endif
 
                         <!-- Tableau des échéances avec historique -->
                         <div class="accordion" id="accordionEcheances">
@@ -1225,6 +1399,7 @@
                                                                 <th>Méthode</th>
                                                                 <th>Référence</th>
                                                                 <th>Notes</th>
+                                                                <th width="120">Actions</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
@@ -1247,6 +1422,13 @@
                                                                     </td>
                                                                     <td>{{ $paiement->reference ?? '-' }}</td>
                                                                     <td>{{ $paiement->notes ?? '-' }}</td>
+                                                                    <td>
+                                                                        <a href="{{ route('backend.locations.recu-paiement', $paiement) }}" 
+                                                                           class="btn btn-sm btn-outline-primary" 
+                                                                           title="Télécharger le reçu">
+                                                                            <i class="ri-file-download-line me-1"></i>Reçu
+                                                                        </a>
+                                                                    </td>
                                                                 </tr>
                                                             @endforeach
                                                         </tbody>
@@ -1299,10 +1481,35 @@
                             </div>
 
                             <div class="mb-3">
+                                <label class="form-label d-block">Type de paiement</label>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input type-paiement-radio" type="radio" 
+                                        name="type_paiement_{{ $echeance->id }}" 
+                                        id="paiement_total_{{ $echeance->id }}" 
+                                        value="total" checked>
+                                    <label class="form-check-label" for="paiement_total_{{ $echeance->id }}">
+                                        <i class="ri-money-dollar-circle-line me-1"></i>Montant total
+                                    </label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input type-paiement-radio" type="radio" 
+                                        name="type_paiement_{{ $echeance->id }}" 
+                                        id="paiement_partiel_{{ $echeance->id }}" 
+                                        value="partiel">
+                                    <label class="form-check-label" for="paiement_partiel_{{ $echeance->id }}">
+                                        <i class="ri-percent-line me-1"></i>Montant partiel
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
                                 <label class="form-label">Montant du paiement <span class="text-danger">*</span></label>
-                                <input type="number" name="montant" class="form-control"
+                                <input type="number" name="montant" class="form-control montant-paiement-input"
+                                    id="montant_input_{{ $echeance->id }}"
+                                    data-montant-total="{{ $echeance->montant_du - $echeance->montant_paye }}"
                                     value="{{ $echeance->montant_du - $echeance->montant_paye }}"
-                                    required step="0.01" min="1" max="{{ $echeance->montant_du - $echeance->montant_paye }}">
+                                    required step="1" min="1" max="{{ $echeance->montant_du - $echeance->montant_paye }}"
+                                    readonly>
                                 <small class="text-muted">Maximum: {{ number_format($echeance->montant_du - $echeance->montant_paye, 0, ',', ' ') }} FCFA</small>
                             </div>
 
@@ -1357,8 +1564,46 @@
 
 @section('script')
     <script>
-        // Calcul automatique de la caution et de l'avance
+        // Fonction pour formater le montant avec des espaces
+        function formatMontant(value) {
+            let numStr = value.replace(/[^\d]/g, '');
+            return numStr.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+        }
+        
+        // Fonction pour obtenir la valeur numérique
+        function getMontantNumeric(value) {
+            return parseFloat(value.replace(/\s/g, '')) || 0;
+        }
+
+        // Appliquer le formatage à tous les champs de montant
         document.addEventListener('DOMContentLoaded', function() {
+            // Gestion des radio buttons pour paiement total/partiel
+            document.querySelectorAll('.type-paiement-radio').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const echeanceId = this.name.split('_').pop();
+                    const montantInput = document.getElementById('montant_input_' + echeanceId);
+                    const montantTotal = montantInput.dataset.montantTotal;
+                    
+                    if (this.value === 'total') {
+                        montantInput.value = montantTotal;
+                        montantInput.setAttribute('readonly', 'readonly');
+                    } else {
+                        montantInput.value = '';
+                        montantInput.removeAttribute('readonly');
+                        montantInput.focus();
+                    }
+                });
+            });
+
+            // Sélectionner uniquement les champs dans le modal de configuration
+            const modalConfiguration = document.getElementById('configurerPaiementModal');
+            
+            if (modalConfiguration) {
+                // NE PAS appliquer de formatage - laisser les champs en type="number" natif
+                // Cela évite les problèmes de conversion et de multiplication
+            }
+
+            // Calcul automatique de la caution et de l'avance
             const loyerInput = document.getElementById('loyer_mensuel');
             const nombreCautionsInput = document.getElementById('nombre_cautions');
             const cautionInput = document.getElementById('caution');
@@ -1367,19 +1612,19 @@
 
             function calculerCaution() {
                 if (loyerInput && nombreCautionsInput && cautionInput) {
-                    const loyer = parseFloat(loyerInput.value) || 0;
+                    const loyer = parseFloat(loyerInput.value.replace(/\s/g, '')) || 0;
                     const nombreCautions = parseFloat(nombreCautionsInput.value) || 0;
                     const caution = loyer * nombreCautions;
-                    cautionInput.value = caution.toFixed(2);
+                    cautionInput.value = Math.round(caution).toLocaleString('fr-FR').replace(/,/g, ' ');
                 }
             }
 
             function calculerAvance() {
                 if (loyerInput && avanceSurLoyerInput && montantAvanceInput) {
-                    const loyer = parseFloat(loyerInput.value) || 0;
+                    const loyer = parseFloat(loyerInput.value.replace(/\s/g, '')) || 0;
                     const avanceMois = parseFloat(avanceSurLoyerInput.value) || 0;
                     const montantAvance = loyer * avanceMois;
-                    montantAvanceInput.value = montantAvance.toFixed(2);
+                    montantAvanceInput.value = Math.round(montantAvance).toLocaleString('fr-FR').replace(/,/g, ' ');
                 }
             }
 
@@ -1398,7 +1643,7 @@
                 calculerCaution();
                 calculerAvance();
 
-                // Recalculer quand le modal s'ouvre
+                // Recalculer quand le modal s'ouvre (les champs sont déjà reformatés par l'événement sur modalConfiguration)
                 const modal = document.getElementById('configurerPaiementModal');
                 if (modal) {
                     modal.addEventListener('shown.bs.modal', function() {
@@ -1426,7 +1671,7 @@
                     if (type === 'pourcentage') {
                         commissionHint.textContent = 'Ex: 10 pour 10% du loyer mensuel';
                     } else {
-                        commissionHint.textContent = 'Ex: 5000 pour 5000 FCFA par mois';
+                        commissionHint.textContent = 'Ex: 5 000 pour 5 000 FCFA par mois';
                     }
                 }
 
@@ -1434,9 +1679,9 @@
                 if (loyerMensuel > 0) {
                     if (type === 'pourcentage') {
                         const commission = (loyerMensuel * montant / 100);
-                        commissionPreview.innerHTML = `Commission : ${commission.toLocaleString('fr-FR', {maximumFractionDigits: 0})} FCFA (${montant}%)`;
+                        commissionPreview.innerHTML = `Commission : ${Math.round(commission).toLocaleString('fr-FR')} FCFA (${montant}%)`;
                     } else {
-                        commissionPreview.innerHTML = `Commission : ${montant.toLocaleString('fr-FR', {maximumFractionDigits: 0})} FCFA`;
+                        commissionPreview.innerHTML = `Commission : ${Math.round(montant).toLocaleString('fr-FR')} FCFA`;
                     }
                 }
             }
@@ -1471,5 +1716,51 @@
                 form.submit();
             }
         }
+
+        // Formater les champs de montant avec des séparateurs de milliers
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sélectionner tous les inputs de type number pour les montants
+            const montantInputs = document.querySelectorAll('input[type="number"][name*="montant"], input[type="number"][name*="loyer"], input[type="number"][name*="caution"], input[type="number"][name*="commission"], input[type="number"][name*="frais"]');
+            
+            montantInputs.forEach(input => {
+                // Convertir en type text pour permettre le formatage
+                input.setAttribute('type', 'text');
+                input.setAttribute('inputmode', 'numeric');
+                input.removeAttribute('pattern'); // Retirer le pattern pour éviter la validation
+                
+                // Formater la valeur initiale
+                if (input.value) {
+                    const numValue = input.value.replace(/\s/g, '');
+                    if (numValue && !isNaN(numValue)) {
+                        input.value = parseInt(numValue).toLocaleString('fr-FR').replace(/,/g, ' ');
+                    }
+                }
+                
+                // Formater pendant la saisie
+                input.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\s/g, '');
+                    
+                    // Garder seulement les chiffres
+                    value = value.replace(/[^\d]/g, '');
+                    
+                    // Formater avec des espaces
+                    if (value) {
+                        e.target.value = parseInt(value).toLocaleString('fr-FR').replace(/,/g, ' ');
+                    } else {
+                        e.target.value = '';
+                    }
+                });
+            });
+            
+            // Nettoyer tous les champs formatés avant soumission de n'importe quel formulaire
+            document.querySelectorAll('form').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    // Retirer les espaces de tous les champs formatés dans ce formulaire
+                    form.querySelectorAll('input[type="text"][inputmode="numeric"]').forEach(input => {
+                        input.value = input.value.replace(/\s/g, '');
+                    });
+                });
+            });
+        });
     </script>
 @endsection

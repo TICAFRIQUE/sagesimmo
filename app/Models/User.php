@@ -97,14 +97,6 @@ class User extends Authenticatable implements HasMedia
     }
 
     /**
-     * Relation avec les demandes d'intérêt
-     */
-    public function demandeInterets()
-    {
-        return $this->hasMany(DemandeInteret::class);
-    }
-
-    /**
      * Relation avec les locations (en tant que locataire)
      */
     public function locations()
@@ -113,10 +105,18 @@ class User extends Authenticatable implements HasMedia
     }
 
     /**
-     * Relation avec les ventes (en tant qu'acheteur)
+     * Relation avec les ventes (en tant que client)
      */
     public function ventes()
     {
-        return $this->hasMany(Vente::class, 'acheteur_id');
+        return $this->hasMany(Vente::class, 'client_id');
+    }
+
+    /**
+     * Relation avec les annonces (en tant que propriétaire)
+     */
+    public function annonces()
+    {
+        return $this->hasMany(Annonce::class, 'proprietaire_id');
     }
 }

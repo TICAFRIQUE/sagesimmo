@@ -39,14 +39,10 @@ class UserController extends Controller
 
         $users = $query->orderBy('created_at', 'desc')->get();
 
-        // Confirmation de suppression
-        $title = 'Suppression d\'utilisateur';
-        $text = "Êtes-vous sûr de vouloir supprimer cet utilisateur ?";
-        //modifier les boutons de confirmation en francais
-        $confirmButtonText = 'Oui, supprimer';
-        $cancelButtonText = 'Annuler'; 
-               
-        confirmDelete($title, $text, $confirmButtonText, $cancelButtonText);
+        // // Confirmation de suppression
+        // $title = 'Suppression d\'utilisateur';
+        // $text = "Êtes-vous sûr de vouloir supprimer cet utilisateur ?";
+        // confirmDelete($title, $text);
 
 
         return view('backend.pages.users.index', compact('users'));
@@ -118,7 +114,17 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        $user->load('roles', 'media');
+        $user->load([
+            'roles', 
+            'media',
+            'ventes.annonce.media',
+            'ventes.paiements',
+            'locations.annonce.media',
+            'locations.echeances',
+            'locations.paiements',
+            'annonces.media',
+            'annonces.typeBien'
+        ]);
         return view('backend.pages.users.show', compact('user'));
     }
 

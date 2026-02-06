@@ -22,9 +22,9 @@ class Echeance extends Model
 
     protected $casts = [
         'date_echeance' => 'date',
-        'montant_du' => 'decimal:2',
-        'montant_paye' => 'decimal:2',
-        'commission_agence' => 'decimal:2',
+        'montant_du' => 'integer',
+        'montant_paye' => 'integer',
+        'commission_agence' => 'integer',
     ];
 
     // Relations
@@ -46,6 +46,7 @@ class Echeance extends Model
 
     /**
      * Mettre à jour automatiquement le statut selon la situation
+     * Le retard est calculé par rapport aux dates de paiement
      */
     public function mettreAJourStatut()
     {
@@ -54,8 +55,11 @@ class Echeance extends Model
         if ($this->montant_paye >= $this->montant_du) {
             $this->statut = 'paye';
         } elseif ($this->montant_paye > 0 && $this->montant_paye < $this->montant_du) {
-            // Paiement partiel
-            if ($this->date_echeance->isPast()) {
+            // Paiement partiel - calculer le retard basé sur les dates de paiement
+            $joursRetard = $this->joursDeRetard();
+            if ($joursRetard > 30) {
+                $this->statut = 'impaye';
+            } elseif ($joursRetard > 0) {
                 $this->statut = 'en_retard';
             } else {
                 $this->statut = 'partiel';
@@ -87,7 +91,9 @@ class Echeance extends Model
     }
 
     /**
-     * Calculer le nombre de jours de retard
+     * Calculer le nombre de jours de retard basé sur les dates de paiement
+     * - Si des paiements existent: calcule le retard par rapport aux dates de paiement
+     * - Sinon: calcule par rapport à aujourd'hui
      */
     public function joursDeRetard()
     {
@@ -95,6 +101,24 @@ class Echeance extends Model
             return 0;
         }
         
+        // Si des paiements existent, calculer le retard basé sur les dates de paiement
+        $paiements = $this->paiements()->orderBy('date_paiement', 'desc')->get();
+        
+        if ($paiements->count() > 0) {
+            // Prendre le paiement le plus récent pour calculer le retard
+            $dernierPaiement = $paiements->first();
+            $datePaiement = Carbon::parse($dernierPaiement->date_paiement);
+            
+            // Calculer les jours entre la date d'échéance et la date de paiement
+            if ($datePaiement->greaterThan($this->date_echeance)) {
+                return $this->date_echeance->diffInDays($datePaiement);
+            }
+            
+            // Si le paiement a été fait avant ou à la date d'échéance
+            return 0;
+        }
+        
+        // Aucun paiement: calculer par rapport à aujourd'hui
         return $this->date_echeance->diffInDays(now());
     }
 

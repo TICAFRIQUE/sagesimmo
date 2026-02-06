@@ -77,7 +77,9 @@ $echeance->mettreAJourStatut();
 // Vérifier si en retard
 $echeance->estEnRetard(); // true/false
 
-// Obtenir le nombre de jours de retard
+// Obtenir le nombre de jours de retard (basé sur les dates de paiement)
+// - Si paiement(s) effectué(s) : calcule entre date d'échéance et date de paiement
+// - Sinon : calcule entre date d'échéance et aujourd'hui
 $echeance->joursDeRetard(); // 0, 5, 35, etc.
 
 // Obtenir le niveau de priorité (1=urgent, 4=ok)
@@ -107,6 +109,16 @@ $aVenir = Echeance::aVenir(14)->get();
 ```
 
 ## Workflow de gestion des retards
+
+### Calcul des retards basé sur les dates de paiement
+Le système calcule désormais les jours de retard de manière intelligente :
+- **Avec paiement(s)** : Le retard est calculé entre la `date_echeance` et la `date_paiement` du dernier paiement effectué
+- **Sans paiement** : Le retard est calculé entre la `date_echeance` et la date actuelle
+
+**Exemple :**
+- Date d'échéance : 1er février 2026
+- Paiement partiel effectué le : 15 février 2026
+- Jours de retard : 14 jours (entre le 1er et le 15 février)
 
 ### Détection automatique
 1. Chaque jour à 1h : le scheduler exécute `echeances:verifier-retards`

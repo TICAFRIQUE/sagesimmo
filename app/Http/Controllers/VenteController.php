@@ -11,13 +11,40 @@ use RealRashid\SweetAlert\Facades\Alert;
 
 class VenteController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $ventes = Vente::with(['annonce', 'client', 'paiements', 'demandeInteret'])
-            ->latest()
-            ->paginate(15);
+        $query = Vente::with(['annonce', 'client', 'paiements']);
+
+        // Filtre par statut
+        if ($request->filled('statut')) {
+            $query->where('statut', $request->statut);
+        }
+
+        // Filtre par client
+        if ($request->filled('client')) {
+            $query->where('client_id', $request->client);
+        }
+
+        // Filtre par période
+        if ($request->filled('date_debut')) {
+            $query->whereDate('created_at', '>=', $request->date_debut);
+        }
+        if ($request->filled('date_fin')) {
+            $query->whereDate('created_at', '<=', $request->date_fin);
+        }
+
+        $ventes = $query->latest()->paginate(15)->withQueryString();
         
-        return view('backend.pages.ventes.index', compact('ventes'));
+        // Récupérer tous les clients qui ont au moins une vente
+        $clients = User::whereHas('ventes')->orderBy('username')->get();
+
+
+         // Confirmation de suppression
+        $title = 'Suppression de vente';
+        $text = "Êtes-vous sûr de vouloir supprimer cette vente ?";
+        confirmDelete($title, $text);
+
+        return view('backend.pages.ventes.index', compact('ventes', 'clients'));
     }
 
     public function create()
@@ -26,12 +53,12 @@ class VenteController extends Controller
             ->where('type_transaction', 'vente')
             ->get();
         // Récupérer tous les utilisateurs sauf les admins
-        $clients = User::whereDoesntHave('roles', function($q) {
+        $clients = User::whereDoesntHave('roles', function ($q) {
             $q->where('name', 'superadmin')
-              ->orWhere('name', 'developpeur')
-              ->orWhere('name', 'admin');
+                ->orWhere('name', 'developpeur')
+                ->orWhere('name', 'admin');
         })->get();
-        
+
         return view('backend.pages.ventes.create', compact('annonces', 'clients'));
     }
 
@@ -42,26 +69,14 @@ class VenteController extends Controller
             'client_id' => 'required|exists:users,id',
             'message_client' => 'nullable|string',
             'prix_vente' => 'required|numeric|min:0',
-            'montant_caution' => 'nullable|numeric|min:0',
-            'montant_frais_agence' => 'nullable|numeric|min:0',
-            'commission_agence' => 'nullable|numeric|min:0',
-            'type_commission' => 'nullable|in:montant,pourcentage',
-            'date_vente' => 'required|date',
-            'date_signature' => 'nullable|date',
-            'statut' => 'nullable|in:demande_client,fiche_envoyee,visite_planifiee,en_attente_paiement,paiement_valide,annule',
             'notes' => 'nullable|string',
         ]);
 
-        $validated['statut'] = $validated['statut'] ?? 'demande_client';
+        // Créer la vente avec le statut initial de demande client
+        $validated['statut'] = 'demande_client';
         $vente = Vente::create($validated);
 
-        // Mettre à jour le statut de l'annonce seulement si paiement validé
-        if ($validated['statut'] == 'paiement_valide') {
-            $annonce = Annonce::find($validated['annonce_id']);
-            $annonce->update(['statut' => 'vendu', 'statut_publication' => 0]);
-        }
-
-        Alert::success('Succès', 'Vente enregistrée avec succès');
+        Alert::success('Succès', 'Vente créée avec succès. Vous pouvez maintenant gérer le workflow.');
         return redirect()->route('backend.ventes.show', $vente);
     }
 
@@ -71,37 +86,51 @@ class VenteController extends Controller
         return view('backend.pages.ventes.show', compact('vente'));
     }
 
+    public function fiche(Vente $vente)
+    {
+        $vente->load(['annonce.typeBien', 'client', 'paiements']);
+        return view('backend.pages.ventes.fiche', compact('vente'));
+    }
+
     public function edit(Vente $vente)
     {
+        // Bloquer la modification si des paiements existent
+        if ($vente->paiements()->count() > 0) {
+            Alert::warning('Modification impossible', 'Cette vente ne peut plus être modifiée car des paiements ont déjà été enregistrés.');
+            return redirect()->route('backend.ventes.show', $vente);
+        }
+
         $annonces = Annonce::all();
-        $clients = User::whereDoesntHave('roles', function($q) {
+        $clients = User::whereDoesntHave('roles', function ($q) {
             $q->where('name', 'superadmin')
-              ->orWhere('name', 'developpeur')
-              ->orWhere('name', 'admin');
+                ->orWhere('name', 'developpeur')
+                ->orWhere('name', 'admin');
         })->get();
-        
+
         return view('backend.pages.ventes.edit', compact('vente', 'annonces', 'clients'));
     }
 
     public function update(Request $request, Vente $vente)
     {
+        // Bloquer la modification si des paiements existent
+        if ($vente->paiements()->count() > 0) {
+            Alert::warning('Modification impossible', 'Cette vente ne peut plus être modifiée car des paiements ont déjà été enregistrés.');
+            return redirect()->route('backend.ventes.show', $vente);
+        }
+
         $validated = $request->validate([
             'annonce_id' => 'required|exists:annonces,id',
             'client_id' => 'required|exists:users,id',
             'prix_vente' => 'required|numeric|min:0',
-            'montant_caution' => 'nullable|numeric|min:0',
-            'montant_frais_agence' => 'nullable|numeric|min:0',
-            'commission_agence' => 'nullable|numeric|min:0',
-            'type_commission' => 'nullable|in:montant,pourcentage',
-            'date_vente' => 'required|date',
-            'date_signature' => 'nullable|date',
-            'statut' => 'required|in:demande_client,fiche_envoyee,visite_planifiee,en_attente_paiement,paiement_valide,annule',
-            'notes' => 'nullable|string',
+            'message' => 'nullable|string',
         ]);
 
+        // Réinitialiser le workflow à demande_client
+        $validated['statut'] = 'demande_client';
+        
         $vente->update($validated);
 
-        Alert::success('Succès', 'Vente modifiée avec succès');
+        Alert::success('Succès', 'Vente modifiée avec succès. Le workflow a été réinitialisé à "Demande client".');
         return redirect()->route('backend.ventes.show', $vente);
     }
 
@@ -109,7 +138,7 @@ class VenteController extends Controller
     {
         $annonce = $vente->annonce;
         $annonce->update(['statut' => 'disponible']);
-        
+
         $vente->delete();
 
         Alert::success('Succès', 'Vente supprimée avec succès');
@@ -177,7 +206,7 @@ class VenteController extends Controller
     public function visiteEffectuee(Request $request, Vente $vente)
     {
         $request->validate([
-            'compte_rendu_visite' => 'required|string',
+            'compte_rendu_visite' => 'nullable|string',
             'client_interesse' => 'required|boolean',
             'note_admin' => 'nullable|string',
         ]);
@@ -193,7 +222,7 @@ class VenteController extends Controller
         }
 
         $vente->update([
-            'statut' => 'en_attente_paiement',
+            'statut' => 'offre_acceptee',
             'compte_rendu_visite' => $request->compte_rendu_visite,
             'note_admin' => $request->note_admin,
         ]);
@@ -219,14 +248,14 @@ class VenteController extends Controller
         // Récupérer la commission depuis l'annonce si non fournie
         $commissionAgence = $request->commission_agence;
         $typeCommission = $request->type_commission;
-        
+
         if (empty($commissionAgence) && $vente->annonce->commission) {
             $commissionAgence = $vente->annonce->commission;
             $typeCommission = $vente->annonce->type_commission;
         }
 
         $vente->update([
-            'statut' => 'en_attente_paiement',
+            'statut' => 'offre_acceptee',
             'prix_vente' => $request->prix_vente,
             'montant_caution' => $request->montant_caution ?? 0,
             'montant_frais_agence' => $request->montant_frais_agence ?? 0,
@@ -251,15 +280,15 @@ class VenteController extends Controller
         ]);
 
         // Vérifier que le paiement est complet
-        $resteAPayer = $vente->resteAPayer();
-        
-        if ($resteAPayer > 0) {
-            Alert::error('Erreur', 'Le paiement n\'est pas complet. Il reste ' . number_format($resteAPayer, 0, ',', ' ') . ' FCFA à payer. Ajoutez les paiements manquants avant de finaliser.');
+        if (!$vente->estEntierementPaye()) {
+            $resteAPayer = $vente->resteAPayer();
+            Alert::error('Erreur', 'Le paiement n\'est pas complet. Il reste ' . number_format($resteAPayer, 0, ',', ' ') . ' FCFA à payer. Ajoutez les paiements manquants avant de finaliser la vente.');
             return back();
         }
 
+        // Finaliser la vente
         $vente->update([
-            'statut' => 'paiement_valide',
+            'statut' => 'terminee',
             'date_signature' => $request->date_signature ?? now(),
             'date_finalisation' => now(),
             'note_admin' => $request->note_admin,
@@ -271,7 +300,20 @@ class VenteController extends Controller
             'statut_publication' => 0,
         ]);
 
-        Alert::success('Succès', 'Paiement complet validé ! Vente finalisée, remise des clés au client. Le bien a été marqué comme vendu.');
+        // Récupérer les statistiques de paiement
+        $montantTotal = $vente->montantTotalPaye();
+        $commissionTotale = $vente->totalCommissionsPercues();
+        $nombrePaiements = $vente->paiements()->count();
+
+        Alert::success(
+            'Succès',
+            'Vente finalisée avec succès ! ' .
+                'Montant total payé : ' . number_format($montantTotal, 0, ',', ' ') . ' FCFA ' .
+                'en ' . $nombrePaiements . ' paiement(s). ' .
+                'Commission perçue : ' . number_format($commissionTotale, 0, ',', ' ') . ' FCFA. ' .
+                'Le bien a été marqué comme vendu.'
+        );
+
         return back();
     }
 
@@ -303,60 +345,47 @@ class VenteController extends Controller
             'methode_paiement' => 'required|in:espèces,virement,chèque,carte_bancaire,autre',
             'reference' => 'nullable|string',
             'notes' => 'nullable|string',
+            // Configuration de la commission (seulement au premier paiement)
+            'commission_agence' => 'nullable|numeric|min:0',
+            'type_commission' => 'nullable|in:pourcentage,montant',
         ]);
 
-        // Vérifier que le montant ne dépasse pas le montant restant à payer
+        // Vérifier que le montant ne dépasse pas le montant total à payer
         $montantRestant = $vente->resteAPayer();
-        
+
         if ($validated['montant'] > $montantRestant) {
             Alert::error('Erreur', 'Le montant du paiement (' . number_format($validated['montant'], 0, ',', ' ') . ' FCFA) dépasse le montant restant à payer (' . number_format($montantRestant, 0, ',', ' ') . ' FCFA)');
             return redirect()->back()->withInput();
         }
 
-        $vente->paiements()->create($validated);
-
-        Alert::success('Succès', 'Paiement ajouté avec succès');
-        return redirect()->route('backend.ventes.show', $vente);
-    }
-    public function createFromDemande($demandeId)
-    {
-        $demande = \App\Models\DemandeInteret::with(['annonce', 'user'])->findOrFail($demandeId);
-        
-        // Vérifier si une vente existe déjà pour cette demande
-        if ($demande->vente) {
-            Alert::warning('Attention', 'Une vente existe déjà pour cette demande');
-            return redirect()->route('backend.ventes.show', $demande->vente);
+        // Configuration de la commission (seulement si pas encore définie)
+        if (!$vente->commission_agence && isset($validated['commission_agence']) && isset($validated['type_commission'])) {
+            // Enregistrer la configuration de la commission
+            $vente->update([
+                'commission_agence' => $validated['commission_agence'],
+                'type_commission' => $validated['type_commission'],
+            ]);
         }
 
-        return view('backend.pages.ventes.create-from-demande', compact('demande'));
-    }
-
-    public function storeFromDemande(Request $request, $demandeId)
-    {
-        $demande = \App\Models\DemandeInteret::findOrFail($demandeId);
-        
-        $validated = $request->validate([
-            'prix_vente' => 'required|numeric|min:0',
-            'commission_agence' => 'nullable|numeric|min:0',
-            'type_commission' => 'nullable|in:montant,pourcentage',
-            'date_vente' => 'required|date',
-            'date_signature' => 'nullable|date',
-            'notes' => 'nullable|string',
+        // Créer le paiement avec historique immuable
+        $paiement = $vente->paiements()->create([
+            'type_paiement' => 'prix_achat',
+            'montant' => $validated['montant'],
+            'date_paiement' => $validated['date_paiement'],
+            'methode_paiement' => $validated['methode_paiement'],
+            'reference' => $validated['reference'] ?? null,
+            'notes' => $validated['notes'] ?? null,
+            'statut' => 'paye',
         ]);
 
-        $validated['demande_interet_id'] = $demande->id;
-        $validated['annonce_id'] = $demande->annonce_id;
-        $validated['client_id'] = $demande->user_id;
-        $validated['statut'] = 'en_cours';
+        // Vérifier si le paiement est maintenant complet
+        if ($vente->estEntierementPaye() && $vente->statut === 'offre_acceptee') {
+            Alert::success('Succès', 'Paiement ajouté avec succès (' . number_format($validated['montant'], 0, ',', ' ') . ' FCFA). Le paiement est maintenant complet ! Vous pouvez valider la vente.');
+        } else {
+            $resteAPayer = $vente->resteAPayer();
+            Alert::success('Succès', 'Paiement de ' . number_format($validated['montant'], 0, ',', ' ') . ' FCFA ajouté. Reste à payer : ' . number_format($resteAPayer, 0, ',', ' ') . ' FCFA');
+        }
 
-        $vente = Vente::create($validated);
-
-        // Mettre à jour le statut de l'annonce
-        $demande->annonce->update(['statut' => 'vendu']);
-        
-        // Mettre à jour le statut de la demande
-        $demande->update(['statut' => 'paiement_valide']);
-
-        Alert::success('Succès', 'Vente créée avec succès depuis la demande');
         return redirect()->route('backend.ventes.show', $vente);
-    }}
+    }
+}

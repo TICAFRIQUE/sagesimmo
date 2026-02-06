@@ -149,19 +149,19 @@
             <div class="row text-center">
                 <div class="col-md-4">
                     <div class="p-3">
-                        <h3 class="text-primary">{{ $user->demandeInterets()->count() }}</h3>
+                        <h3 class="text-primary">{{ $user->ventes()->count() + $user->locations()->count() }}</h3>
                         <p class="text-muted mb-0">Demandes envoyées</p>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="p-3">
-                        <h3 class="text-success">{{ $user->demandeInterets()->where('statut', 'acceptee')->count() }}</h3>
-                        <p class="text-muted mb-0">Demandes acceptées</p>
+                        <h3 class="text-success">{{ $user->ventes()->where('statut', 'terminee')->count() + $user->locations()->where('statut', 'actif')->count() }}</h3>
+                        <p class="text-muted mb-0">Transactions finalisées</p>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="p-3">
-                        <h3 class="text-info">{{ $user->demandeInterets()->where('statut', 'visite_proposee')->count() }}</h3>
+                        <h3 class="text-info">{{ $user->ventes()->where('statut', 'visite_planifiee')->count() + $user->locations()->where('statut', 'visite_planifiee')->count() }}</h3>
                         <p class="text-muted mb-0">Visites programmées</p>
                     </div>
                 </div>

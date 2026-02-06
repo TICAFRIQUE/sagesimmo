@@ -45,9 +45,9 @@ class Annonce extends Model implements HasMedia
     ];
 
     protected $casts = [
-        'prix' => 'decimal:2',
-        'commission' => 'decimal:2',
-        'surface' => 'decimal:2',
+        'prix' => 'integer',
+        'commission' => 'integer',
+        'surface' => 'integer',
         'latitude' => 'decimal:8',
         'longitude' => 'decimal:8',
         'en_vedette' => 'boolean',
@@ -121,6 +121,22 @@ class Annonce extends Model implements HasMedia
     public function equipements()
     {
         return $this->belongsToMany(Equipement::class, 'annonce_equipement');
+    }
+
+    /**
+     * Relation avec les locations
+     */
+    public function locations()
+    {
+        return $this->hasMany(Location::class, 'annonce_id');
+    }
+
+    /**
+     * Relation avec les ventes
+     */
+    public function ventes()
+    {
+        return $this->hasMany(Vente::class, 'annonce_id');
     }
 
     /**

@@ -136,7 +136,18 @@ class AnnonceController extends Controller
      */
     public function show(Annonce $annonce)
     {
-        $annonce->load(['proprietaire', 'createdBy', 'media', 'typeBien', 'equipements']);
+        $annonce->load([
+            'proprietaire', 
+            'createdBy', 
+            'media', 
+            'typeBien', 
+            'equipements',
+            'locations.locataire',
+            'locations.echeances',
+            'locations.paiements',
+            'ventes.client',
+            'ventes.paiements'
+        ]);
         return view('backend.pages.annonces.show', compact('annonce'));
     }
 

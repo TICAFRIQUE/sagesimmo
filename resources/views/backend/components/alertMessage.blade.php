@@ -78,11 +78,27 @@
 
 
 <script>
-
-    // faire disparaitre les alertes apres 10 secondes
+    // faire disparaitre les alertes apres 5 secondes
     window.setTimeout(function() {
-        $(".alert").fadeTo(500, 0).slideUp(500, function(){
-            $(this).remove();
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(function(alert) {
+            // Fade out avec transition
+            alert.style.transition = 'opacity 0.5s ease-in-out';
+            alert.style.opacity = '0';
+            
+            // Slide up et suppression après le fade
+            setTimeout(function() {
+                alert.style.transition = 'all 0.5s ease-in-out';
+                alert.style.maxHeight = '0';
+                alert.style.padding = '0';
+                alert.style.margin = '0';
+                alert.style.overflow = 'hidden';
+                
+                // Supprimer complètement l'élément après l'animation
+                setTimeout(function() {
+                    alert.remove();
+                }, 500);
+            }, 500);
         });
-    }, 10000);
+    }, 5000);
 </script>

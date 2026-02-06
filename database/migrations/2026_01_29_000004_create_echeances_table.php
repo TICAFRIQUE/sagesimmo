@@ -15,8 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('location_id')->constrained('locations')->onDelete('cascade');
             $table->date('date_echeance');
-            $table->decimal('montant_du', 15, 2);
-            $table->decimal('montant_paye', 15, 2)->default(0);
+            $table->unsignedBigInteger('montant_du');
+            $table->unsignedBigInteger('montant_paye')->default(0);
+            $table->unsignedBigInteger('commission_agence')->nullable();
             $table->enum('statut', ['a_echeance', 'en_retard', 'partiel', 'paye', 'impaye', 'cloture'])->default('a_echeance');
             $table->text('notes')->nullable();
             $table->timestamps();

@@ -17,6 +17,49 @@
             <i class="ri-dashboard-line"></i>
             <span>Tableau de bord</span>
         </a>
+        
+        @php
+            $user = Auth::user();
+            $nombreBiensProprio = \App\Models\Annonce::where('proprietaire_id', $user->id)->count();
+            $locationActive = \App\Models\Location::where('locataire_id', $user->id)
+                ->where('statut', 'actif')
+                ->exists();
+            $venteActive = \App\Models\Vente::where('client_id', $user->id)
+                ->where('statut', 'paiement_valide')
+                ->exists();
+            
+            $estProprietaire = ($user->roles->contains('name', 'proprietaire')) || $nombreBiensProprio > 0;
+            $estLocataire = ($user->roles->contains('name', 'locataire')) || $locationActive;
+            $estAcheteur = ($user->roles->contains('name', 'acheteur')) || $venteActive;
+        @endphp
+        
+        @if($estProprietaire)
+            <a href="{{ route('client.proprietaire') }}" 
+               class="nav-link d-flex align-items-center {{ request()->routeIs('client.proprietaire') ? 'active' : '' }}">
+                <i class="ri-building-line"></i>
+                <span class="flex-grow-1">Espace Propriétaire</span>
+                @if($nombreBiensProprio > 0)
+                    <span class="badge bg-success rounded-pill">{{ $nombreBiensProprio }}</span>
+                @endif
+            </a>
+        @endif
+        
+        @if($estLocataire)
+            <a href="{{ route('client.locataire') }}" 
+               class="nav-link {{ request()->routeIs('client.locataire') ? 'active' : '' }}">
+                <i class="ri-home-heart-line"></i>
+                <span>Espace Locataire</span>
+            </a>
+        @endif
+        
+        @if($estAcheteur)
+            <a href="{{ route('client.acheteur') }}" 
+               class="nav-link {{ request()->routeIs('client.acheteur') ? 'active' : '' }}">
+                <i class="ri-shopping-bag-3-line"></i>
+                <span>Espace Acheteur</span>
+            </a>
+        @endif
+        
         <a href="{{ route('client.profil') }}" 
            class="nav-link {{ request()->routeIs('client.profil') ? 'active' : '' }}">
             <i class="ri-user-settings-line"></i>
@@ -27,8 +70,11 @@
             <i class="ri-message-3-line"></i>
             <span class="flex-grow-1">Mes Demandes</span>
             @php
-                $demandesEnCours = \App\Models\DemandeInteret::where('user_id', Auth::id())
-                    ->whereNotIn('statut', ['cloture', 'paiement_valide'])
+                $demandesEnCours = \App\Models\Vente::where('client_id', Auth::id())
+                    ->whereIn('statut', ['demande_client', 'brouillon', 'fiche_envoyee', 'visite_planifiee', 'offre_acceptee'])
+                    ->count() + 
+                    \App\Models\Location::where('locataire_id', Auth::id())
+                    ->whereIn('statut', ['demande_client', 'brouillon', 'fiche_envoyee', 'visite_planifiee', 'paiement_initial', 'en_attente_echeances'])
                     ->count();
             @endphp
             @if($demandesEnCours > 0)

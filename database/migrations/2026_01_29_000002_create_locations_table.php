@@ -13,20 +13,19 @@ return new class extends Migration
     {
         Schema::create('locations', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('demande_interet_id')->nullable()->constrained('demande_interets')->onDelete('set null');
             $table->foreignId('annonce_id')->constrained('annonces')->onDelete('cascade');
             $table->foreignId('locataire_id')->constrained('users')->onDelete('cascade');
             $table->text('message_client')->nullable();
             
             // Configuration des paiements
-            $table->decimal('loyer_mensuel', 15, 2)->nullable();
+            $table->unsignedBigInteger('loyer_mensuel')->nullable();
             $table->integer('avance_sur_loyer')->default(0); // Nombre de mois d'avance
-            $table->decimal('montant_avance', 15, 2)->default(0);
+            $table->unsignedBigInteger('montant_avance')->default(0);
             $table->boolean('premier_paiement_valide')->default(false);
             $table->integer('nombre_cautions')->default(2);
-            $table->decimal('caution', 15, 2)->nullable();
-            $table->decimal('montant_frais_agence', 15, 2)->nullable();
-            $table->decimal('commission_agence', 10, 2)->nullable();
+            $table->unsignedBigInteger('caution')->nullable();
+            $table->unsignedBigInteger('montant_frais_agence')->nullable();
+            $table->unsignedBigInteger('commission_agence')->nullable();
             $table->enum('type_commission', ['pourcentage', 'montant'])->default('montant');
             
             // Dates et workflow

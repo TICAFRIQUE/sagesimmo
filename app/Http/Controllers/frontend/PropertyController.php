@@ -4,10 +4,12 @@ namespace App\Http\Controllers\frontend;
 
 use App\Models\Annonce;
 use App\Models\TypeBien;
-use App\Models\DemandeInteret;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use App\Notifications\NouvelleDemandeVente;
+use App\Notifications\NouvelleDemandeLocation;
+use App\Models\User;
 
 class PropertyController extends Controller
 {
@@ -118,7 +120,24 @@ class PropertyController extends Controller
             ->take(3)
             ->get();
 
-        return view('frontend.pages.properties.show', compact('bien', 'biensSimilaires'));
+        // Vérifier si l'utilisateur a déjà une demande active pour ce bien
+        $demandeExistante = false;
+        if (Auth::check()) {
+            $user = Auth::user();
+            if ($bien->type_transaction == 'vente') {
+                $demandeExistante = \App\Models\Vente::where('annonce_id', $bien->id)
+                    ->where('client_id', $user->id)
+                    ->whereNotIn('statut', ['annule', 'paiement_valide'])
+                    ->exists();
+            } else {
+                $demandeExistante = \App\Models\Location::where('annonce_id', $bien->id)
+                    ->where('locataire_id', $user->id)
+                    ->whereNotIn('statut', ['annule', 'termine', 'resilie'])
+                    ->exists();
+            }
+        }
+
+        return view('frontend.pages.properties.show', compact('bien', 'biensSimilaires', 'demandeExistante'));
     }
 
     /**
@@ -135,9 +154,33 @@ class PropertyController extends Controller
         // Récupérer les informations de l'utilisateur connecté
         $user = Auth::user();
         
+        // Vérifier si le client a déjà une demande active pour ce bien
+        if ($bien->type_transaction == 'vente') {
+            $demandeExistante = \App\Models\Vente::where('annonce_id', $bien->id)
+                ->where('client_id', $user->id)
+                ->whereNotIn('statut', ['annule', 'paiement_valide'])
+                ->exists();
+                
+            if ($demandeExistante) {
+                return back()->with('error', 'Vous avez déjà une demande en cours pour ce bien. Consultez vos demandes dans votre espace client.');
+            }
+        } else {
+            $demandeExistante = \App\Models\Location::where('annonce_id', $bien->id)
+                ->where('locataire_id', $user->id)
+                ->whereNotIn('statut', ['annule', 'termine', 'resilie'])
+                ->exists();
+                
+            if ($demandeExistante) {
+                return back()->with('error', 'Vous avez déjà une demande en cours pour ce bien. Consultez vos demandes dans votre espace client.');
+            }
+        }
+        
+        // Récupérer tous les admins pour les notifier
+        $admins = User::role(['superadmin', 'administrateur', 'developpeur'])->get();
+        
         // Créer directement une vente ou location selon le type de transaction
         if ($bien->type_transaction == 'vente') {
-            \App\Models\Vente::create([
+            $vente = \App\Models\Vente::create([
                 'annonce_id' => $bien->id,
                 'client_id' => $user->id,
                 'message_client' => $request->message,
@@ -145,8 +188,16 @@ class PropertyController extends Controller
                 'date_vente' => now(),
                 'statut' => 'demande_client',
             ]);
+            
+            // Charger les relations avant la notification
+            $vente->load(['client', 'annonce']);
+            
+            // Notifier tous les admins
+            foreach ($admins as $admin) {
+                $admin->notify(new NouvelleDemandeVente($vente));
+            }
         } else {
-            \App\Models\Location::create([
+            $location = \App\Models\Location::create([
                 'annonce_id' => $bien->id,
                 'locataire_id' => $user->id,
                 'message_client' => $request->message,
@@ -154,6 +205,14 @@ class PropertyController extends Controller
                 'date_debut' => now(),
                 'statut' => 'demande_client',
             ]);
+            
+            // Charger les relations avant la notification
+            $location->load(['locataire', 'annonce']);
+            
+            // Notifier tous les admins
+            foreach ($admins as $admin) {
+                $admin->notify(new NouvelleDemandeLocation($location));
+            }
         }
 
         return back()->with('success', 'Votre demande a été envoyée avec succès. Nous vous recontacterons bientôt.');

@@ -18,10 +18,10 @@ return new class extends Migration
             $table->text('description');
             $table->enum('type_transaction', ['vente', 'location'])->default('vente');
             $table->foreignId('type_bien_id')->constrained('type_biens')->onDelete('cascade');
-            $table->decimal('prix', 15, 2);
-            $table->decimal('commission', 10, 2)->nullable()->comment('Commission en pourcentage ou montant fixe');
+            $table->unsignedBigInteger('prix');
+            $table->unsignedBigInteger('commission')->nullable()->comment('Commission en pourcentage ou montant fixe');
             $table->enum('type_commission', ['pourcentage', 'fixe'])->nullable()->default('pourcentage');
-            $table->decimal('surface', 10, 2)->nullable();
+            $table->unsignedInteger('surface')->nullable();
             $table->integer('nombre_chambres')->nullable();
             $table->integer('nombre_salles_bain')->nullable();
             $table->integer('nombre_pieces')->nullable();

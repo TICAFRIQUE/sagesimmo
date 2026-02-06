@@ -16,6 +16,17 @@ class AuthController extends Controller
      */
     public function showLoginForm()
     {
+        // Sauvegarder l'URL précédente si elle existe et n'est pas login/register
+        $previous = url()->previous();
+        $current = url()->current();
+
+        if (
+            $previous !== $current &&
+            !str_contains($previous, '/connexion') &&
+            !str_contains($previous, '/inscription')
+        ) {
+            session(['url.intended' => $previous]);
+        }
         return view('frontend.pages.auth.login');
     }
 
@@ -31,7 +42,7 @@ class AuthController extends Controller
 
         // Déterminer si c'est un email ou un téléphone
         $loginType = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
-        
+
         $credentials = [
             $loginType => $request->login,
             'password' => $request->password,
@@ -59,6 +70,18 @@ class AuthController extends Controller
      */
     public function showRegisterForm()
     {
+
+        // Sauvegarder l'URL précédente si elle existe et n'est pas login/register
+        $previous = url()->previous();
+        $current = url()->current();
+
+        if (
+            $previous !== $current &&
+            !str_contains($previous, '/connexion') &&
+            !str_contains($previous, '/inscription')
+        ) {
+            session(['url.intended' => $previous]);
+        }
         // Récupérer uniquement les rôles pour les utilisateurs frontend
         $roles = Role::whereIn('name', ['locataire', 'proprietaire', 'acheteur'])->get();
         return view('frontend.pages.auth.register', compact('roles'));
@@ -83,10 +106,10 @@ class AuthController extends Controller
         // Vérifier le reCAPTCHA
         $recaptchaSecret = config('services.recaptcha.secret_key');
         $recaptchaResponse = $request->input('g-recaptcha-response');
-        
+
         $response = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret={$recaptchaSecret}&response={$recaptchaResponse}");
         $responseKeys = json_decode($response, true);
-        
+
         if (!$responseKeys["success"]) {
             return back()->withErrors([
                 'g-recaptcha-response' => 'La vérification reCAPTCHA a échoué. Veuillez réessayer.'
@@ -120,6 +143,8 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
+        
 
         return redirect()->route('home')->with('success', 'Déconnexion réussie.');
     }

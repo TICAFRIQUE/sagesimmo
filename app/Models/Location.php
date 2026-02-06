@@ -12,7 +12,6 @@ class Location extends Model implements HasMedia
     use HasFactory, InteractsWithMedia;
 
     protected $fillable = [
-        'demande_interet_id',
         'annonce_id',
         'locataire_id',
         'message_client',
@@ -41,20 +40,15 @@ class Location extends Model implements HasMedia
         'date_fin' => 'date',
         'date_visite' => 'datetime',
         'date_finalisation' => 'datetime',
-        'loyer_mensuel' => 'decimal:2',
+        'loyer_mensuel' => 'integer',
         'avance_sur_loyer' => 'integer',
-        'montant_avance' => 'decimal:2',
+        'montant_avance' => 'integer',
         'premier_paiement_valide' => 'boolean',
-        'caution' => 'decimal:2',
-        'montant_frais_agence' => 'decimal:2',
-        'commission_agence' => 'decimal:2',
+        'caution' => 'integer',
+        'montant_frais_agence' => 'integer',
+        'commission_agence' => 'integer',
         'type_commission' => 'string',
     ];
-
-    public function demandeInteret()
-    {
-        return $this->belongsTo(DemandeInteret::class, 'demande_interet_id');
-    }
 
     public function annonce()
     {
@@ -115,7 +109,17 @@ class Location extends Model implements HasMedia
             return; // Échéances déjà générées
         }
 
-        $dateDebut = $this->date_debut;
+        // Utiliser la date de début et ajuster au jour de paiement configuré
+        $dateDebut = $this->date_debut->copy();
+        // Définir le jour du mois selon le jour de paiement configuré
+        $dateDebut->day = min($this->jour_paiement, $dateDebut->daysInMonth);
+        
+        // Si la date ajustée est avant la date de début originale, commencer au mois suivant
+        if ($dateDebut->lt($this->date_debut)) {
+            $dateDebut->addMonth();
+            $dateDebut->day = min($this->jour_paiement, $dateDebut->daysInMonth);
+        }
+        
         // Si pas de date_fin, générer pour 2 ans (24 mois) au lieu de 1 an
         $dateFin = $this->date_fin ?? now()->addYears(2);
         
@@ -152,7 +156,9 @@ class Location extends Model implements HasMedia
                 }
             }
 
+            // Passer au mois suivant en respectant le jour de paiement
             $currentDate->addMonth();
+            $currentDate->day = min($this->jour_paiement, $currentDate->daysInMonth);
             $echeanceNumber++;
         }
 
@@ -179,7 +185,10 @@ class Location extends Model implements HasMedia
             return false;
         }
 
+        // Passer au mois suivant en respectant le jour de paiement
         $dateDebut = $derniereEcheance->date_echeance->copy()->addMonth();
+        $dateDebut->day = min($this->jour_paiement, $dateDebut->daysInMonth);
+        
         $dateFin = $this->date_fin ?? $dateDebut->copy()->addMonths($nombreMois);
         
         $currentDate = $dateDebut->copy();
@@ -195,7 +204,9 @@ class Location extends Model implements HasMedia
                 'commission_agence' => $this->calculerCommission($this->loyer_mensuel),
             ]);
 
+            // Passer au mois suivant en respectant le jour de paiement
             $currentDate->addMonth();
+            $currentDate->day = min($this->jour_paiement, $currentDate->daysInMonth);
             $echeancesCreees++;
         }
 

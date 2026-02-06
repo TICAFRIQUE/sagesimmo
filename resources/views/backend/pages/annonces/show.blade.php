@@ -446,6 +446,143 @@
                     <p><strong>Dernière modification:</strong> {{ $annonce->updated_at->format('d/m/Y à H:i') }}</p>
                 </div>
             </div>
+
+            <!-- Informations de location -->
+            @if($annonce->locations->count() > 0)
+                <div class="card">
+                    <div class="card-header bg-info-subtle">
+                        <h6 class="card-title mb-0">
+                            <i class="ri-home-heart-line me-2"></i>Informations de location
+                            <span class="badge bg-info ms-2">{{ $annonce->locations->count() }}</span>
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        @foreach($annonce->locations as $location)
+                            <div class="mb-3 pb-3 {{ !$loop->last ? 'border-bottom' : '' }}">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h6 class="mb-0">Location #{{ $location->id }}</h6>
+                                    <span class="badge {{ $location->statut_badge }}">
+                                        {{ ucfirst(str_replace('_', ' ', $location->statut)) }}
+                                    </span>
+                                </div>
+                                
+                                <div class="row mt-3">
+                                    <div class="col-md-6">
+                                        <p class="mb-2"><strong>Locataire:</strong></p>
+                                        <div class="ps-3">
+                                            <i class="ri-user-line me-1"></i> {{ $location->locataire->username }}<br>
+                                            <i class="ri-mail-line me-1"></i> <small>{{ $location->locataire->email }}</small><br>
+                                            @if($location->locataire->phone)
+                                                <i class="ri-phone-line me-1"></i> <small>{{ $location->locataire->phone }}</small>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        @if($location->loyer_mensuel)
+                                            <p class="mb-1"><strong>Loyer mensuel:</strong> {{ number_format($location->loyer_mensuel, 0, ',', ' ') }} FCFA</p>
+                                        @endif
+                                        @if($location->date_debut)
+                                            <p class="mb-1"><strong>Début:</strong> {{ \Carbon\Carbon::parse($location->date_debut)->format('d/m/Y') }}</p>
+                                        @endif
+                                        @if($location->date_fin)
+                                            <p class="mb-1"><strong>Fin:</strong> {{ \Carbon\Carbon::parse($location->date_fin)->format('d/m/Y') }}</p>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                @if($location->echeances->count() > 0)
+                                    @php
+                                        $echeancesPayees = $location->echeances->where('statut', 'paye')->count();
+                                        $totalEcheances = $location->echeances->count();
+                                    @endphp
+                                    <div class="mt-3">
+                                        <p class="mb-1"><strong>Échéances:</strong></p>
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar bg-success" 
+                                                 role="progressbar" 
+                                                 style="width: {{ $totalEcheances > 0 ? ($echeancesPayees / $totalEcheances) * 100 : 0 }}%">
+                                                {{ $echeancesPayees }}/{{ $totalEcheances }} payées
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+
+                                <div class="mt-3">
+                                    <a href="{{ route('backend.locations.show', $location) }}" class="btn btn-sm btn-info">
+                                        <i class="ri-eye-line me-1"></i>Voir les détails
+                                    </a>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+            <!-- Informations de vente -->
+            @if($annonce->ventes->count() > 0)
+                <div class="card">
+                    <div class="card-header bg-primary-subtle">
+                        <h6 class="card-title mb-0">
+                            <i class="ri-shopping-cart-line me-2"></i>Informations de vente
+                            <span class="badge bg-primary ms-2">{{ $annonce->ventes->count() }}</span>
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        @foreach($annonce->ventes as $vente)
+                            <div class="mb-3 pb-3 {{ !$loop->last ? 'border-bottom' : '' }}">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h6 class="mb-0">Vente #{{ $vente->id }}</h6>
+                                    <span class="badge {{ $vente->statut_badge }}">
+                                        {{ ucfirst(str_replace('_', ' ', $vente->statut)) }}
+                                    </span>
+                                </div>
+                                
+                                <div class="row mt-3">
+                                    <div class="col-md-6">
+                                        <p class="mb-2"><strong>Acheteur:</strong></p>
+                                        <div class="ps-3">
+                                            <i class="ri-user-line me-1"></i> {{ $vente->client->username }}<br>
+                                            <i class="ri-mail-line me-1"></i> <small>{{ $vente->client->email }}</small><br>
+                                            @if($vente->client->phone)
+                                                <i class="ri-phone-line me-1"></i> <small>{{ $vente->client->phone }}</small>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p class="mb-1"><strong>Prix de vente:</strong> {{ number_format($annonce->prix, 0, ',', ' ') }} FCFA</p>
+                                        @if($vente->date_finalisation)
+                                            <p class="mb-1"><strong>Finalisée le:</strong> {{ $vente->date_finalisation->format('d/m/Y') }}</p>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                @if($vente->paiements->count() > 0)
+                                    @php
+                                        $totalPaye = $vente->paiements->sum('montant');
+                                        $pourcentagePaye = $annonce->prix > 0 ? ($totalPaye / $annonce->prix) * 100 : 0;
+                                    @endphp
+                                    <div class="mt-3">
+                                        <p class="mb-1"><strong>Paiements:</strong></p>
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar bg-success" 
+                                                 role="progressbar" 
+                                                 style="width: {{ $pourcentagePaye }}%">
+                                                {{ number_format($totalPaye, 0, ',', ' ') }} FCFA ({{ number_format($pourcentagePaye, 1) }}%)
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+
+                                <div class="mt-3">
+                                    <a href="{{ route('backend.ventes.show', $vente) }}" class="btn btn-sm btn-primary">
+                                        <i class="ri-eye-line me-1"></i>Voir les détails
+                                    </a>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 

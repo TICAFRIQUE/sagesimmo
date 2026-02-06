@@ -29,7 +29,6 @@ class RapportController extends Controller
                 ->where('payable_type', Location::class)
                 ->where('type_paiement', 'loyer') // Seulement les loyers, pas la caution ni l'avance
                 ->where('statut', 'paye')
-                ->whereNotNull('commission_agence')
                 ->whereBetween('date_paiement', [$dateDebut, $dateFin])
                 ->when($locataire, function ($query, $locataire) {
                     $query->whereHas('payable', function ($q) use ($locataire) {
@@ -37,22 +36,33 @@ class RapportController extends Controller
                     });
                 })
                 ->get()
+                ->filter(function ($paiement) {
+                    // Filtrer uniquement les paiements dont la location a une commission
+                    return $paiement->payable && $paiement->payable->commission_agence;
+                })
                 ->map(function ($paiement) {
                     $montant = floatval($paiement->montant);
-                    $commissionAgence = floatval($paiement->commission_agence);
-                    $commission = $paiement->type_commission == 'pourcentage'
+                    
+                    // Récupérer la commission depuis la location, pas depuis le paiement
+                    $location = $paiement->payable;
+                    $commissionAgence = floatval($location->commission_agence ?? 0);
+                    $typeCommission = $location->type_commission ?? 'montant';
+                    
+                    // Calculer la commission sur ce paiement de loyer
+                    $commission = $typeCommission == 'pourcentage'
                         ? ($montant * $commissionAgence / 100)
                         : $commissionAgence;
                     
                     return [
                         'id' => $paiement->id,
+                        'location_id' => $location->id,
                         'date' => $paiement->date_paiement,
                         'type' => 'Location',
-                        'reference' => $paiement->payable->annonce->reference ?? 'N/A',
-                        'bien' => $paiement->payable->annonce->titre ?? 'N/A',
-                        'client' => $paiement->payable->locataire->name ?? 'N/A',
+                        'reference' => $location->annonce->reference ?? 'N/A',
+                        'bien' => $location->annonce->titre ?? 'N/A',
+                        'client' => $location->locataire->name ?? 'N/A',
                         'montant_transaction' => $montant,
-                        'commission_config' => $commissionAgence . ($paiement->type_commission == 'pourcentage' ? '%' : ' FCFA'),
+                        'commission_config' => $commissionAgence . ($typeCommission == 'pourcentage' ? '%' : ' FCFA'),
                         'commission_montant' => $commission,
                         'methode_paiement' => $paiement->methode_paiement,
                         'reference_paiement' => $paiement->reference,
@@ -60,76 +70,90 @@ class RapportController extends Controller
                 });
         }
         
-        // Commissions des ventes (paiements du prix d'achat uniquement)
+        // Commissions des ventes (récupérer depuis le modèle Vente)
         $commissionsVentes = collect();
         if (in_array($typeTransaction, ['tous', 'vente'])) {
-            $commissionsVentes = Paiement::with(['payable.acheteur', 'payable.annonce'])
-                ->where('payable_type', Vente::class)
-                ->where('type_paiement', 'prix_achat')
-                ->where('statut', 'paye')
+            // Récupérer les ventes avec commission et qui ont des paiements dans la période
+            $ventes = Vente::with(['client', 'annonce', 'paiements'])
                 ->whereNotNull('commission_agence')
-                ->whereBetween('date_paiement', [$dateDebut, $dateFin])
-                ->get()
-                ->map(function ($paiement) {
-                    $montant = floatval($paiement->montant);
-                    $commissionAgence = floatval($paiement->commission_agence);
-                    $commission = $paiement->type_commission == 'pourcentage'
-                        ? ($montant * $commissionAgence / 100)
-                        : $commissionAgence;
-                    
-                    return [
-                        'id' => $paiement->id,
-                        'date' => $paiement->date_paiement,
-                        'type' => 'Vente',
-                        'reference' => $paiement->payable->annonce->reference ?? 'N/A',
-                        'bien' => $paiement->payable->annonce->titre ?? 'N/A',
-                        'client' => $paiement->payable->acheteur->name ?? 'N/A',
-                        'montant_transaction' => $montant,
-                        'commission_config' => $commissionAgence . ($paiement->type_commission == 'pourcentage' ? '%' : ' FCFA'),
-                        'commission_montant' => $commission,
-                        'methode_paiement' => $paiement->methode_paiement,
-                        'reference_paiement' => $paiement->reference,
-                    ];
-                });
+                ->where('commission_agence', '>', 0)
+                ->whereHas('paiements', function ($query) use ($dateDebut, $dateFin) {
+                    $query->where('statut', 'paye')
+                        ->whereBetween('date_paiement', [$dateDebut, $dateFin]);
+                })
+                ->get();
+            
+            $commissionsVentes = $ventes->map(function ($vente) {
+                // Utiliser la date du dernier paiement comme date de référence
+                $dernierPaiement = $vente->paiements()
+                    ->where('statut', 'paye')
+                    ->orderBy('date_paiement', 'desc')
+                    ->first();
+                
+                if (!$dernierPaiement) {
+                    return null;
+                }
+                
+                // Calculer la commission selon le type
+                $commissionAgence = floatval($vente->commission_agence);
+                if ($vente->type_commission === 'pourcentage') {
+                    $commission = ($vente->prix_vente * $commissionAgence) / 100;
+                } else {
+                    $commission = $commissionAgence;
+                }
+                
+                return [
+                    'id' => $vente->id,
+                    'vente_id' => $vente->id,
+                    'date' => $dernierPaiement->date_paiement,
+                    'type' => 'Vente',
+                    'reference' => $vente->annonce->reference ?? 'N/A',
+                    'bien' => $vente->annonce->titre ?? 'N/A',
+                    'client' => $vente->client->name ?? 'N/A',
+                    'montant_transaction' => floatval($vente->prix_vente),
+                    'commission_config' => $commissionAgence . ($vente->type_commission == 'pourcentage' ? '%' : ' FCFA'),
+                    'commission_montant' => $commission,
+                    'methode_paiement' => $dernierPaiement->methode_paiement,
+                    'reference_paiement' => $dernierPaiement->reference,
+                ];
+            })->filter(); // Filtrer les valeurs null
         }
         
-        // Fusionner et trier
-        $commissions = $commissionsLocations->concat($commissionsVentes)
-            ->sortByDesc('date')
-            ->values();
+        // Statistiques séparées pour chaque type
+        $totalCommissionsLocations = $commissionsLocations->sum('commission_montant');
+        $totalTransactionsLocations = $commissionsLocations->sum('montant_transaction');
+        $nombreLocations = $commissionsLocations->count();
         
-        // Statistiques
-        $totalCommissions = $commissions->sum('commission_montant');
-        $totalTransactions = $commissions->sum('montant_transaction');
-        $nombreTransactions = $commissions->count();
+        $totalCommissionsVentes = $commissionsVentes->sum('commission_montant');
+        $totalTransactionsVentes = $commissionsVentes->sum('montant_transaction');
+        $nombreVentes = $commissionsVentes->count();
+        
+        // Statistiques globales
+        $totalCommissions = $totalCommissionsLocations + $totalCommissionsVentes;
+        $totalTransactions = $totalTransactionsLocations + $totalTransactionsVentes;
+        $nombreTransactions = $nombreLocations + $nombreVentes;
         $commissionMoyenne = $nombreTransactions > 0 ? $totalCommissions / $nombreTransactions : 0;
         
-        // Répartition par type
-        $parType = $commissions->groupBy('type')->map(function ($group) {
-            return [
-                'count' => $group->count(),
-                'total' => $group->sum('commission_montant'),
-            ];
-        });
-        
-        // Répartition par mois (pour le graphique)
-        $parMois = $commissions->groupBy(function ($item) {
-            return Carbon::parse($item['date'])->format('Y-m');
-        })->map(function ($group) {
-            return $group->sum('commission_montant');
-        })->sortKeys();
+        // Trier chaque collection par date
+        $commissionsLocations = $commissionsLocations->sortByDesc('date')->values();
+        $commissionsVentes = $commissionsVentes->sortByDesc('date')->values();
         
         // Liste des locataires pour le filtre
         $locataires = \App\Models\User::whereHas('locations')->get();
         
         return view('backend.pages.rapports.commissions', compact(
-            'commissions',
+            'commissionsLocations',
+            'commissionsVentes',
+            'totalCommissionsLocations',
+            'totalTransactionsLocations',
+            'nombreLocations',
+            'totalCommissionsVentes',
+            'totalTransactionsVentes',
+            'nombreVentes',
             'totalCommissions',
             'totalTransactions',
             'nombreTransactions',
             'commissionMoyenne',
-            'parType',
-            'parMois',
             'dateDebut',
             'dateFin',
             'typeTransaction',

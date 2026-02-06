@@ -15,8 +15,13 @@
     <div class="row">
         <div class="col-lg-12">
             <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Enregistrer une nouvelle vente</h5>
+                <div class="card-header bg-primary bg-opacity-10">
+                    <h5 class="card-title mb-0 text-primary">
+                        <i class="ri-add-circle-line me-2"></i>Enregistrer une nouvelle vente
+                    </h5>
+                    <p class="text-muted mb-0 mt-2">
+                        <small><i class="ri-information-line me-1"></i>Créez une vente pour un client. Le workflow sera géré depuis la page de détails.</small>
+                    </p>
                 </div>
                 <div class="card-body">
                     <form action="{{ route('backend.ventes.store') }}" method="POST">
@@ -25,10 +30,12 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Bien à vendre <span class="text-danger">*</span></label>
-                                <select name="annonce_id" class="form-select @error('annonce_id') is-invalid @enderror" required>
+                                <select name="annonce_id" id="annonce_id" class="form-select @error('annonce_id') is-invalid @enderror" required>
                                     <option value="">Sélectionnez un bien</option>
                                     @foreach($annonces as $annonce)
-                                        <option value="{{ $annonce->id }}" {{ old('annonce_id') == $annonce->id ? 'selected' : '' }}>
+                                        <option value="{{ $annonce->id }}" 
+                                                data-prix="{{ $annonce->prix }}"
+                                                {{ old('annonce_id') == $annonce->id ? 'selected' : '' }}>
                                             {{ $annonce->titre }} - {{ $annonce->ville }} ({{ number_format($annonce->prix, 0, ',', ' ') }} FCFA)
                                         </option>
                                     @endforeach
@@ -55,80 +62,61 @@
                         </div>
 
                         <div class="row">
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-12 mb-3">
                                 <label class="form-label">Prix de vente (FCFA) <span class="text-danger">*</span></label>
-                                <input type="number" name="prix_vente" id="prix_vente" class="form-control @error('prix_vente') is-invalid @enderror" 
-                                       value="{{ old('prix_vente') }}" required step="0.01">
+                                <input type="text" id="prix_vente_display" class="form-control @error('prix_vente') is-invalid @enderror" 
+                                       value="{{ old('prix_vente') ? number_format(old('prix_vente'), 0, ',', ' ') : '' }}" required placeholder="Ex: 5 000 000">
+                                <input type="hidden" name="prix_vente" id="prix_vente" value="{{ old('prix_vente') }}">
+                                <small class="text-muted">Le prix sera automatiquement rempli depuis le bien sélectionné</small>
                                 @error('prix_vente')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Commission agence</label>
-                                <input type="number" name="commission_agence" id="commission_agence" class="form-control @error('commission_agence') is-invalid @enderror" 
-                                       value="{{ old('commission_agence') }}" step="0.01" min="0">
-                                <small class="text-muted" id="commission-info"></small>
-                                @error('commission_agence')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Type commission</label>
-                                <select name="type_commission" id="type_commission" class="form-select @error('type_commission') is-invalid @enderror">
-                                    <option value="pourcentage" {{ old('type_commission', 'pourcentage') == 'pourcentage' ? 'selected' : '' }}>Pourcentage (%)</option>
-                                    <option value="montant" {{ old('type_commission') == 'montant' ? 'selected' : '' }}>Montant fixe</option>
-                                </select>
-                                @error('type_commission')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Date de vente <span class="text-danger">*</span></label>
-                                <input type="date" name="date_vente" class="form-control @error('date_vente') is-invalid @enderror" 
-                                       value="{{ old('date_vente', date('Y-m-d')) }}" required>
-                                @error('date_vente')
+                        {{-- <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Message du client (optionnel)</label>
+                                <textarea name="message_client" class="form-control @error('message_client') is-invalid @enderror" 
+                                          rows="3" placeholder="Message ou demande spécifique du client...">{{ old('message_client') }}</textarea>
+                                @error('message_client')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
+                        </div> --}}
 
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Date de signature</label>
-                                <input type="date" name="date_signature" class="form-control @error('date_signature') is-invalid @enderror" 
-                                       value="{{ old('date_signature') }}">
-                                @error('date_signature')
+                        {{-- <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Notes internes (optionnel)</label>
+                                <textarea name="notes" class="form-control @error('notes') is-invalid @enderror" 
+                                          rows="3" placeholder="Notes internes pour l'équipe...">{{ old('notes') }}</textarea>
+                                @error('notes')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
+                        </div> --}}
 
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Statut <span class="text-danger">*</span></label>
-                                <select name="statut" class="form-select @error('statut') is-invalid @enderror" required>
-                                    <option value="en_cours" {{ old('statut') == 'en_cours' ? 'selected' : '' }}>En cours</option>
-                                    <option value="completé" {{ old('statut') == 'completé' ? 'selected' : '' }}>Complété</option>
-                                    <option value="annulé" {{ old('statut') == 'annulé' ? 'selected' : '' }}>Annulé</option>
-                                </select>
-                                @error('statut')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
+                        <div class="alert alert-info">
+                            <i class="ri-information-line me-2"></i>
+                            <strong>Note:</strong> La vente sera créée avec le statut "Demande client". 
+                            Vous pourrez ensuite gérer le workflow complet (envoi fiche, visite, paiement) depuis la page de détails.
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Notes</label>
-                            <textarea name="notes" class="form-control @error('notes') is-invalid @enderror" rows="4">{{ old('notes') }}</textarea>
-                            @error('notes')
+                            <label class="form-label">Message / Notes</label>
+                            <textarea name="message" class="form-control @error('message') is-invalid @enderror" rows="4" placeholder="Notes ou message du client...">{{ old('message') }}</textarea>
+                            @error('message')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
                         <div class="text-end">
-                            <a href="{{ route('backend.ventes.index') }}" class="btn btn-secondary">Annuler</a>
-                            <button type="submit" class="btn btn-primary" id="submitBtn">Enregistrer</button>
+                            <a href="{{ route('backend.ventes.index') }}" class="btn btn-secondary">
+                                <i class="ri-arrow-left-line me-1"></i>Annuler
+                            </a>
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                <i class="ri-save-line me-1"></i>Créer la vente
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -139,72 +127,75 @@
 
 @section('script')
 <script>
-    // Données des annonces avec leurs prix et commissions
-    @php
-        $annoncesData = $annonces->map(function($annonce) {
-            return [
-                'id' => $annonce->id, 
-                'prix' => $annonce->prix,
-                'commission' => $annonce->commission,
-                'type_commission' => $annonce->type_commission
-            ];
-        });
-    @endphp
-    const annonces = @json($annoncesData);
-
-    // Remplir automatiquement le prix de vente et la commission quand on sélectionne un bien
-    document.querySelector('select[name="annonce_id"]').addEventListener('change', function() {
-        const annonceId = this.value;
-        const annonce = annonces.find(a => a.id == annonceId);
+    // Fonction pour formater le montant avec des espaces
+    function formatMontant(value) {
+        let numStr = value.replace(/[^\d.,]/g, '');
+        numStr = numStr.replace(',', '.');
+        let parts = numStr.split('.');
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+        return parts.join('.');
+    }
+    
+    // Fonction pour obtenir la valeur numérique
+    function getMontantNumeric(value) {
+        return parseFloat(value.replace(/\s/g, '').replace(',', '.')) || 0;
+    }
+    
+    // Remplir automatiquement le prix depuis l'annonce sélectionnée
+    const prixVenteDisplay = document.getElementById('prix_vente_display');
+    const prixVenteInput = document.getElementById('prix_vente');
+    
+    // Utiliser jQuery et l'événement Select2
+    $('#annonce_id').on('select2:select', function(e) {
+        const selectedData = e.params.data;
+        const selectedOption = selectedData.element;
+        const prix = selectedOption.getAttribute('data-prix');
         
-        if (annonce) {
-            document.getElementById('prix_vente').value = annonce.prix;
-            
-            if (annonce.commission) {
-                document.getElementById('commission_agence').value = annonce.commission;
-                document.getElementById('type_commission').value = annonce.type_commission || 'pourcentage';
-                calculerCommission();
-            }
+        if (prix) {
+            prixVenteDisplay.value = formatMontant(prix);
+            prixVenteInput.value = prix;
         }
     });
-
-    // Calculer et afficher la commission
-    function calculerCommission() {
-        const prix = parseFloat(document.getElementById('prix_vente').value) || 0;
-        const commission = parseFloat(document.getElementById('commission_agence').value) || 0;
-        const type = document.getElementById('type_commission').value;
-        const infoDiv = document.getElementById('commission-info');
+    
+    // Fallback pour le cas où Select2 n'est pas initialisé
+    document.getElementById('annonce_id').addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const prix = selectedOption.getAttribute('data-prix');
         
-        if (commission > 0) {
-            if (type === 'pourcentage') {
-                const montant = (prix * commission) / 100;
-                infoDiv.textContent = `${commission}% = ${new Intl.NumberFormat('fr-FR').format(montant)} FCFA`;
-            } else {
-                infoDiv.textContent = `Montant fixe: ${new Intl.NumberFormat('fr-FR').format(commission)} FCFA`;
-            }
-        } else {
-            infoDiv.textContent = '';
+        if (prix) {
+            prixVenteDisplay.value = formatMontant(prix);
+            prixVenteInput.value = prix;
         }
-    }
-
-    // Écouter les changements
-    document.getElementById('prix_vente').addEventListener('input', calculerCommission);
-    document.getElementById('commission_agence').addEventListener('input', calculerCommission);
-    document.getElementById('type_commission').addEventListener('change', calculerCommission);
-
-    // Prévenir la double soumission
-    const form = document.querySelector('form');
-    const submitBtn = document.getElementById('submitBtn');
-    let isSubmitting = false;
-
-    form.addEventListener('submit', function(e) {
-        if (isSubmitting) {
+    });
+    
+    // Formater le prix lors de la saisie
+    prixVenteDisplay.addEventListener('input', function(e) {
+        let cursorPos = this.selectionStart;
+        let oldLength = this.value.length;
+        
+        let formatted = formatMontant(this.value);
+        this.value = formatted;
+        
+        // Mettre à jour le champ hidden avec la valeur numérique
+        prixVenteInput.value = getMontantNumeric(formatted);
+        
+        let newLength = formatted.length;
+        cursorPos += (newLength - oldLength);
+        this.setSelectionRange(cursorPos, cursorPos);
+    });
+    
+    // Validation avant soumission
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const prixNumeric = getMontantNumeric(prixVenteDisplay.value);
+        
+        if (!prixNumeric || prixNumeric <= 0) {
             e.preventDefault();
+            alert('Veuillez saisir un prix de vente valide.');
             return false;
         }
-        isSubmitting = true;
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Enregistrement...';
+        
+        // S'assurer que le champ hidden a la bonne valeur
+        prixVenteInput.value = prixNumeric;
     });
 </script>
 @endsection

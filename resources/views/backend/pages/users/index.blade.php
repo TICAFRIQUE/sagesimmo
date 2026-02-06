@@ -182,20 +182,9 @@
                                                             <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i>
                                                             Supprimer
                                                         </a>
-
-                                                        <a href="{{ route('backend.users.destroy', $user->id) }}"
-                                                            class="btn btn-danger" data-confirm-delete="true">Delete</a>
-
+                                                       
                                                     </li>
-                                                    <li>
 
-                                                        <a href="{{ route('backend.users.destroy', $user->id) }}"
-                                                            class="dropdown-item remove-item-btn "
-                                                            data-confirm-delete="true">
-                                                            <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i>
-                                                            DELETE
-                                                        </a>
-                                                    </li>
                                                 </ul>
                                             </div>
                                         </td>

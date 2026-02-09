@@ -25,7 +25,7 @@
                 ->where('statut', 'actif')
                 ->exists();
             $venteActive = \App\Models\Vente::where('client_id', $user->id)
-                ->where('statut', 'paiement_valide')
+                ->whereIn('statut', ['demande_client', 'fiche_envoyee', 'visite_planifiee', 'offre_acceptee', 'terminee'])
                 ->exists();
             
             $estProprietaire = ($user->roles->contains('name', 'proprietaire')) || $nombreBiensProprio > 0;
@@ -54,7 +54,7 @@
         
         @if($estAcheteur)
             <a href="{{ route('client.acheteur') }}" 
-               class="nav-link {{ request()->routeIs('client.acheteur') ? 'active' : '' }}">
+               class="nav-link {{ request()->routeIs('client.acheteur*') ? 'active' : '' }}">
                 <i class="ri-shopping-bag-3-line"></i>
                 <span>Espace Acheteur</span>
             </a>

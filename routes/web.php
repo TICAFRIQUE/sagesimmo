@@ -72,7 +72,12 @@ Route::middleware(['auth'])->prefix('mon-espace')->controller(DashboardClientCon
     Route::get('/proprietaire/historique', 'espaceProprietaireHistorique')->name('client.proprietaire.historique');
     
     Route::get('/locataire', 'espaceLocataire')->name('client.locataire');
+    Route::get('/locataire/location/{id}/workflow', 'workflowLocation')->name('client.locataire.workflow');
+    Route::get('/locataire/location/{id}/echeances', 'echeancesLocation')->name('client.locataire.echeances');
+    
     Route::get('/acheteur', 'espaceAcheteur')->name('client.acheteur');
+    Route::get('/acheteur/vente/{id}/workflow', 'workflowVente')->name('client.acheteur.workflow');
+    Route::get('/acheteur/vente/{id}/situation-financiere', 'situationFinanciereVente')->name('client.acheteur.situation-financiere');
 });
 
 

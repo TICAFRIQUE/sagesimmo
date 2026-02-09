@@ -4,328 +4,234 @@
 
 @section('content')
 <div class="container-fluid">
-<div class="row mb-3">
-    <div class="col-12">
-        <h4 class="mb-0">
-            <i class="ri-shopping-bag-3-line text-primary"></i> Mon espace Acheteur
-        </h4>
-    </div>
-</div>
-
-@if($venteActive)
-    <!-- Informations Bien Acheté -->
-    <div class="card mb-4">
-        <div class="card-header bg-light">
-            <h6 class="mb-0">
-                <i class="ri-home-4-line me-2"></i>Mon bien acheté
-            </h6>
+    <!-- En-tête -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h4 class="mb-0">
+                <i class="ri-shopping-bag-3-line text-primary"></i> Mon espace Acheteur
+            </h4>
+            <p class="text-muted small mb-0 mt-1">Gérez vos achats immobiliers</p>
         </div>
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-12 col-md-4">
-                    @if($venteActive->annonce && $venteActive->annonce->hasMedia('images'))
-                        <img src="{{ $venteActive->annonce->getFirstMediaUrl('images') }}" 
-                             class="img-fluid rounded" 
-                             alt="{{ $venteActive->annonce->titre }}"
-                             style="height: 200px; width: 100%; object-fit: cover;">
-                    @else
-                        <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 200px;">
-                            <i class="ri-home-4-line fs-1 text-muted"></i>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary-subtle border-0 h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-lg rounded-circle bg-primary me-3">
+                            <span class="avatar-title rounded-circle text-white">
+                                <i class="ri-home-4-line fs-3"></i>
+                            </span>
                         </div>
-                    @endif
-                </div>
-                <div class="col-12 col-md-8">
-                    <h5 class="mb-3">{{ $venteActive->annonce->titre ?? 'Bien non disponible' }}</h5>
-                    <div class="row g-2">
-                        <div class="col-md-6 mb-3">
-                            <p class="text-muted small mb-1">
-                                <i class="ri-map-pin-line me-1"></i>Localisation
+                        <div>
+                            <h6 class="text-muted mb-1 text-uppercase small">Biens achetés</h6>
+                            <h3 class="text-primary mb-0">{{ $nombreBiensAchetes }}</h3>
+                            <p class="text-muted small mb-0">
+                                @if($nombreBiensAchetes > 1)
+                                    Propriétés
+                                @else
+                                    Propriété
+                                @endif
                             </p>
-                            <p class="mb-0">{{ $venteActive->annonce->ville ?? 'N/A' }}</p>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <p class="text-muted small mb-1">
-                                <i class="ri-money-dollar-circle-line me-1"></i>Prix total
-                            </p>
-                            <h6 class="text-success mb-0">{{ number_format($venteActive->montant_total, 0, ',', ' ') }} FCFA</h6>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <p class="text-muted small mb-1">
-                                <i class="ri-calendar-line me-1"></i>Date d'achat
-                            </p>
-                            <p class="mb-0">{{ \Carbon\Carbon::parse($venteActive->created_at)->format('d/m/Y') }}</p>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <p class="text-muted small mb-1">
-                                <i class="ri-file-list-3-line me-1"></i>Référence
-                            </p>
-                            <p class="mb-0">{{ $venteActive->annonce->reference ?? 'N/A' }}</p>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Situation Financière -->
-    <div class="row g-2 g-md-3 mb-3 mb-md-4">
-        <div class="col-12 col-md-4">
-            <div class="card bg-primary-subtle border-0 h-100">
-                <div class="card-body py-2 py-md-3 px-2 px-md-3">
-                    <h6 class="text-muted mb-2 text-uppercase small">
-                        <i class="ri-money-dollar-circle-line me-1"></i> Prix total
-                    </h6>
-                    <h4 class="text-primary mb-0 fs-5 fs-md-4">{{ number_format($venteActive->montant_total, 0, ',', ' ') }} FCFA</h4>
-                    <p class="text-muted small mb-0 mt-1">Montant de l'achat</p>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
             <div class="card bg-success-subtle border-0 h-100">
-                <div class="card-body py-2 py-md-3 px-2 px-md-3">
-                    <h6 class="text-muted mb-2 text-uppercase small">
-                        <i class="ri-checkbox-circle-line me-1"></i> Montant payé
-                    </h6>
-                    <h4 class="text-success mb-0 fs-5 fs-md-4">{{ number_format($montantPaye, 0, ',', ' ') }} FCFA</h4>
-                    <p class="text-muted small mb-0 mt-1">
-                        {{ $venteActive->montant_total > 0 ? round(($montantPaye / $venteActive->montant_total) * 100, 1) : 0 }}% du total
-                    </p>
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-lg rounded-circle bg-success me-3">
+                            <span class="avatar-title rounded-circle text-white">
+                                <i class="ri-money-dollar-circle-line fs-3"></i>
+                            </span>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1 text-uppercase small">Total dépensé</h6>
+                            <h3 class="text-success mb-0">{{ number_format($totalDepense, 0, ',', ' ') }}</h3>
+                            <p class="text-muted small mb-0">FCFA</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card bg-{{ $montantRestant > 0 ? 'warning' : 'success' }}-subtle border-0">
+            <div class="card bg-{{ $montantRestantTotal > 0 ? 'warning' : 'info' }}-subtle border-0 h-100">
                 <div class="card-body">
-                    <h6 class="text-muted mb-3 text-uppercase small">
-                        <i class="ri-wallet-3-line me-1"></i> Montant restant
-                    </h6>
-                    <h4 class="text-{{ $montantRestant > 0 ? 'warning' : 'success' }} mb-0">
-                        {{ number_format($montantRestant, 0, ',', ' ') }} FCFA
-                    </h4>
-                    <p class="text-muted small mb-0 mt-1">
-                        @if($montantRestant > 0)
-                            À payer
-                        @else
-                            Paiement complet
-                        @endif
-                    </p>
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-lg rounded-circle bg-{{ $montantRestantTotal > 0 ? 'warning' : 'info' }} me-3">
+                            <span class="avatar-title rounded-circle text-white">
+                                <i class="ri-wallet-3-line fs-3"></i>
+                            </span>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1 text-uppercase small">Montant restant</h6>
+                            <h3 class="text-{{ $montantRestantTotal > 0 ? 'warning' : 'info' }} mb-0">{{ number_format($montantRestantTotal, 0, ',', ' ') }}</h3>
+                            <p class="text-muted small mb-0">
+                                @if($montantRestantTotal > 0)
+                                    À payer
+                                @else
+                                    Tous les paiements effectués
+                                @endif
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Progression du Paiement -->
-    <div class="card mb-4">
-        <div class="card-header bg-light">
-            <h6 class="mb-0">
-                <i class="ri-bar-chart-line me-2"></i>Progression du paiement
-            </h6>
-        </div>
-        <div class="card-body">
-            @php
-                $pourcentagePaye = $venteActive->montant_total > 0 ? round(($montantPaye / $venteActive->montant_total) * 100, 1) : 0;
-            @endphp
-            <div class="progress" style="height: 30px;">
-                <div class="progress-bar bg-success" 
-                     role="progressbar" 
-                     style="width: {{ $pourcentagePaye }}%;" 
-                     aria-valuenow="{{ $pourcentagePaye }}" 
-                     aria-valuemin="0" 
-                     aria-valuemax="100">
-                    <strong>{{ $pourcentagePaye }}%</strong>
-                </div>
-            </div>
-            <div class="d-flex justify-content-between mt-2">
-                <small class="text-muted">0 FCFA</small>
-                <small class="text-success">
-                    <strong>{{ number_format($montantPaye, 0, ',', ' ') }} FCFA payé</strong>
-                </small>
-                <small class="text-muted">{{ number_format($venteActive->montant_total, 0, ',', ' ') }} FCFA</small>
+    <!-- Alerte si montant restant -->
+    @if($montantRestantTotal > 0)
+        <div class="alert alert-warning d-flex align-items-center mb-4">
+            <i class="ri-alert-line fs-3 me-3"></i>
+            <div>
+                <strong>Attention !</strong> 
+                <span class="ms-2">Il vous reste {{ number_format($montantRestantTotal, 0, ',', ' ') }} FCFA à payer sur vos achats.</span>
             </div>
         </div>
-    </div>
-
-    <!-- Statut de la Vente -->
-    @if($remiseCles)
+    @else
         <div class="alert alert-success d-flex align-items-center mb-4">
             <i class="ri-checkbox-circle-line fs-3 me-3"></i>
             <div>
-                <strong>Félicitations ! Votre achat est finalisé</strong>
-                <p class="mb-0 small">Vous pouvez récupérer vos clés auprès de l'agence.</p>
-            </div>
-        </div>
-    @elseif($montantRestant > 0)
-        <div class="alert alert-warning d-flex align-items-center mb-4">
-            <i class="ri-time-line fs-3 me-3"></i>
-            <div>
-                <strong>Paiement en cours</strong>
-                <p class="mb-0 small">Il reste {{ number_format($montantRestant, 0, ',', ' ') }} FCFA à payer pour finaliser votre achat.</p>
+                <strong>Félicitations !</strong> 
+                <span class="ms-2">Tous vos achats sont entièrement payés.</span>
             </div>
         </div>
     @endif
 
-    <!-- Historique des Paiements -->
-    @if($historiquePaiements->count() > 0)
-        <div class="card mb-4">
-            <div class="card-header bg-light">
-                <h6 class="mb-0">
-                    <i class="ri-file-list-3-line me-2"></i>Historique des paiements
-                </h6>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th style="min-width: 100px;">Date</th>
-                                <th class="d-none d-md-table-cell" style="min-width: 80px;">Type</th>
-                                <th class="text-end" style="min-width: 100px;">Montant</th>
-                                <th class="d-none d-lg-table-cell" style="min-width: 100px;">Méthode</th>
-                                <th class="text-center" style="min-width: 80px;">Statut</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($historiquePaiements as $paiement)
-                                <tr>
-                                    <td>
-                                        <strong class="d-md-none">{{ \Carbon\Carbon::parse($paiement->date_paiement)->format('d/m/y') }}</strong>
-                                        <strong class="d-none d-md-inline">{{ \Carbon\Carbon::parse($paiement->date_paiement)->format('d/m/Y') }}</strong>
-                                    </td>
-                                    <td class="d-none d-md-table-cell">
-                                        <span class="badge bg-info">{{ ucfirst($paiement->type) }}</span>
-                                    </td>
-                                    <td class="text-end">
-                                        <strong>{{ number_format($paiement->montant, 0, ',', ' ') }}<small class="d-none d-md-inline"> FCFA</small></strong>
-                                    </td>
-                                    <td class="d-none d-lg-table-cell">{{ ucfirst(str_replace('_', ' ', $paiement->methode_paiement ?? 'N/A')) }}</td>
-                                    <td class="text-center">
-                                        <span class="badge bg-success">
-                                            <i class="ri-checkbox-circle-line d-none d-sm-inline"></i> <span class="d-none d-sm-inline">Validé</span><i class="ri-check-line d-sm-none"></i>
-                                        </span>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                        <tfoot class="table-light">
-                            <tr>
-                                <td colspan="2" class="text-end d-none d-md-table-cell"><strong>Total payé :</strong></td>
-                                <td class="text-end d-md-none"><strong>Total :</strong></td>
-                                <td class="text-end">
-                                    <strong class="text-success">{{ number_format($montantPaye, 0, ',', ' ') }}<small class="d-none d-md-inline"> FCFA</small></strong>
-                                </td>
-                                <td colspan="2" class="d-none d-md-table-cell"></td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            </div>
-        </div>
-    @endif
-
-    <!-- Documents -->
-    @if(count($documentsVente) > 0)
-        <div class="card mb-4">
-            <div class="card-header bg-light">
-                <h6 class="mb-0">
-                    <i class="ri-folder-line me-2"></i>Documents
-                </h6>
-            </div>
-            <div class="card-body">
-                <div class="list-group list-group-flush">
-                    @foreach($documentsVente as $document)
-                        <a href="{{ $document->getUrl() }}" 
-                           class="list-group-item list-group-item-action d-flex align-items-center" 
-                           target="_blank">
-                            <i class="ri-file-text-line fs-4 text-primary me-3"></i>
-                            <div class="flex-grow-1">
-                                <h6 class="mb-0">{{ $document->name }}</h6>
-                                <small class="text-muted">{{ $document->human_readable_size }}</small>
-                            </div>
-                            <i class="ri-download-line fs-4 text-muted"></i>
-                        </a>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-    @endif
-
-    <!-- Informations Complémentaires -->
-    <div class="card mb-4">
+    <!-- Tableau des biens achetés -->
+    <div class="card">
         <div class="card-header bg-light">
             <h6 class="mb-0">
-                <i class="ri-information-line me-2"></i>Informations complémentaires
+                <i class="ri-list-check me-2"></i>Liste de mes achats ({{ $ventes->count() }})
             </h6>
         </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <div class="d-flex align-items-center">
-                        <div class="avatar-sm rounded-circle bg-primary-subtle me-3">
-                            <span class="avatar-title rounded-circle text-primary">
-                                <i class="ri-percent-line"></i>
-                            </span>
-                        </div>
-                        <div>
-                            <p class="text-muted small mb-0">Commission agence</p>
-                            <h6 class="mb-0">{{ number_format($venteActive->commission_agence ?? 0, 0, ',', ' ') }} FCFA</h6>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <div class="d-flex align-items-center">
-                        <div class="avatar-sm rounded-circle bg-info-subtle me-3">
-                            <span class="avatar-title rounded-circle text-info">
-                                <i class="ri-user-line"></i>
-                            </span>
-                        </div>
-                        <div>
-                            <p class="text-muted small mb-0">Type de bien</p>
-                            <h6 class="mb-0">{{ $venteActive->annonce->typeBien->nom ?? 'N/A' }}</h6>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <div class="d-flex align-items-center">
-                        <div class="avatar-sm rounded-circle bg-success-subtle me-3">
-                            <span class="avatar-title rounded-circle text-success">
-                                <i class="ri-check-double-line"></i>
-                            </span>
-                        </div>
-                        <div>
-                            <p class="text-muted small mb-0">Statut</p>
-                            <h6 class="mb-0">{{ ucfirst(str_replace('_', ' ', $venteActive->statut)) }}</h6>
-                        </div>
-                    </div>
-                </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="min-width: 60px;" class="text-center">#</th>
+                            <th style="min-width: 250px;">Bien immobilier</th>
+                            <th class="text-center d-none d-lg-table-cell" style="min-width: 120px;">Prix de vente</th>
+                            <th class="text-center d-none d-md-table-cell" style="min-width: 120px;">Montant payé</th>
+                            <th class="text-center d-none d-xl-table-cell" style="min-width: 120px;">Reste à payer</th>
+                            <th class="text-center d-none d-md-table-cell" style="min-width: 130px;">Statut</th>
+                            <th class="text-center" style="min-width: 200px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($ventes as $index => $vente)
+                            <tr>
+                                <td class="text-center">
+                                    <strong class="text-primary">#{{ $index + 1 }}</strong>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            @if($vente->annonce && $vente->annonce->hasMedia('images'))
+                                                <img src="{{ $vente->annonce->getFirstMediaUrl('images') }}" 
+                                                     class="rounded" 
+                                                     alt="{{ $vente->annonce->titre }}"
+                                                     style="width: 70px; height: 70px; object-fit: cover;">
+                                            @else
+                                                <div class="bg-light rounded d-flex align-items-center justify-content-center" 
+                                                     style="width: 70px; height: 70px;">
+                                                    <i class="ri-home-4-line fs-3 text-muted"></i>
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1">{{ $vente->annonce->titre ?? 'Bien' }}</h6>
+                                            <small class="text-muted d-block">
+                                                <i class="ri-map-pin-line me-1"></i>{{ $vente->annonce->ville ?? 'N/A' }}
+                                            </small>
+                                            <small class="text-muted d-block">
+                                                <i class="ri-calendar-line me-1"></i>Acheté le {{ \Carbon\Carbon::parse($vente->created_at)->format('d/m/Y') }}
+                                            </small>
+                                            <!-- Info mobile -->
+                                            <small class="text-success d-md-none d-block mt-1">
+                                                <strong>{{ number_format($vente->montantTotalPaye(), 0, ',', ' ') }} FCFA</strong> payé
+                                            </small>
+                                            @if($vente->resteAPayer() > 0)
+                                                <small class="text-warning d-md-none d-block">
+                                                    <strong>{{ number_format($vente->resteAPayer(), 0, ',', ' ') }} FCFA</strong> restant
+                                                </small>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center d-none d-lg-table-cell">
+                                    <strong class="text-primary">{{ number_format($vente->prix_vente, 0, ',', ' ') }}</strong>
+                                    <small class="text-muted d-block">FCFA</small>
+                                </td>
+                                <td class="text-center d-none d-md-table-cell">
+                                    <strong class="text-success">{{ number_format($vente->montantTotalPaye(), 0, ',', ' ') }}</strong>
+                                    <small class="text-muted d-block">
+                                        {{ round($vente->pourcentagePaiement(), 1) }}%
+                                    </small>
+                                </td>
+                                <td class="text-center d-none d-xl-table-cell">
+                                    @if($vente->resteAPayer() > 0)
+                                        <strong class="text-warning">{{ number_format($vente->resteAPayer(), 0, ',', ' ') }}</strong>
+                                        <small class="text-muted d-block">FCFA</small>
+                                    @else
+                                        <span class="badge bg-success">
+                                            <i class="ri-checkbox-circle-line"></i> Complet
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="text-center d-none d-md-table-cell">
+                                    {!! $vente->statut_badge !!}
+                                    <div class="progress mt-2" style="height: 5px;">
+                                        <div class="progress-bar bg-success" 
+                                             role="progressbar" 
+                                             style="width: {{ $vente->pourcentagePaiement() }}%;">
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="{{ route('client.acheteur.workflow', $vente->id) }}" 
+                                           class="btn btn-outline-primary" 
+                                           title="Voir le workflow"
+                                           data-bs-toggle="tooltip">
+                                            <i class="ri-flow-chart me-1"></i>
+                                            <span class="d-none d-lg-inline">Workflow</span>
+                                        </a>
+                                        <a href="{{ route('client.acheteur.situation-financiere', $vente->id) }}" 
+                                           class="btn btn-outline-success" 
+                                           title="Voir l'état financier"
+                                           data-bs-toggle="tooltip">
+                                            <i class="ri-money-dollar-circle-line me-1"></i>
+                                            <span class="d-none d-lg-inline">Financier</span>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
-@else
-    <!-- Aucune vente active -->
-    <div class="card">
-        <div class="card-body text-center py-5">
-            <i class="ri-shopping-bag-3-line fs-1 text-muted mb-3 d-block"></i>
-            <h5 class="text-muted">Aucun achat finalisé</h5>
-            <p class="text-muted mb-4">Vous n'avez pas encore acheté de bien.</p>
-            <a href="{{ route('properties.index') }}" class="btn btn-primary">
-                <i class="ri-search-line me-2"></i>Rechercher un bien
-            </a>
-        </div>
-    </div>
-@endif
 
-<!-- Note informative -->
-<div class="alert alert-light border mt-4">
-    <div class="d-flex">
-        <div class="flex-shrink-0">
-            <i class="ri-information-line text-primary fs-4"></i>
-        </div>
-        <div class="flex-grow-1 ms-3">
-            <h6 class="alert-heading">Besoin d'aide ?</h6>
-            <p class="mb-0">Pour tout renseignement sur votre achat ou vos paiements, contactez votre gestionnaire de compte.</p>
+    <!-- Note informative -->
+    <div class="alert alert-light border mt-4">
+        <div class="d-flex">
+            <div class="flex-shrink-0">
+                <i class="ri-information-line text-primary fs-4"></i>
+            </div>
+            <div class="flex-grow-1 ms-3">
+                <h6 class="alert-heading">Besoin d'aide ?</h6>
+                <p class="mb-0">Pour tout renseignement sur vos achats ou vos paiements, contactez votre gestionnaire de compte.</p>
+            </div>
         </div>
     </div>
-</div>
 </div>
 @endsection
 
@@ -337,9 +243,9 @@
         padding-right: 1rem;
     }
     
-    .avatar-sm {
-        height: 48px;
-        width: 48px;
+    .avatar-lg {
+        height: 60px;
+        width: 60px;
     }
 
     .avatar-title {
@@ -355,6 +261,15 @@
         box-shadow: 0 1px 3px rgba(0,0,0,0.08);
         border-radius: 8px;
     }
+
+    .table > :not(caption) > * > * {
+        padding: 1rem 0.75rem;
+    }
+
+    .btn-group-sm > .btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.875rem;
+    }
     
     @media (max-width: 768px) {
         .container-fluid {
@@ -363,46 +278,46 @@
         }
         
         .card-body {
-            padding: 0.75rem !important;
+            padding: 1rem !important;
         }
         
-        .card-header {
-            padding: 0.75rem;
+        h3 {
+            font-size: 1.5rem;
         }
         
         h4 {
             font-size: 1.1rem;
         }
         
-        h5 {
-            font-size: 1rem;
-        }
-        
         h6 {
             font-size: 0.9rem;
         }
         
-        .fs-5 {
-            font-size: 1rem !important;
+        .avatar-lg {
+            height: 50px;
+            width: 50px;
         }
-        
-        .small, small {
+
+        .table > :not(caption) > * > * {
+            padding: 0.75rem 0.5rem;
+        }
+
+        .btn-group-sm > .btn {
+            padding: 0.35rem 0.6rem;
             font-size: 0.8rem;
-        }
-        
-        .badge {
-            font-size: 0.75rem;
-            padding: 0.25rem 0.5rem;
-        }
-        
-        .table {
-            font-size: 0.85rem;
-        }
-        
-        .avatar-sm {
-            height: 40px;
-            width: 40px;
         }
     }
 </style>
+@endsection
+
+@section('scripts')
+<script>
+    // Initialiser les tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
 @endsection

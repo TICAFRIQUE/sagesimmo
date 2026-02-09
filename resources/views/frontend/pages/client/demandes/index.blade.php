@@ -21,16 +21,14 @@
                     <label for="statut" class="form-label">Filtrer par statut</label>
                     <select name="statut" id="statut" class="form-select">
                         <option value="">Tous les statuts</option>
-                        <option value="nouvelle" {{ request('statut') == 'nouvelle' ? 'selected' : '' }}>Nouvelle</option>
+                        <option value="demande_client" {{ request('statut') == 'demande_client' ? 'selected' : '' }}>Demande client</option>
+                        <option value="fiche_envoyee" {{ request('statut') == 'fiche_envoyee' ? 'selected' : '' }}>Fiche envoyée</option>
                         <option value="visite_planifiee" {{ request('statut') == 'visite_planifiee' ? 'selected' : '' }}>Visite planifiée</option>
-                        <option value="visite_effectuee" {{ request('statut') == 'visite_effectuee' ? 'selected' : '' }}>Visite effectuée</option>
-                        <option value="documents_recus" {{ request('statut') == 'documents_recus' ? 'selected' : '' }}>Documents reçus</option>
-                        <option value="dossier_valide" {{ request('statut') == 'dossier_valide' ? 'selected' : '' }}>Dossier validé</option>
-                        <option value="contrat_genere" {{ request('statut') == 'contrat_genere' ? 'selected' : '' }}>Contrat généré</option>
-                        <option value="paiement_en_attente" {{ request('statut') == 'paiement_en_attente' ? 'selected' : '' }}>Paiement en attente</option>
-                        <option value="paiement_valide" {{ request('statut') == 'paiement_valide' ? 'selected' : '' }}>Paiement validé</option>
-                        <option value="cloture_refus" {{ request('statut') == 'cloture_refus' ? 'selected' : '' }}>Clôturée - Refusée</option>
-                        <option value="cloture_non_interesse" {{ request('statut') == 'cloture_non_interesse' ? 'selected' : '' }}>Clôturée - Non intéressé</option>
+                        <option value="offre_acceptee" {{ request('statut') == 'offre_acceptee' ? 'selected' : '' }}>Offre acceptée</option>
+                        <option value="paiement_initial" {{ request('statut') == 'paiement_initial' ? 'selected' : '' }}>Paiement initial</option>
+                        <option value="terminee" {{ request('statut') == 'terminee' ? 'selected' : '' }}>Terminée</option>
+                        <option value="actif" {{ request('statut') == 'actif' ? 'selected' : '' }}>Active</option>
+                        <option value="annulee" {{ request('statut') == 'annulee' ? 'selected' : '' }}>Annulée</option>
                     </select>
                 </div>
                 <div class="col-md-4">
@@ -65,7 +63,14 @@
                                     @endif
                                 </div>
                                 <div class="col-md-5">
-                                    <h5 class="mb-2">{{ $demande->annonce->titre }}</h5>
+                                    <h5 class="mb-2">
+                                        {{ $demande->annonce->titre }}
+                                        @if($demande->type_transaction == 'vente')
+                                            <span class="badge bg-primary ms-2">Vente</span>
+                                        @else
+                                            <span class="badge bg-info ms-2">Location</span>
+                                        @endif
+                                    </h5>
                                     <p class="text-muted mb-1">
                                         <i class="ri-file-line"></i> Réf: {{ $demande->annonce->reference }}
                                     </p>
@@ -90,16 +95,23 @@
                                     @endif
                                 </div>
                                 <div class="col-md-3 text-end">
-                                    <a href="{{ route('client.demandes.show', $demande->id) }}" 
-                                       class="btn btn-sm btn-primary mb-2 w-100">
-                                        <i class="ri-eye-line"></i> Voir détails
-                                    </a>
+                                    @if($demande->type_transaction == 'vente')
+                                        <a href="{{ route('client.acheteur.workflow', $demande->id) }}" 
+                                           class="btn btn-sm btn-primary mb-2 w-100">
+                                            <i class="ri-flow-chart"></i> Voir workflow
+                                        </a>
+                                    @else
+                                        <a href="{{ route('client.demandes.show', $demande->id) }}" 
+                                           class="btn btn-sm btn-primary mb-2 w-100">
+                                            <i class="ri-eye-line"></i> Voir détails
+                                        </a>
+                                    @endif
                                     <a href="{{ route('properties.show', $demande->annonce->slug) }}" 
                                        class="btn btn-sm btn-outline-secondary w-100" 
                                        target="_blank">
                                         <i class="ri-external-link-line"></i> Voir le bien
                                     </a>
-                                    @if($demande->statut == 'nouvelle')
+                                    @if($demande->statut == 'demande_client')
                                         <form action="{{ route('client.demandes.cancel', $demande->id) }}" 
                                               method="POST" 
                                               class="mt-2"

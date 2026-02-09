@@ -23,9 +23,9 @@ class DashboardClientController extends Controller
         
         // Statistiques générales
         $totalDemandes = $ventes->count() + $locations->count();
-        $demandesEnCours = $ventes->whereNotIn('statut', ['annule', 'paiement_valide'])->count() + 
+        $demandesEnCours = $ventes->whereNotIn('statut', ['annulee', 'terminee'])->count() + 
                           $locations->whereNotIn('statut', ['annule', 'actif', 'termine', 'resilie'])->count();
-        $demandesFinalisees = $ventes->where('statut', 'paiement_valide')->count() + 
+        $demandesFinalisees = $ventes->where('statut', 'terminee')->count() + 
                              $locations->where('statut', 'actif')->count();
         $demandesVisites = $ventes->where('statut', 'visite_planifiee')->count() + 
                           $locations->where('statut', 'visite_planifiee')->count();
@@ -48,7 +48,7 @@ class DashboardClientController extends Controller
         
         // Biens loués/achetés
         $biensLoues = $locations->where('statut', 'actif');
-        $biensAchetes = $ventes->where('statut', 'paiement_valide');
+        $biensAchetes = $ventes->where('statut', 'terminee');
         
         // ========== DONNÉES PROPRIÉTAIRE ==========
         $biensProprio = \App\Models\Annonce::with(['locations.paiements', 'locations.echeances', 'media', 'typeBien', 'ventes.paiements'])
@@ -390,21 +390,23 @@ class DashboardClientController extends Controller
         $user = Auth::user();
         
         // Chercher d'abord dans les ventes
-        $demande = \App\Models\Vente::with('annonce')
+        $vente = \App\Models\Vente::with('annonce')
             ->where('client_id', $user->id)
             ->where('id', $id)
             ->first();
         
-        if ($demande) {
-            $demande->type_transaction = 'vente';
-        } else {
-            // Sinon chercher dans les locations
-            $demande = \App\Models\Location::with('annonce')
-                ->where('locataire_id', $user->id)
-                ->where('id', $id)
-                ->firstOrFail();
-            $demande->type_transaction = 'location';
+        if ($vente) {
+            // Rediriger vers le workflow de la vente
+            return redirect()->route('client.acheteur.workflow', $vente->id);
         }
+        
+        // Sinon chercher dans les locations
+        $demande = \App\Models\Location::with('annonce', 'paiements', 'echeances')
+            ->where('locataire_id', $user->id)
+            ->where('id', $id)
+            ->firstOrFail();
+        
+        $demande->type_transaction = 'location';
         
         return view('frontend.pages.client.demandes.show', compact('demande'));
     }
@@ -423,7 +425,7 @@ class DashboardClientController extends Controller
             ->first();
         
         if ($vente) {
-            $vente->update(['statut' => 'annule']);
+            $vente->update(['statut' => 'annulee']);
             return redirect()->route('client.demandes')->with('success', 'Demande annulée avec succès.');
         }
         
@@ -434,7 +436,7 @@ class DashboardClientController extends Controller
             ->first();
         
         if ($location) {
-            $location->update(['statut' => 'annule']);
+            $location->update(['statut', 'annule']);
             return redirect()->route('client.demandes')->with('success', 'Demande annulée avec succès.');
         }
         
@@ -1052,72 +1054,69 @@ class DashboardClientController extends Controller
     {
         $user = Auth::user();
         
-        // Récupérer les locations du locataire
-        $locations = \App\Models\Location::with('annonce', 'paiements', 'echeances')->where('locataire_id', $user->id)->get();
-        $locationActive = $locations->where('statut', 'actif')->first();
+        // Récupérer toutes les locations du locataire
+        $locations = \App\Models\Location::with('annonce.typeBien', 'paiements', 'echeances')
+            ->where('locataire_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
         
-        if (!$locationActive && $locations->count() == 0) {
-            return redirect()->route('client.dashboard')->with('info', 'Vous n\'avez pas encore de location active.');
+        if ($locations->count() == 0) {
+            return redirect()->route('client.dashboard')->with('info', 'Vous n\'avez pas encore de location.');
         }
         
-        $prochaineEcheanceLocataire = null;
-        $avanceRestante = 0;
-        $impayesLocataire = 0;
-        $cautionStatut = null;
-        $historiquePaiements = collect();
-        $echeancesLocataire = collect();
+        // Calculer les KPI
+        $nombreBiensLoues = $locations->count();
         
-        if ($locationActive) {
-            // Prochaine échéance
-            $prochaineEcheanceLocataire = $locationActive->echeances()
-                ->where('statut', 'a_echeance')
-                ->where('date_echeance', '>=', now())
-                ->orderBy('date_echeance')
-                ->first();
-            
-            // Avance restante
-            if ($locationActive->montant_avance) {
-                $totalConsomme = $locationActive->echeances()
-                    ->where('statut', 'paye')
-                    ->sum('montant_du');
-                $avanceRestante = max(0, $locationActive->montant_avance - $totalConsomme);
-            }
-            
-            // Impayés
-            $impayesLocataire = $locationActive->echeances()
-                ->where('statut', 'impaye')
-                ->where('date_echeance', '<', now())
-                ->get()
+        // Total dépensé (somme de tous les paiements validés)
+        $totalDepense = $locations->sum(function($location) {
+            return $location->paiements()->where('statut', 'valide')->sum('montant');
+        });
+        
+        // Montant restant (somme des échéances non complètement payées)
+        $montantRestantTotal = $locations->sum(function($location) {
+            return $location->echeances
                 ->sum(function($echeance) {
-                    return $echeance->montant_du - $echeance->montant_paye;
+                    $reste = $echeance->montant_du - $echeance->montant_paye;
+                    return $reste > 0 ? $reste : 0;
                 });
-            
-            // Statut caution
-            $cautionStatut = $locationActive->caution > 0 ? 'En dépôt' : 'Non requis';
-            
-            // Historique paiements
-            $historiquePaiements = $locationActive->paiements()
-                ->where('statut', 'valide')
-                ->orderBy('date_paiement', 'desc')
-                ->take(10)
-                ->get();
-            
-            // Échéances
-            $echeancesLocataire = $locationActive->echeances()
-                ->orderBy('date_echeance', 'desc')
-                ->get();
-        }
+        });
         
         return view('frontend.pages.client.espaces.locataire', compact(
-            'locationActive',
-            'prochaineEcheanceLocataire',
-            'avanceRestante',
-            'impayesLocataire',
-            'cautionStatut',
-            'historiquePaiements',
-            'echeancesLocataire',
-            'locations'
+            'locations',
+            'nombreBiensLoues',
+            'totalDepense',
+            'montantRestantTotal'
         ));
+    }
+
+    /**
+     * Voir le workflow d'une location
+     */
+    public function workflowLocation($id)
+    {
+        $user = Auth::user();
+        
+        $location = \App\Models\Location::with('annonce.typeBien', 'locataire', 'paiements', 'echeances')
+            ->where('id', $id)
+            ->where('locataire_id', $user->id)
+            ->firstOrFail();
+        
+        return view('frontend.pages.client.espaces.workflow-location', compact('location'));
+    }
+
+    /**
+     * Voir les échéances de paiement d'une location
+     */
+    public function echeancesLocation($id)
+    {
+        $user = Auth::user();
+        
+        $location = \App\Models\Location::with('annonce.typeBien', 'echeances', 'paiements')
+            ->where('id', $id)
+            ->where('locataire_id', $user->id)
+            ->firstOrFail();
+        
+        return view('frontend.pages.client.espaces.echeances-location', compact('location'));
     }
 
     /**
@@ -1127,52 +1126,61 @@ class DashboardClientController extends Controller
     {
         $user = Auth::user();
         
-        // Récupérer les ventes de l'acheteur
-        $ventes = \App\Models\Vente::with('annonce', 'paiements')->where('client_id', $user->id)->get();
-        $venteActive = $ventes->where('statut', 'paiement_valide')->first();
+        // Récupérer toutes les ventes de l'acheteur
+        $ventes = \App\Models\Vente::with('annonce.typeBien', 'paiements')
+            ->where('client_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
         
-        if (!$venteActive && $ventes->count() == 0) {
-            return redirect()->route('client.dashboard')->with('info', 'Vous n\'avez pas encore d\'achat finalisé.');
+        if ($ventes->count() == 0) {
+            return redirect()->route('client.dashboard')->with('info', 'Vous n\'avez pas encore effectué d\'achat.');
         }
         
-        $montantPaye = 0;
-        $montantRestant = 0;
-        $documentsVente = [];
-        $remiseCles = false;
-        $historiquePaiements = collect();
-        
-        if ($venteActive) {
-            // Calcul des paiements
-            $montantPaye = $venteActive->paiements()
-                ->where('statut', 'valide')
-                ->sum('montant');
-            
-            $montantRestant = max(0, $venteActive->montant_total - $montantPaye);
-            
-            // Documents (à adapter selon votre système)
-            if ($venteActive->annonce && $venteActive->annonce->hasMedia('documents')) {
-                $documentsVente = $venteActive->annonce->getMedia('documents');
-            }
-            
-            // Remise des clés (logique à adapter)
-            $remiseCles = $montantRestant == 0;
-            
-            // Historique paiements
-            $historiquePaiements = $venteActive->paiements()
-                ->where('statut', 'valide')
-                ->orderBy('date_paiement', 'desc')
-                ->get();
-        }
+        // Calculer les KPI
+        $nombreBiensAchetes = $ventes->count();
+        $totalDepense = $ventes->sum(function($vente) {
+            return $vente->montantTotalPaye();
+        });
+        $montantRestantTotal = $ventes->sum(function($vente) {
+            return $vente->resteAPayer();
+        });
         
         return view('frontend.pages.client.espaces.acheteur', compact(
-            'venteActive',
-            'montantPaye',
-            'montantRestant',
-            'documentsVente',
-            'remiseCles',
-            'historiquePaiements',
-            'ventes'
+            'ventes',
+            'nombreBiensAchetes',
+            'totalDepense',
+            'montantRestantTotal'
         ));
+    }
+
+    /**
+     * Voir le workflow d'une vente
+     */
+    public function workflowVente($id)
+    {
+        $user = Auth::user();
+        
+        $vente = \App\Models\Vente::with('annonce.typeBien', 'client', 'paiements')
+            ->where('id', $id)
+            ->where('client_id', $user->id)
+            ->firstOrFail();
+        
+        return view('frontend.pages.client.espaces.workflow-vente', compact('vente'));
+    }
+
+    /**
+     * Voir la situation financière d'une vente
+     */
+    public function situationFinanciereVente($id)
+    {
+        $user = Auth::user();
+        
+        $vente = \App\Models\Vente::with('annonce.typeBien', 'paiements')
+            ->where('id', $id)
+            ->where('client_id', $user->id)
+            ->firstOrFail();
+        
+        return view('frontend.pages.client.espaces.situation-financiere-vente', compact('vente'));
     }
 }
 

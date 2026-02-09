@@ -42,7 +42,7 @@
                     <a class="nav-link menu-link {{ Route::is('backend.alertes.*') ? 'active' : '' }}" 
                         href="{{ route('backend.alertes.index') }}">
                         <i class="ri-alarm-warning-line"></i> 
-                        <span>ALERTES & RETARDS</span>
+                        <span>Alertes et Retards</span>
                         @php
                             $nbAlertes = \App\Models\Echeance::enRetard()->count();
                         @endphp

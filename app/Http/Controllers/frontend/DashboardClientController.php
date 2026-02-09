@@ -496,31 +496,40 @@ class DashboardClientController extends Controller
                 ->get();
             
             foreach ($locations as $location) {
-                foreach ($location->echeances as $echeance) {
-                    if ($echeance->statut == 'paye') {
-                        $revenusEncaisses += $echeance->montant_paye;
-                        
-                        $mois = \Carbon\Carbon::parse($echeance->date_echeance)->format('Y-m');
-                        if (!isset($revenusMensuels[$mois])) {
-                            $revenusMensuels[$mois] = ['mois' => $mois, 'brut' => 0, 'commission' => 0, 'net' => 0];
-                        }
-                        $revenusMensuels[$mois]['brut'] += $echeance->montant_paye;
+                // Utiliser les PAIEMENTS pour les revenus encaissés
+                $paiementsLocation = $location->paiements()
+                    ->where('type_paiement', 'loyer')
+                    ->where('statut', 'paye')
+                    ->get();
+                
+                foreach ($paiementsLocation as $paiement) {
+                    $revenusEncaisses += $paiement->montant;
+                    
+                    $mois = \Carbon\Carbon::parse($paiement->date_paiement)->format('Y-m');
+                    if (!isset($revenusMensuels[$mois])) {
+                        $revenusMensuels[$mois] = ['mois' => $mois, 'brut' => 0, 'commission' => 0, 'net' => 0];
+                    }
+                    $revenusMensuels[$mois]['brut'] += $paiement->montant;
+                    
+                    // Calculer la commission selon le type
+                    $commissionPct = $location->commission_agence ?? 0;
+                    $typeCommission = $location->type_commission ?? 'pourcentage';
+                    
+                    $commission = 0;
+                    if ($typeCommission == 'pourcentage') {
+                        $commission = ($paiement->montant * $commissionPct) / 100;
+                    } else {
+                        $commission = $commissionPct;
                     }
                     
-                    if ($echeance->statut == 'impaye') {
-                        $loyersImpayes += ($echeance->montant_du - $echeance->montant_paye);
-                    }
+                    $commissionAgenceTotal += $commission;
+                    $revenusMensuels[$mois]['commission'] += $commission;
                 }
                 
-                foreach ($location->paiements as $paiement) {
-                    if ($paiement->statut == 'valide' && isset($paiement->commission_agence)) {
-                        $commissionAgenceTotal += $paiement->commission_agence;
-                        
-                        $mois = \Carbon\Carbon::parse($paiement->date_paiement)->format('Y-m');
-                        if (!isset($revenusMensuels[$mois])) {
-                            $revenusMensuels[$mois] = ['mois' => $mois, 'brut' => 0, 'commission' => 0, 'net' => 0];
-                        }
-                        $revenusMensuels[$mois]['commission'] += $paiement->commission_agence;
+                // Calculer les impayés à partir des échéances
+                foreach ($location->echeances as $echeance) {
+                    if ($echeance->statut == 'impaye') {
+                        $loyersImpayes += ($echeance->montant_du - $echeance->montant_paye);
                     }
                 }
             }
@@ -584,19 +593,30 @@ class DashboardClientController extends Controller
                 if (in_array($location->statut, ['actif', 'termine'])) {
                     $detailBien['location_active'] = $location;
                     
-                    foreach ($location->echeances as $echeance) {
-                        if ($echeance->statut == 'paye') {
-                            $detailBien['loyers_payes'] += $echeance->montant_paye;
-                        }
+                    // Utiliser les PAIEMENTS pour les revenus encaissés
+                    $paiementsLocation = $location->paiements()
+                        ->where('type_paiement', 'loyer')
+                        ->where('statut', 'paye')
+                        ->get();
+                    
+                    foreach ($paiementsLocation as $paiement) {
+                        $detailBien['loyers_payes'] += $paiement->montant;
                         
-                        if ($echeance->statut == 'impaye') {
-                            $detailBien['loyers_impayes'] += ($echeance->montant_du - $echeance->montant_paye);
+                        // Calculer la commission selon le type
+                        $commissionPct = $location->commission_agence ?? 0;
+                        $typeCommission = $location->type_commission ?? 'pourcentage';
+                        
+                        if ($typeCommission == 'pourcentage') {
+                            $detailBien['commission_agence'] += ($paiement->montant * $commissionPct) / 100;
+                        } else {
+                            $detailBien['commission_agence'] += $commissionPct;
                         }
                     }
                     
-                    foreach ($location->paiements as $paiement) {
-                        if ($paiement->statut == 'valide' && isset($paiement->commission_agence)) {
-                            $detailBien['commission_agence'] += $paiement->commission_agence;
+                    // Calculer les impayés à partir des échéances
+                    foreach ($location->echeances as $echeance) {
+                        if ($echeance->statut == 'impaye') {
+                            $detailBien['loyers_impayes'] += ($echeance->montant_du - $echeance->montant_paye);
                         }
                     }
                 }
@@ -670,12 +690,43 @@ class DashboardClientController extends Controller
             return redirect()->route('client.proprietaire')->with('info', 'Vous n\'avez pas de bien en location actuellement.');
         }
         
-        // KPI Locations
-        $loyersMoisCourant = 0;
+        // Gestion du filtre période
+        $moisFiltre = request('mois');
+        $anneeFiltre = request('annee');
+        
+        // Définir les dates de début et fin selon le filtre
+        $dateDebut = null;
+        $dateFin = null;
+        $periode = 'all';
+        
+        if ($moisFiltre && $anneeFiltre) {
+            // Filtre par mois et année spécifiques
+            $dateDebut = \Carbon\Carbon::create($anneeFiltre, $moisFiltre, 1)->startOfMonth();
+            $dateFin = \Carbon\Carbon::create($anneeFiltre, $moisFiltre, 1)->endOfMonth();
+            $periode = 'custom';
+        } elseif ($anneeFiltre) {
+            // Filtre par année uniquement
+            $dateDebut = \Carbon\Carbon::create($anneeFiltre, 1, 1)->startOfYear();
+            $dateFin = \Carbon\Carbon::create($anneeFiltre, 12, 31)->endOfYear();
+            $periode = 'custom';
+        }
+        
+        // KPI Locations selon le filtre
+        $loyersEncaisses = 0;
         $loyersImpayes = 0;
-        $totalBiensLoues = $biensAvecLocations->count();
-        $totalBiensProprio = \App\Models\Annonce::where('proprietaire_id', $user->id)->count();
-        $tauxOccupation = $totalBiensProprio > 0 ? ($totalBiensLoues / $totalBiensProprio) * 100 : 0;
+        $commissionAgence = 0;
+        $revenusNets = 0;
+        
+        // Prochaine échéance (globale, non filtrée)
+        $prochaineEcheance = \App\Models\Echeance::whereHas('location', function($q) use ($user) {
+            $q->whereHas('annonce', function($q2) use ($user) {
+                $q2->where('proprietaire_id', $user->id);
+            })->where('statut', 'actif');
+        })
+        ->where('statut', '!=', 'paye')
+        ->where('date_echeance', '>=', now())
+        ->orderBy('date_echeance', 'asc')
+        ->first();
         
         // Détails par bien
         $biensLocations = [];
@@ -686,25 +737,73 @@ class DashboardClientController extends Controller
             
             $loyerMensuel = $locationActive->loyer_mensuel;
             $commissionPct = $locationActive->commission_agence ?? 0;
-            $revenuNetMensuel = $loyerMensuel - (($loyerMensuel * $commissionPct) / 100);
+            $typeCommission = $locationActive->type_commission ?? 'pourcentage';
             
-            // Dernière échéance
+            // Calculer les montants encaissés et commission selon le filtre
+            // Utiliser les PAIEMENTS (pas les échéances) pour avoir les montants réellement perçus
+            $paiementsQuery = $locationActive->paiements()
+                ->where('type_paiement', 'loyer') // Uniquement les loyers (pas caution/avance)
+                ->where('statut', 'paye');
+            
+            if ($dateDebut && $dateFin && $periode != 'all') {
+                $paiementsQuery->whereBetween('date_paiement', [$dateDebut, $dateFin]);
+            }
+            
+            $paiements = $paiementsQuery->get();
+            
+            // Calculer encaissé et commission à partir des paiements réels
+            $encaisse = $paiements->sum('montant');
+            
+            // Calculer la commission réelle sur les paiements
+            $commissionReelle = 0;
+            foreach ($paiements as $paiement) {
+                if ($typeCommission == 'pourcentage') {
+                    $commissionReelle += ($paiement->montant * $commissionPct) / 100;
+                } else {
+                    $commissionReelle += $commissionPct;
+                }
+            }
+            
+            $net = $encaisse - $commissionReelle;
+            
+            // Calculer les retards (échéances impayées dans la période)
+            $echeancesQuery = $locationActive->echeances()
+                ->where('statut', 'impaye')
+                ->where('date_echeance', '<', now());
+            
+            if ($dateDebut && $dateFin && $periode != 'all') {
+                $echeancesQuery->whereBetween('date_echeance', [$dateDebut, $dateFin]);
+            }
+            
+            $echeancesImpayes = $echeancesQuery->get();
+            $retard = $echeancesImpayes->sum(function($e) {
+                return $e->montant_du - $e->montant_paye;
+            });
+            
+            // Dernière échéance pour le statut
             $derniereEcheance = $locationActive->echeances()
                 ->orderBy('date_echeance', 'desc')
                 ->first();
             
-            $statutPaiement = 'aucune';
-            if ($derniereEcheance) {
-                $statutPaiement = $derniereEcheance->statut;
-                
-                if ($derniereEcheance->statut == 'paye' && $derniereEcheance->date_echeance->isCurrentMonth()) {
-                    $loyersMoisCourant += $derniereEcheance->montant_paye;
-                }
-                
-                if ($derniereEcheance->statut == 'impaye') {
-                    $loyersImpayes += ($derniereEcheance->montant_du - $derniereEcheance->montant_paye);
-                }
+            $statutPaiement = $derniereEcheance ? $derniereEcheance->statut : 'aucune';
+            
+            // Prochaine échéance (à venir ou en retard)
+            $prochaineEcheance = $locationActive->echeances()
+                ->where('statut', '!=', 'paye')
+                ->where('date_echeance', '>=', now()->subMonths(3)) // Inclure les 3 derniers mois pour voir les retards
+                ->orderBy('date_echeance', 'asc')
+                ->first();
+            
+            // Si pas de prochaine échéance à venir, prendre la dernière
+            if (!$prochaineEcheance) {
+                $prochaineEcheance = $derniereEcheance;
             }
+            
+            // Accumuler les totaux
+            $loyersEncaisses += $encaisse;
+            $loyersImpayes += $retard;
+            $commissionAgence += $commissionReelle;
+            $revenusNets += $net;
             
             $biensLocations[] = [
                 'bien' => $bien,
@@ -712,8 +811,12 @@ class DashboardClientController extends Controller
                 'locataire' => $locationActive->locataire,
                 'loyer_mensuel' => $loyerMensuel,
                 'commission_pct' => $commissionPct,
-                'revenu_net_mensuel' => $revenuNetMensuel,
+                'encaisse' => $encaisse,
+                'retard' => $retard,
+                'net' => $net,
+                'commission_reelle' => $commissionReelle,
                 'derniere_echeance' => $derniereEcheance,
+                'prochaine_echeance' => $prochaineEcheance,
                 'statut_paiement' => $statutPaiement,
             ];
         }
@@ -724,18 +827,37 @@ class DashboardClientController extends Controller
             $mois = now()->subMonths($i);
             $moisKey = $mois->format('Y-m');
             
-            $paiementsMois = \App\Models\Paiement::whereHas('location', function($q) use ($user) {
-                $q->whereHas('annonce', function($q2) use ($user) {
-                    $q2->where('proprietaire_id', $user->id);
-                });
-            })
-            ->whereYear('date_paiement', $mois->year)
-            ->whereMonth('date_paiement', $mois->month)
-            ->where('statut', 'valide')
-            ->get();
+            // Récupérer les paiements de loyers du mois pour ce propriétaire
+            $paiementsMois = \App\Models\Paiement::with('payable')
+                ->where('payable_type', \App\Models\Location::class)
+                ->where('type_paiement', 'loyer') // Uniquement les loyers
+                ->whereHas('payable', function($q) use ($user) {
+                    $q->whereHas('annonce', function($q2) use ($user) {
+                        $q2->where('proprietaire_id', $user->id);
+                    });
+                })
+                ->whereYear('date_paiement', $mois->year)
+                ->whereMonth('date_paiement', $mois->month)
+                ->where('statut', 'paye') // Statut correct : 'paye'
+                ->get();
             
             $brut = $paiementsMois->sum('montant');
-            $commission = $paiementsMois->sum('commission_agence');
+            
+            // Calculer la commission réelle selon le type de commission de chaque location
+            $commission = 0;
+            foreach ($paiementsMois as $paiement) {
+                $location = $paiement->payable;
+                if ($location) {
+                    $commissionPct = $location->commission_agence ?? 0;
+                    $typeCommission = $location->type_commission ?? 'pourcentage';
+                    
+                    if ($typeCommission == 'pourcentage') {
+                        $commission += ($paiement->montant * $commissionPct) / 100;
+                    } else {
+                        $commission += $commissionPct;
+                    }
+                }
+            }
             
             $revenusMensuels12Mois[] = [
                 'mois' => $moisKey,
@@ -747,9 +869,11 @@ class DashboardClientController extends Controller
         
         return view('frontend.pages.client.espaces.proprietaire.locations', compact(
             'biensLocations',
-            'loyersMoisCourant',
-            'tauxOccupation',
+            'loyersEncaisses',
             'loyersImpayes',
+            'commissionAgence',
+            'revenusNets',
+            'prochaineEcheance',
             'revenusMensuels12Mois'
         ));
     }

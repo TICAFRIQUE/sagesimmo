@@ -4,7 +4,7 @@
             <!-- À propos -->
             <div class="col-lg-4 col-md-6">
                 <div class="footer-brand">
-                    <i class="ri-building-4-line"></i> Sage Immo
+                    <i class="ri-building-4-line"></i> Sages Immo
                 </div>
                 <p class="mb-4">
                     Votre partenaire de confiance pour trouver la propriété de vos rêves. 

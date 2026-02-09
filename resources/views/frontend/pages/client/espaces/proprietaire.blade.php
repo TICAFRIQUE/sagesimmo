@@ -84,7 +84,7 @@
 </div>
 
     <!-- Revenus & Transparence -->
-    <div class="row g-2 g-md-3 mb-3 mb-md-4">
+    {{-- <div class="row g-2 g-md-3 mb-3 mb-md-4">
         <div class="col-12 col-md-4">
             <div class="card bg-success-subtle border-0 h-100">
                 <div class="card-body py-2 py-md-3 px-2 px-md-3">
@@ -92,7 +92,6 @@
                     <i class="ri-money-dollar-circle-line me-1"></i> Revenus Bruts
                 </h6>
                     <h4 class="text-success mb-0 fs-5 fs-md-4">{{ number_format($revenusEncaisses, 0, ',', ' ') }}</h4>
-                    <p class="text-muted small mb-0 mt-1">Total encaissé</p>
                 </div>
             </div>
         </div>
@@ -103,9 +102,6 @@
                     <i class="ri-percent-line me-1"></i> Commission
                 </h6>
                     <h4 class="text-warning mb-0 fs-5 fs-md-4">{{ number_format($commissionAgenceTotal, 0, ',', ' ') }}</h4>
-                    <p class="text-muted small mb-0 mt-1">
-                        {{ $revenusEncaisses > 0 ? round(($commissionAgenceTotal / $revenusEncaisses) * 100, 1) : 0 }}% des revenus
-                    </p>
                 </div>
             </div>
         </div>
@@ -116,14 +112,13 @@
                     <i class="ri-wallet-3-line me-1"></i> Revenu Net
                 </h6>
                     <h4 class="text-primary mb-0 fs-5 fs-md-4">{{ number_format($revenuNetTotal, 0, ',', ' ') }}</h4>
-                    <p class="text-muted small mb-0 mt-1">Votre part</p>
                 </div>
             </div>
         </div>
-    </div>
+    </div> --}}
 
     <!-- Alertes -->
-    <div class="row g-2 g-md-3 mb-3 mb-md-4">
+    {{-- <div class="row g-2 g-md-3 mb-3 mb-md-4">
         @if($loyersImpayes > 0)
             <div class="col-12 col-md-6">
             <div class="alert alert-danger d-flex align-items-center mb-0">
@@ -146,10 +141,10 @@
                 </div>
             </div>
         @endif
-    </div>
+    </div> --}}
 
     <!-- Revenus Mensuels -->
-    @if(count($revenusMensuels) > 0)
+    {{-- @if(count($revenusMensuels) > 0)
         <div class="card mb-4">
             <div class="card-header bg-light">
                 <h6 class="mb-0">
@@ -193,7 +188,7 @@
                 </div>
             </div>
         </div>
-    @endif
+    @endif --}}
 
     <!-- Détails par Bien -->
     <div class="card mb-4">
@@ -224,10 +219,8 @@
                         <thead class="table-light">
                             <tr>
                                 <th style="min-width: 200px;">Bien</th>
+                                <th class="text-center" style="min-width: 100px;">Type</th>
                                 <th class="text-center" style="min-width: 100px;">Statut</th>
-                                <th class="text-end" style="min-width: 110px;">Revenus</th>
-                                <th class="text-end" style="min-width: 110px;">Commission</th>
-                                <th class="text-end" style="min-width: 110px;">Revenu Net</th>
                                 <th class="text-center" style="min-width: 120px;">Infos</th>
                             </tr>
                         </thead>
@@ -259,31 +252,35 @@
                                         </div>
                                     </td>
                                     <td class="text-center">
-                                        <span class="badge bg-{{ $detail['bien']->statut == 'disponible' ? 'warning' : ($detail['bien']->statut == 'loue' ? 'info' : 'success') }}">
-                                            {{ ucfirst($detail['bien']->statut) }}
-                                        </span>
-                                        <p class="text-muted small mb-0 mt-1">{{ $detail['bien']->typeBien->nom ?? 'N/A' }}</p>
-                                    </td>
-                                    <td class="text-end">
-                                        <strong class="text-success">{{ number_format($detail['loyers_payes'], 0, ',', ' ') }}</strong>
-                                        <small class="text-muted d-block">FCFA</small>
-                                        @if($detail['vente_finalisee'])
-                                            <small class="text-muted d-block mt-1">
+                                        @if($detail['bien']->type_transaction == 'vente')
+                                            <span class="badge bg-success">
                                                 <i class="ri-shopping-bag-line"></i> Vente
-                                            </small>
-                                        @elseif($detail['location_active'])
-                                            <small class="text-muted d-block mt-1">
-                                                <i class="ri-home-line"></i> Loyers
-                                            </small>
+                                            </span>
+                                        @elseif($detail['bien']->type_transaction == 'location')
+                                            <span class="badge bg-info">
+                                                <i class="ri-home-line"></i> Location
+                                            </span>
+                                        @else
+                                            <span class="badge bg-secondary">
+                                                <i class="ri-minus-line"></i> -
+                                            </span>
                                         @endif
                                     </td>
-                                    <td class="text-end">
-                                        <strong class="text-warning">{{ number_format($detail['commission_agence'], 0, ',', ' ') }}</strong>
-                                        <small class="text-muted d-block">FCFA</small>
-                                    </td>
-                                    <td class="text-end">
-                                        <strong class="text-primary">{{ number_format($detail['revenu_net'], 0, ',', ' ') }}</strong>
-                                        <small class="text-muted d-block">FCFA</small>
+                                    <td class="text-center">
+                                        @if($detail['vente_finalisee'])
+                                            <span class="badge bg-success">
+                                                <i class="ri-check-double-line"></i> Vendu
+                                            </span>
+                                        @elseif($detail['location_active'])
+                                            <span class="badge bg-info">
+                                                <i class="ri-home-heart-line"></i> Loué
+                                            </span>
+                                        @else
+                                            <span class="badge bg-warning">
+                                                <i class="ri-door-open-line"></i> Disponible
+                                            </span>
+                                        @endif
+                                        <p class="text-muted small mb-0 mt-1">{{ $detail['bien']->typeBien->nom ?? 'N/A' }}</p>
                                     </td>
                                     <td class="text-center">
                                         <div class="d-flex justify-content-center gap-1 flex-wrap">
@@ -341,81 +338,45 @@
                                     <p class="text-muted small mb-1">
                                         <i class="ri-map-pin-line"></i> {{ $detail['bien']->ville }}
                                     </p>
-                                    <div class="d-flex align-items-center gap-2 flex-wrap">
-                                        <span class="badge bg-{{ $detail['bien']->statut == 'disponible' ? 'warning' : ($detail['bien']->statut == 'loue' ? 'info' : 'success') }}">
-                                            {{ ucfirst($detail['bien']->statut) }}
-                                        </span>
-                                        <small class="text-muted">{{ $detail['bien']->typeBien->nom ?? 'N/A' }}</small>
-                                    </div>
+                                    <small class="text-muted">{{ $detail['bien']->typeBien->nom ?? 'N/A' }}</small>
                                 </div>
                             </div>
                             
                             <div class="row g-2 mb-2">
-                                <div class="col-4">
-                                    <div class="text-center p-2 bg-success-subtle rounded">
-                                        <small class="text-muted d-block mb-1">Revenus</small>
-                                        <strong class="text-success d-block small">{{ number_format($detail['loyers_payes'], 0, ',', ' ') }}</strong>
-                                        <small class="text-muted">FCFA</small>
+                                <div class="col-6">
+                                    <div class="p-2 bg-light rounded">
+                                        <small class="text-muted d-block mb-1"><strong>Type</strong></small>
+                                        @if($detail['bien']->type_transaction == 'vente')
+                                            <span class="badge bg-success">
+                                                <i class="ri-shopping-bag-line"></i> Vente
+                                            </span>
+                                        @elseif($detail['bien']->type_transaction == 'location')
+                                            <span class="badge bg-info">
+                                                <i class="ri-home-line"></i> Location
+                                            </span>
+                                        @else
+                                            <span class="badge bg-secondary">N/A</span>
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-2 bg-light rounded">
+                                        <small class="text-muted d-block mb-1"><strong>Statut</strong></small>
                                         @if($detail['vente_finalisee'])
-                                            <small class="text-muted d-block"><i class="ri-shopping-bag-line"></i> Vente</small>
+                                            <span class="badge bg-success">
+                                                <i class="ri-check-double-line"></i> Vendu
+                                            </span>
                                         @elseif($detail['location_active'])
-                                            <small class="text-muted d-block"><i class="ri-home-line"></i> Loyers</small>
+                                            <span class="badge bg-info">
+                                                <i class="ri-home-heart-line"></i> Loué
+                                            </span>
+                                        @else
+                                            <span class="badge bg-warning">
+                                                <i class="ri-time-line"></i> Disponible
+                                            </span>
                                         @endif
                                     </div>
                                 </div>
-                                <div class="col-4">
-                                    <div class="text-center p-2 bg-warning-subtle rounded">
-                                        <small class="text-muted d-block mb-1">Commission</small>
-                                        <strong class="text-warning d-block small">{{ number_format($detail['commission_agence'], 0, ',', ' ') }}</strong>
-                                        <small class="text-muted">FCFA</small>
-                                    </div>
-                                </div>
-                                <div class="col-4">
-                                    <div class="text-center p-2 bg-primary-subtle rounded">
-                                        <small class="text-muted d-block mb-1">Net</small>
-                                        <strong class="text-primary d-block small">{{ number_format($detail['revenu_net'], 0, ',', ' ') }}</strong>
-                                        <small class="text-muted">FCFA</small>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="d-flex gap-1 flex-wrap justify-content-center">
-                                @if($detail['loyers_impayes'] > 0)
-                                    <span class="badge bg-danger">
-                                        <i class="ri-alert-line"></i> Impayés: {{ number_format($detail['loyers_impayes'], 0, ',', ' ') }}
-                                    </span>
-                                @endif
-                                @if($detail['location_active'])
-                                    <span class="badge bg-info">
-                                        <i class="ri-home-heart-line"></i> Location active
-                                    </span>
-                                @endif
-                                @if($detail['vente_finalisee'])
-                                    <span class="badge bg-success">
-                                        <i class="ri-check-double-line"></i> Vente finalisée
-                                    </span>
-                                    <div class="mt-2 p-2 bg-light rounded small">
-                                        <div class="d-flex justify-content-between mb-1">
-                                            <span class="text-muted"><i class="ri-price-tag-3-line"></i> Prix:</span>
-                                            <strong class="text-success">{{ number_format($detail['vente_prix'], 0, ',', ' ') }} FCFA</strong>
-                                        </div>
-                                        <div class="d-flex justify-content-between mb-1">
-                                            <span class="text-muted"><i class="ri-money-dollar-circle-line"></i> Encaissé:</span>
-                                            <strong class="text-primary">{{ number_format($detail['vente_montant_paye'], 0, ',', ' ') }} FCFA</strong>
-                                        </div>
-                                        @if($detail['vente_date'])
-                                        <div class="d-flex justify-content-between">
-                                            <span class="text-muted"><i class="ri-calendar-check-line"></i> Date:</span>
-                                            <strong>{{ \Carbon\Carbon::parse($detail['vente_date'])->format('d/m/Y') }}</strong>
-                                        </div>
-                                        @endif
-                                    </div>
-                                @endif
-                                @if(!$detail['location_active'] && !$detail['vente_finalisee'])
-                                    <span class="badge bg-secondary">
-                                        <i class="ri-information-line"></i> Aucune transaction
-                                    </span>
-                                @endif
                             </div>
                         </div>
                     @endforeach

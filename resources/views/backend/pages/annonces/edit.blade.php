@@ -678,53 +678,6 @@
 
                 <div class="card">
                     <div class="card-header">
-                        <h5 class="card-title mb-0"><i class="ri-money-dollar-circle-line me-2"></i>Gestion de commission
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="type_commission" class="form-label">Type de commission</label>
-                                    <select class="form-select @error('type_commission') is-invalid @enderror"
-                                        id="type_commission" name="type_commission">
-                                        <option value="montant"
-                                            {{ old('type_commission', $annonce->type_commission) == 'montant' ? 'selected' : '' }}>
-                                            Montant fixe (FCFA)</option>
-                                        <option value="pourcentage"
-                                            {{ old('type_commission', $annonce->type_commission) == 'pourcentage' ? 'selected' : '' }}>
-                                            Pourcentage (%)</option>
-                                    </select>
-                                    @error('type_commission')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="commission" class="form-label">Commission</label>
-                                    <input type="number" class="form-control @error('commission') is-invalid @enderror"
-                                        id="commission" name="commission"
-                                        value="{{ old('commission', $annonce->commission) }}" step="0.01">
-                                    @error('commission')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                    <small class="text-muted" id="commission-help"></small>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label">Commission calculée</label>
-                                    <div class="form-control bg-light" id="commission-calculee"
-                                        style="font-weight: 600; color: #0d6efd;">-</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
                         <h5 class="card-title mb-0">Paramètres</h5>
                     </div>
                     <div class="card-body">

@@ -45,7 +45,7 @@
                         @endif
                     </a>
                 </li>
-                <li class="nav-item" role="presentation">
+                {{-- <li class="nav-item" role="presentation">
                     <a class="nav-link {{ request()->routeIs('client.proprietaire.historique') ? 'active' : '' }}" 
                        href="{{ route('client.proprietaire.historique') }}"
                        aria-selected="{{ request()->routeIs('client.proprietaire.historique') ? 'true' : 'false' }}">
@@ -53,7 +53,7 @@
                         <span class="d-none d-sm-inline">Historique</span>
                         <span class="d-sm-none">Histo.</span>
                     </a>
-                </li>
+                </li> --}}
             </ul>
         </div>
     </div>

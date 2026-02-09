@@ -52,8 +52,6 @@ class AnnonceController extends Controller
             'type_bien_id' => 'required|exists:type_biens,id',
             'proprietaire_id' => 'required|exists:users,id',
             'prix' => 'required|numeric|min:0',
-            'commission' => 'nullable|numeric|min:0',
-            'type_commission' => 'nullable|in:montant,pourcentage',
             'surface' => 'nullable|numeric|min:0',
             'nombre_chambres' => 'nullable|integer|min:0',
             'nombre_salles_bain' => 'nullable|integer|min:0',
@@ -93,7 +91,7 @@ class AnnonceController extends Controller
                 ->withInput();
         }
 
-        $data = $request->except(['image_principale', 'images', 'documents', 'equipements']);
+        $data = $request->except(['image_principale', 'images', 'documents', 'equipements', 'commission', 'type_commission']);
         $data['created_by_id'] = Auth::id(); // L'utilisateur connecté qui crée l'annonce
         $data['reference'] = Annonce::genererReference();
         $data['en_vedette'] = $request->has('en_vedette');
@@ -179,8 +177,6 @@ class AnnonceController extends Controller
             'type_transaction' => 'required|in:vente,location',
             'type_bien_id' => 'required|exists:type_biens,id',
             'prix' => 'required|numeric|min:0',
-            'commission' => 'nullable|numeric|min:0',
-            'type_commission' => 'nullable|in:montant,pourcentage',
             'surface' => 'nullable|numeric|min:0',
             'nombre_chambres' => 'nullable|integer|min:0',
             'nombre_salles_bain' => 'nullable|integer|min:0',
@@ -207,7 +203,7 @@ class AnnonceController extends Controller
                 ->withInput();
         }
 
-        $data = $request->except(['image_principale', 'images', 'documents', 'equipements']);
+        $data = $request->except(['image_principale', 'images', 'documents', 'equipements', 'commission', 'type_commission']);
         $data['en_vedette'] = $request->has('en_vedette');
 
         $annonce->update($data);

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Cviebrock\EloquentSluggable\Sluggable;
 
 class Annonce extends Model implements HasMedia
@@ -80,6 +81,19 @@ class Annonce extends Model implements HasMedia
 
         $this->addMediaCollection('documents')
             ->useDisk('public');
+    }
+
+    /**
+     * Register media conversions
+     */
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        // Conversion miniature
+        $this->addMediaConversion('thumb')
+            ->performOnCollections('images', 'image_principale')
+            ->width(400)
+            ->height(300)
+            ->nonQueued();
     }
 
     /**

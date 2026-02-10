@@ -26,9 +26,11 @@ return new class extends Migration
             // Workflow
             $table->dateTime('date_visite')->nullable();
             $table->text('compte_rendu_visite')->nullable();
+             $table->boolean('client_interesse_visite')->nullable(); // Nouveau champ pour indiquer si le prospect est intéressé ou non après la visite
+            $table->boolean('client_interesse_retour')->nullable(); // Nouveau champ pour indiquer si le prospect est intéressé ou non après le retour de la fiche
             $table->date('date_signature')->nullable();
             $table->dateTime('date_finalisation')->nullable();
-            $table->enum('statut', ['demande_client', 'brouillon', 'fiche_envoyee', 'visite_planifiee', 'offre_acceptee', 'terminee', 'annulee'])->default('demande_client');
+            $table->enum('statut', ['demande_client', 'brouillon', 'fiche_envoyee', 'retour_prospect', 'visite_planifiee', 'offre_acceptee', 'terminee', 'annulee'])->default('demande_client');
             $table->text('note_admin')->nullable();
             
             $table->timestamps();

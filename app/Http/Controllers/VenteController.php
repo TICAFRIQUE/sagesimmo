@@ -160,7 +160,7 @@ class VenteController extends Controller
         ]);
 
         $vente->update([
-            'statut' => 'fiche_envoyee',
+            'statut' => 'retour_prospect',
             'note_admin' => $request->note_admin,
         ]);
 
@@ -176,7 +176,37 @@ class VenteController extends Controller
         // Utiliser $request->message_email pour le message personnalisé
         // Inclure les documents uploadés en pièces jointes
 
-        Alert::success('Succès', 'Fiche envoyée au client par email avec ' . ($request->hasFile('documents') ? count($request->file('documents')) : 0) . ' document(s)');
+        Alert::success('Succès', 'Fiche envoyée au client par email avec ' . ($request->hasFile('documents') ? count($request->file('documents')) : 0) . ' document(s). En attente du retour du client.');
+        return back();
+    }
+
+    /**
+     * Confirmer le retour du prospect
+     */
+    public function confirmerRetourProspect(Request $request, Vente $vente)
+    {
+        $request->validate([
+            'client_interesse' => 'required|boolean',
+            'note_admin' => 'nullable|string',
+        ]);
+
+        if (!$request->client_interesse) {
+            $vente->update([
+                'statut' => 'annulee',
+                'note_admin' => $request->note_admin,
+                'client_interesse_retour' => false, // Indiquer que le client n'est pas interessé apres le retour de la fiche
+            ]);
+            Alert::info('Info', 'Vente annulée - Client non intéressé');
+            return back();
+        }
+
+        $vente->update([
+            'statut' => 'fiche_envoyee',
+            'note_admin' => $request->note_admin,
+            'client_interesse_retour' => true, // Indiquer que le client est interessé apres le retour de la fiche
+        ]);
+
+        Alert::success('Succès', 'Client confirmé intéressé. Vous pouvez maintenant planifier une visite.');
         return back();
     }
 
@@ -216,6 +246,7 @@ class VenteController extends Controller
                 'statut' => 'annule',
                 'compte_rendu_visite' => $request->compte_rendu_visite,
                 'note_admin' => $request->note_admin,
+                'client_interesse_visite' => false, // Indiquer que le client n'est pas intéressé après la visite
             ]);
             Alert::info('Info', 'Vente annulée - Client non intéressé après la visite');
             return back();
@@ -225,7 +256,11 @@ class VenteController extends Controller
             'statut' => 'offre_acceptee',
             'compte_rendu_visite' => $request->compte_rendu_visite,
             'note_admin' => $request->note_admin,
+            'client_interesse_visite' => true, // Indiquer que le client est intéressé après la visite
         ]);
+
+        // Convertir le client en acheteur
+        // $vente->client->syncRoles(['acheteur']);
 
         Alert::success('Succès', 'Visite effectuée - Client intéressé. Vous pouvez maintenant configurer le paiement.');
         return back();
@@ -264,6 +299,9 @@ class VenteController extends Controller
             'note_admin' => $request->note_admin,
         ]);
 
+        // Convertir le client en acheteur
+        $vente->client->syncRoles(['acheteur']);
+
         $montantTotal = $request->prix_vente + ($request->montant_caution ?? 0) + ($request->montant_frais_agence ?? 0);
         Alert::success('Succès', 'Paiement configuré. Le client doit payer : ' . number_format($montantTotal, 0, ',', ' ') . ' FCFA. Les paiements peuvent être effectués en plusieurs fois.');
         return back();
@@ -293,6 +331,9 @@ class VenteController extends Controller
             'date_finalisation' => now(),
             'note_admin' => $request->note_admin,
         ]);
+
+        // Convertir le client en acheteur (si ce n'est pas déjà fait)
+        $vente->client->syncRoles(['acheteur']);
 
         // Marquer le bien comme vendu et le dépublier
         $vente->annonce->update([

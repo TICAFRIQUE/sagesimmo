@@ -18,7 +18,7 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $query = User::with('roles')->whereHas('roles', function ($q) {
-            $q->whereIn('name', ['locataire', 'proprietaire', 'acheteur']);
+            $q->whereIn('name', ['locataire', 'proprietaire', 'acheteur' , 'prospect']);
         }); // Exclure l'administrateur principal
 
         // Filtre par type d'utilisateur (rôle Spatie)
@@ -54,7 +54,7 @@ class UserController extends Controller
     public function create()
     {
         // Récupérer uniquement les rôles [proprietaire, acheteur, locataire]
-        $roles = Role::whereIn('name', ['proprietaire', 'acheteur', 'locataire'])->get();
+        $roles = Role::whereIn('name', ['proprietaire', 'acheteur', 'locataire' , 'prospect'])->get();
         return view('backend.pages.users.create', compact('roles'));
     }
 
@@ -133,7 +133,7 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
-        $roles = Role::whereIn('name', ['proprietaire', 'acheteur', 'locataire'])->get();
+        $roles = Role::whereIn('name', ['proprietaire', 'acheteur', 'locataire' , 'prospect'])->get();
         $user->load('roles', 'media');
         return view('backend.pages.users.edit', compact('user', 'roles'));
     }

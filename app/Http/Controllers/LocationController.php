@@ -158,7 +158,7 @@ class LocationController extends Controller
         ]);
 
         $location->update([
-            'statut' => 'fiche_envoyee',
+            'statut' => 'retour_prospect',
             'note_admin' => $request->note_admin,
         ]);
 
@@ -174,7 +174,38 @@ class LocationController extends Controller
         // Utiliser $request->message_email pour le message personnalisé
         // Inclure les documents uploadés en pièces jointes
 
-        Alert::success('Succès', 'Fiche envoyée au locataire par email avec ' . ($request->hasFile('documents') ? count($request->file('documents')) : 0) . ' document(s). Vous pouvez maintenant planifier une visite.');
+        Alert::success('Succès', 'Fiche envoyée au locataire par email avec ' . ($request->hasFile('documents') ? count($request->file('documents')) : 0) . ' document(s). En attente du retour du client.');
+        return back();
+    }
+
+    /**
+     * Confirmer le retour du prospect
+     */
+    public function confirmerRetourProspect(Request $request, Location $location)
+    {
+        $request->validate([
+            'client_interesse' => 'required|boolean',
+            'note_admin' => 'nullable|string',
+        ]);
+
+        if (!$request->client_interesse) {
+            $location->update([
+                'statut' => 'resilie',
+                'note_admin' => $request->note_admin,
+                'client_interesse_retour' => false, // Indiquer que le client n'est pas intéressé après le retour de la fiche
+                'date_finalisation' => now(),
+            ]);
+            Alert::info('Info', 'Location annulée - Client non intéressé');
+            return back();
+        }
+
+        $location->update([
+            'statut' => 'fiche_envoyee',
+            'note_admin' => $request->note_admin,
+            'client_interesse_retour' => true, // Indiquer que le client est intéressé après le retour de la fiche
+        ]);
+
+        Alert::success('Succès', 'Client confirmé intéressé. Vous pouvez maintenant planifier une visite.');
         return back();
     }
 
@@ -190,10 +221,10 @@ class LocationController extends Controller
         }
 
         $location->update([
-            'statut' => 'fiche_envoyee',
+            'statut' => 'retour_prospect',
         ]);
 
-        Alert::success('Succès', 'Location marquée comme "Fiche envoyée". Vous pouvez maintenant planifier une visite.');
+        Alert::success('Succès', 'Location marquée comme "Fiche envoyée". En attente du retour du client.');
         return back();
     }
 
@@ -233,6 +264,7 @@ class LocationController extends Controller
                 'statut' => 'resilie',
                 'compte_rendu_visite' => $request->compte_rendu_visite,
                 'note_admin' => $request->note_admin,
+                'client_interesse_visite' => false, // Indiquer que le client n'est pas intéressé après la visite
                 'date_finalisation' => now(),
             ]);
             Alert::warning('Annulé', 'Location marquée comme résilée - Client non intéressé après la visite');
@@ -243,6 +275,7 @@ class LocationController extends Controller
             'statut' => 'en_attente_paiement',
             'compte_rendu_visite' => $request->compte_rendu_visite,
             'note_admin' => $request->note_admin,
+            'client_interesse_visite' => true, // Indiquer que le client est intéressé après la visite
         ]);
 
         Alert::success('Succès', 'Visite effectuée - Client intéressé. Vous pouvez maintenant configurer le paiement.');

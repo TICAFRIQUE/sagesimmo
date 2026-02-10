@@ -96,7 +96,7 @@
 
                     <!-- Étape 1: Envoi de la fiche -->
                     <div
-                        class="workflow-step {{ in_array($location->statut, ['fiche_envoyee', 'visite_planifiee', 'en_attente_paiement', 'actif']) ? 'completed' : (in_array($location->statut, ['demande_client', 'brouillon']) ? 'active' : '') }}">
+                        class="workflow-step {{ in_array($location->statut, ['retour_prospect', 'fiche_envoyee', 'visite_planifiee', 'en_attente_paiement', 'actif']) ? 'completed' : (in_array($location->statut, ['demande_client', 'brouillon']) ? 'active' : '') }}">
                         <div class="d-flex justify-content-between align-items-start">
                             <div class="flex-grow-1">
                                 <h6 class="mb-2">
@@ -104,10 +104,12 @@
                                     1. Envoi de la fiche au client
                                 </h6>
                                 @if (in_array($location->statut, ['demande_client', 'brouillon']))
-                                    @if($location->statut == 'brouillon')
+                                    @if ($location->statut == 'brouillon')
                                         <div class="alert alert-info mb-2">
                                             <i class="ri-information-line me-1"></i>
-                                            <strong>Location en brouillon.</strong> Vous pouvez soit envoyer la fiche au client, soit passer directement à l'étape suivante si la fiche a déjà été envoyée manuellement.
+                                            <strong>Location en brouillon.</strong> Vous pouvez soit envoyer la fiche au
+                                            client, soit passer directement à l'étape suivante si la fiche a déjà été
+                                            envoyée manuellement.
                                         </div>
                                         <button class="btn btn-sm btn-primary me-2" data-bs-toggle="modal"
                                             data-bs-target="#envoyerFicheModal">
@@ -123,7 +125,45 @@
                                         </button>
                                     @endif
                                 @else
-                                    <span class="badge bg-success"><i class="ri-check-line me-1"></i>Complété</span>
+                                    <span class="badge bg-success"><i class="ri-check-line me-1"></i>
+                                        Fiche envoyée</span>
+                                @endif
+                            </div>
+                            @if (in_array($location->statut, [
+                                    'retour_prospect',
+                                    'fiche_envoyee',
+                                    'visite_planifiee',
+                                    'en_attente_paiement',
+                                    'actif',
+                                ]))
+                                <i class="ri-checkbox-circle-fill text-success" style="font-size: 24px;"></i>
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Étape 2: Attente retour du prospect -->
+                    <div
+                        class="workflow-step {{ in_array($location->statut, ['fiche_envoyee', 'visite_planifiee', 'en_attente_paiement', 'actif']) ? 'completed' : ($location->statut == 'retour_prospect' ? 'active' : '') }}">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-2">
+                                    <i class="ri-time-line me-1"></i>
+                                    2. Attente retour du prospect
+                                </h6>
+                                @if ($location->statut == 'retour_prospect')
+                                    <p class="text-muted mb-2">En attente de la confirmation d'intérêt du client.</p>
+                                    <button class="btn btn-sm btn-success" data-bs-toggle="modal"
+                                        data-bs-target="#confirmerRetourProspectModal">
+                                        <i class="ri-checkbox-circle-line me-1"></i>Confirmer l'intérêt
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" data-bs-toggle="modal"
+                                        data-bs-target="#refuserRetourProspectModal">
+                                        <i class="ri-close-line me-1"></i>Client non intéressé
+                                    </button>
+                                @else
+                                    <span class="badge bg-success"><i class="ri-check-line me-1"></i>
+                                        {{ $location->client_interesse_retour == 1 ? 'Client intéréssé' : ($location->client_interesse_retour == 0 ? 'Client non intéréssé' : 'En attente') }}
+                                    </span>
                                 @endif
                             </div>
                             @if (in_array($location->statut, ['fiche_envoyee', 'visite_planifiee', 'en_attente_paiement', 'actif']))
@@ -132,14 +172,14 @@
                         </div>
                     </div>
 
-                    <!-- Étape 2: Planification de la visite -->
+                    <!-- Étape 3: Planification de la visite -->
                     <div
                         class="workflow-step {{ in_array($location->statut, ['visite_planifiee', 'en_attente_paiement', 'actif']) ? 'completed' : ($location->statut == 'fiche_envoyee' ? 'active' : '') }}">
                         <div class="d-flex justify-content-between align-items-start">
                             <div class="flex-grow-1">
                                 <h6 class="mb-2">
                                     <i class="ri-calendar-check-line me-1"></i>
-                                    2. Planification de la visite
+                                    3. Planification de la visite
                                 </h6>
                                 @if ($location->statut == 'fiche_envoyee')
                                     <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
@@ -167,19 +207,21 @@
                             <div class="flex-grow-1">
                                 <h6 class="mb-2">
                                     <i class="ri-home-smile-line me-1"></i>
-                                    3. Visite effectuée
+                                    4. Visite effectuée
                                 </h6>
                                 @if ($location->statut == 'visite_planifiee')
                                     <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
                                         data-bs-target="#visiteEffectueeModal">
-                                        <i class="ri-checkbox-line me-1"></i>Marquer comme effectuée
+                                        <i class="ri-checkbox-line me-1"></i>Retour de la visite
                                     </button>
-                                @elseif($location->compte_rendu_visite)
+                                @elseif($location->client_interesse_visite)
                                     <div class="alert alert-info mt-2 mb-0">
                                         <strong>Compte rendu:</strong><br>
-                                        {{ $location->compte_rendu_visite }}
+                                        {{ $location->client_interesse_visite == 1 ? 'Client intéressé apres la visite' : ($location->client_interesse_visite == 0 ? 'Client non intéressé apres la visite' : 'En attente') }}
+
                                     </div>
                                 @endif
+                               
                             </div>
                             @if (in_array($location->statut, ['en_attente_paiement', 'actif']))
                                 <i class="ri-checkbox-circle-fill text-success" style="font-size: 24px;"></i>
@@ -194,10 +236,10 @@
                             <div class="flex-grow-1">
                                 <h6 class="mb-2">
                                     <i class="ri-money-dollar-circle-line me-1"></i>
-                                    4. Gestion des paiements
+                                    5. Gestion des paiements
                                 </h6>
                                 @if ($location->statut == 'en_attente_paiement')
-                                    
+
                                     <!-- Configuration du paiement -->
                                     @if ($location->loyer_mensuel && $location->jour_paiement)
                                         <!-- Configuration complète -->
@@ -220,7 +262,9 @@
                                                 <div class="row mb-2">
                                                     <div class="col-6"><strong>Avance sur loyer:</strong></div>
                                                     <div class="col-6 text-end">
-                                                        {{ $location->avance_sur_loyer }} mois ({{ number_format($location->montant_avance, 0, ',', ' ') }} FCFA)</div>
+                                                        {{ $location->avance_sur_loyer }} mois
+                                                        ({{ number_format($location->montant_avance, 0, ',', ' ') }} FCFA)
+                                                    </div>
                                                 </div>
                                             @endif
                                             @if ($location->montant_frais_agence)
@@ -242,8 +286,10 @@
                                                         @else
                                                             FCFA par mois
                                                         @endif
-                                                        <button class="btn btn-sm btn-link p-0 ms-2" data-bs-toggle="modal"
-                                                            data-bs-target="#modifierCommissionModal" title="Modifier la commission">
+                                                        <button class="btn btn-sm btn-link p-0 ms-2"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#modifierCommissionModal"
+                                                            title="Modifier la commission">
                                                             <i class="ri-edit-line"></i>
                                                         </button>
                                                     </div>
@@ -286,10 +332,20 @@
                                         <div class="mt-3">
                                             <h6 class="mb-2"><i class="ri-wallet-line me-1"></i>Premier paiement</h6>
                                             @php
-                                                $paiementsInitiaux = $location->paiements->whereIn('type_paiement', ['caution', 'avance', 'frais_agence']);
-                                                $paiementCaution = $paiementsInitiaux->where('type_paiement', 'caution')->first();
-                                                $paiementAvance = $paiementsInitiaux->where('type_paiement', 'avance')->first();
-                                                $paiementFrais = $paiementsInitiaux->where('type_paiement', 'frais_agence')->first();
+                                                $paiementsInitiaux = $location->paiements->whereIn('type_paiement', [
+                                                    'caution',
+                                                    'avance',
+                                                    'frais_agence',
+                                                ]);
+                                                $paiementCaution = $paiementsInitiaux
+                                                    ->where('type_paiement', 'caution')
+                                                    ->first();
+                                                $paiementAvance = $paiementsInitiaux
+                                                    ->where('type_paiement', 'avance')
+                                                    ->first();
+                                                $paiementFrais = $paiementsInitiaux
+                                                    ->where('type_paiement', 'frais_agence')
+                                                    ->first();
                                                 $totalPaye = $paiementsInitiaux->sum('montant');
                                                 $montantPremierPaiement = $location->montant_premier_paiement;
                                                 $resteAPayer = $montantPremierPaiement - $totalPaye;
@@ -312,22 +368,26 @@
                                                         <tbody>
                                                             <tr class="{{ $paiementCaution ? 'table-success' : '' }}">
                                                                 <td><strong>Caution</strong></td>
-                                                                <td>{{ number_format($location->caution ?? 0, 0, ',', ' ') }} FCFA</td>
-                                                                <td><strong>{{ $paiementCaution ? number_format($paiementCaution->montant, 0, ',', ' ') . ' FCFA' : '-' }}</strong></td>
-                                                                <td>{{ $paiementCaution ? \Carbon\Carbon::parse($paiementCaution->date_paiement)->format('d/m/Y') : '-' }}</td>
-                                                                <td>{{ $paiementCaution ? ucfirst($paiementCaution->methode_paiement) : '-' }}</td>
+                                                                <td>{{ number_format($location->caution ?? 0, 0, ',', ' ') }}
+                                                                    FCFA</td>
+                                                                <td><strong>{{ $paiementCaution ? number_format($paiementCaution->montant, 0, ',', ' ') . ' FCFA' : '-' }}</strong>
+                                                                </td>
+                                                                <td>{{ $paiementCaution ? \Carbon\Carbon::parse($paiementCaution->date_paiement)->format('d/m/Y') : '-' }}
+                                                                </td>
+                                                                <td>{{ $paiementCaution ? ucfirst($paiementCaution->methode_paiement) : '-' }}
+                                                                </td>
                                                                 <td>
-                                                                    @if($paiementCaution)
+                                                                    @if ($paiementCaution)
                                                                         <span class="badge bg-success">Payé</span>
                                                                     @else
                                                                         <span class="badge bg-warning">En attente</span>
                                                                     @endif
                                                                 </td>
                                                                 <td>
-                                                                    @if($paiementCaution)
-                                                                        <a href="{{ route('backend.locations.recu-paiement', $paiementCaution) }}" 
-                                                                           class="btn btn-sm btn-outline-primary" 
-                                                                           title="Télécharger le reçu">
+                                                                    @if ($paiementCaution)
+                                                                        <a href="{{ route('backend.locations.recu-paiement', $paiementCaution) }}"
+                                                                            class="btn btn-sm btn-outline-primary"
+                                                                            title="Télécharger le reçu">
                                                                             <i class="ri-file-download-line"></i>
                                                                         </a>
                                                                     @else
@@ -335,67 +395,82 @@
                                                                     @endif
                                                                 </td>
                                                             </tr>
-                                                            @if($location->avance_sur_loyer > 0)
-                                                            <tr class="{{ $paiementAvance ? 'table-success' : '' }}">
-                                                                <td><strong>Avance sur loyer</strong> ({{ $location->avance_sur_loyer }} mois)</td>
-                                                                <td>{{ number_format($location->montant_avance, 0, ',', ' ') }} FCFA</td>
-                                                                <td><strong>{{ $paiementAvance ? number_format($paiementAvance->montant, 0, ',', ' ') . ' FCFA' : '-' }}</strong></td>
-                                                                <td>{{ $paiementAvance ? \Carbon\Carbon::parse($paiementAvance->date_paiement)->format('d/m/Y') : '-' }}</td>
-                                                                <td>{{ $paiementAvance ? ucfirst($paiementAvance->methode_paiement) : '-' }}</td>
-                                                                <td>
-                                                                    @if($paiementAvance)
-                                                                        <span class="badge bg-success">Payé</span>
-                                                                    @else
-                                                                        <span class="badge bg-warning">En attente</span>
-                                                                    @endif
-                                                                </td>
-                                                                <td>
-                                                                    @if($paiementAvance)
-                                                                        <a href="{{ route('backend.locations.recu-paiement', $paiementAvance) }}" 
-                                                                           class="btn btn-sm btn-outline-primary" 
-                                                                           title="Télécharger le reçu">
-                                                                            <i class="ri-file-download-line"></i>
-                                                                        </a>
-                                                                    @else
-                                                                        -
-                                                                    @endif
-                                                                </td>
-                                                            </tr>
+                                                            @if ($location->avance_sur_loyer > 0)
+                                                                <tr class="{{ $paiementAvance ? 'table-success' : '' }}">
+                                                                    <td><strong>Avance sur loyer</strong>
+                                                                        ({{ $location->avance_sur_loyer }} mois)</td>
+                                                                    <td>{{ number_format($location->montant_avance, 0, ',', ' ') }}
+                                                                        FCFA</td>
+                                                                    <td><strong>{{ $paiementAvance ? number_format($paiementAvance->montant, 0, ',', ' ') . ' FCFA' : '-' }}</strong>
+                                                                    </td>
+                                                                    <td>{{ $paiementAvance ? \Carbon\Carbon::parse($paiementAvance->date_paiement)->format('d/m/Y') : '-' }}
+                                                                    </td>
+                                                                    <td>{{ $paiementAvance ? ucfirst($paiementAvance->methode_paiement) : '-' }}
+                                                                    </td>
+                                                                    <td>
+                                                                        @if ($paiementAvance)
+                                                                            <span class="badge bg-success">Payé</span>
+                                                                        @else
+                                                                            <span class="badge bg-warning">En
+                                                                                attente</span>
+                                                                        @endif
+                                                                    </td>
+                                                                    <td>
+                                                                        @if ($paiementAvance)
+                                                                            <a href="{{ route('backend.locations.recu-paiement', $paiementAvance) }}"
+                                                                                class="btn btn-sm btn-outline-primary"
+                                                                                title="Télécharger le reçu">
+                                                                                <i class="ri-file-download-line"></i>
+                                                                            </a>
+                                                                        @else
+                                                                            -
+                                                                        @endif
+                                                                    </td>
+                                                                </tr>
                                                             @endif
-                                                            @if($location->montant_frais_agence > 0)
-                                                            <tr class="{{ $paiementFrais ? 'table-success' : '' }}">
-                                                                <td><strong>Frais d'agence</strong></td>
-                                                                <td>{{ number_format($location->montant_frais_agence, 0, ',', ' ') }} FCFA</td>
-                                                                <td><strong>{{ $paiementFrais ? number_format($paiementFrais->montant, 0, ',', ' ') . ' FCFA' : '-' }}</strong></td>
-                                                                <td>{{ $paiementFrais ? \Carbon\Carbon::parse($paiementFrais->date_paiement)->format('d/m/Y') : '-' }}</td>
-                                                                <td>{{ $paiementFrais ? ucfirst($paiementFrais->methode_paiement) : '-' }}</td>
-                                                                <td>
-                                                                    @if($paiementFrais)
-                                                                        <span class="badge bg-success">Payé</span>
-                                                                    @else
-                                                                        <span class="badge bg-warning">En attente</span>
-                                                                    @endif
-                                                                </td>
-                                                                <td>
-                                                                    @if($paiementFrais)
-                                                                        <a href="{{ route('backend.locations.recu-paiement', $paiementFrais) }}" 
-                                                                           class="btn btn-sm btn-outline-primary" 
-                                                                           title="Télécharger le reçu">
-                                                                            <i class="ri-file-download-line"></i>
-                                                                        </a>
-                                                                    @else
-                                                                        -
-                                                                    @endif
-                                                                </td>
-                                                            </tr>
+                                                            @if ($location->montant_frais_agence > 0)
+                                                                <tr class="{{ $paiementFrais ? 'table-success' : '' }}">
+                                                                    <td><strong>Frais d'agence</strong></td>
+                                                                    <td>{{ number_format($location->montant_frais_agence, 0, ',', ' ') }}
+                                                                        FCFA</td>
+                                                                    <td><strong>{{ $paiementFrais ? number_format($paiementFrais->montant, 0, ',', ' ') . ' FCFA' : '-' }}</strong>
+                                                                    </td>
+                                                                    <td>{{ $paiementFrais ? \Carbon\Carbon::parse($paiementFrais->date_paiement)->format('d/m/Y') : '-' }}
+                                                                    </td>
+                                                                    <td>{{ $paiementFrais ? ucfirst($paiementFrais->methode_paiement) : '-' }}
+                                                                    </td>
+                                                                    <td>
+                                                                        @if ($paiementFrais)
+                                                                            <span class="badge bg-success">Payé</span>
+                                                                        @else
+                                                                            <span class="badge bg-warning">En
+                                                                                attente</span>
+                                                                        @endif
+                                                                    </td>
+                                                                    <td>
+                                                                        @if ($paiementFrais)
+                                                                            <a href="{{ route('backend.locations.recu-paiement', $paiementFrais) }}"
+                                                                                class="btn btn-sm btn-outline-primary"
+                                                                                title="Télécharger le reçu">
+                                                                                <i class="ri-file-download-line"></i>
+                                                                            </a>
+                                                                        @else
+                                                                            -
+                                                                        @endif
+                                                                    </td>
+                                                                </tr>
                                                             @endif
                                                         </tbody>
                                                         <tfoot class="table-light">
                                                             <tr>
                                                                 <th colspan="2">Total payé</th>
                                                                 <th colspan="5">
-                                                                    <strong class="text-success">{{ number_format($totalPaye, 0, ',', ' ') }} FCFA</strong>
-                                                                    / {{ number_format($montantPremierPaiement, 0, ',', ' ') }} FCFA
+                                                                    <strong
+                                                                        class="text-success">{{ number_format($totalPaye, 0, ',', ' ') }}
+                                                                        FCFA</strong>
+                                                                    /
+                                                                    {{ number_format($montantPremierPaiement, 0, ',', ' ') }}
+                                                                    FCFA
                                                                 </th>
                                                             </tr>
                                                         </tfoot>
@@ -414,7 +489,7 @@
                                                     @php
                                                         $paiementComplet = $location->premierPaiementComplet();
                                                     @endphp
-                                                    
+
                                                     @if (!$paiementComplet)
                                                         <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
                                                             data-bs-target="#enregistrerPremierPaiementModal">
@@ -425,7 +500,8 @@
                                                     @if ($paiementComplet)
                                                         <button class="btn btn-sm btn-success" data-bs-toggle="modal"
                                                             data-bs-target="#validerPremierPaiementModal">
-                                                            <i class="ri-check-double-line me-1"></i>Valider et activer la location
+                                                            <i class="ri-check-double-line me-1"></i>Valider et activer la
+                                                            location
                                                         </button>
                                                     @endif
                                                 @endif
@@ -436,7 +512,8 @@
                                         <div class="alert alert-warning mt-3">
                                             <i class="ri-alert-line me-1"></i>
                                             <strong>Configuration requise :</strong> Vous devez d'abord configurer les
-                                            paramètres de paiement (loyer mensuel, caution, avance sur loyer ,  jour de paiement) avant de
+                                            paramètres de paiement (loyer mensuel, caution, avance sur loyer , jour de
+                                            paiement) avant de
                                             pouvoir enregistrer des paiements.
                                         </div>
                                         <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
@@ -471,7 +548,8 @@
                                                         FCFA
                                                     @endif
                                                     <button class="btn btn-sm btn-link p-0 ms-2" data-bs-toggle="modal"
-                                                        data-bs-target="#modifierCommissionModal" title="Modifier la commission">
+                                                        data-bs-target="#modifierCommissionModal"
+                                                        title="Modifier la commission">
                                                         <i class="ri-edit-line"></i>
                                                     </button>
                                                 </div>
@@ -483,7 +561,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <!-- Bouton pour modifier la configuration même en mode actif -->
                                     <button class="btn btn-sm btn-outline-primary mt-2" data-bs-toggle="modal"
                                         data-bs-target="#configurerPaiementModal">
@@ -504,52 +582,60 @@
                                 <div class="w-100">
                                     <h6 class="mb-1"><i class="ri-trophy-line me-1"></i>Location active</h6>
                                     <p class="mb-0">Le bien a été marqué comme loué. Les échéances ont été générées.</p>
-                                    
+
                                     @if ($location->doitGenererNouvellesEcheances())
                                         <div class="alert alert-warning mt-2 mb-2">
                                             <i class="ri-alert-line me-1"></i>
-                                            <strong>Attention!</strong> Il reste moins de 3 mois d'échéances à venir. 
+                                            <strong>Attention!</strong> Il reste moins de 3 mois d'échéances à venir.
                                             Pensez à générer de nouvelles échéances.
                                         </div>
                                     @endif
-                                    
+
                                     @php
                                         $echeances = $location->echeances()->orderBy('date_echeance')->get();
                                         $nombreMoisPayes = $echeances->where('statut', 'paye')->count();
                                         $totalPaye = $echeances->sum('montant_paye');
                                         $echeancesImpayees = $echeances->whereIn('statut', ['impaye'])->count();
                                         $echeancesEnRetard = $echeances->whereIn('statut', ['en_retard'])->count();
-                                        $montantImpaye = $echeances->whereIn('statut', ['impaye', 'en_retard'])->sum(function($e) {
-                                            return $e->montant_du - $e->montant_paye;
-                                        });
-                                        $prochaineEcheance = $echeances->where('statut', '!=', 'paye')
+                                        $montantImpaye = $echeances
+                                            ->whereIn('statut', ['impaye', 'en_retard'])
+                                            ->sum(function ($e) {
+                                                return $e->montant_du - $e->montant_paye;
+                                            });
+                                        $prochaineEcheance = $echeances
+                                            ->where('statut', '!=', 'paye')
                                             ->where('date_echeance', '>=', now())
                                             ->sortBy('date_echeance')
                                             ->first();
                                     @endphp
-                                    
+
                                     <!-- Statistiques -->
                                     <div class="row mt-3 mb-3">
                                         <div class="col-md-3">
                                             <div class="card border-info mb-0">
                                                 <div class="card-body text-center py-2">
-                                                    <small class="text-muted d-block"><i class="ri-calendar-check-line"></i> Mois payés</small>
-                                                    <h5 class="text-info mb-0">{{ $nombreMoisPayes }}<small class="text-muted">/{{ $echeances->count() }}</small></h5>
+                                                    <small class="text-muted d-block"><i
+                                                            class="ri-calendar-check-line"></i> Mois payés</small>
+                                                    <h5 class="text-info mb-0">{{ $nombreMoisPayes }}<small
+                                                            class="text-muted">/{{ $echeances->count() }}</small></h5>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="col-md-3">
                                             <div class="card border-success mb-0">
                                                 <div class="card-body text-center py-2">
-                                                    <small class="text-muted d-block"><i class="ri-money-dollar-circle-line"></i> Total payé</small>
-                                                    <h5 class="text-success mb-0">{{ number_format($totalPaye, 0, ',', ' ') }}</h5>
+                                                    <small class="text-muted d-block"><i
+                                                            class="ri-money-dollar-circle-line"></i> Total payé</small>
+                                                    <h5 class="text-success mb-0">
+                                                        {{ number_format($totalPaye, 0, ',', ' ') }}</h5>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="col-md-3">
                                             <div class="card border-warning mb-0">
                                                 <div class="card-body text-center py-2">
-                                                    <small class="text-muted d-block"><i class="ri-alarm-warning-line"></i> En retard</small>
+                                                    <small class="text-muted d-block"><i
+                                                            class="ri-alarm-warning-line"></i> En retard</small>
                                                     <h5 class="text-warning mb-0">{{ $echeancesEnRetard }}</h5>
                                                 </div>
                                             </div>
@@ -557,7 +643,8 @@
                                         <div class="col-md-3">
                                             <div class="card border-danger mb-0">
                                                 <div class="card-body text-center py-2">
-                                                    <small class="text-muted d-block"><i class="ri-alert-line"></i> Impayés</small>
+                                                    <small class="text-muted d-block"><i class="ri-alert-line"></i>
+                                                        Impayés</small>
                                                     <h5 class="text-danger mb-0">{{ $echeancesImpayees }}</h5>
                                                 </div>
                                             </div>
@@ -565,21 +652,23 @@
                                     </div>
 
                                     <!-- Prochaine échéance -->
-                                    @if($prochaineEcheance)
-                                    <div class="alert alert-info mb-3">
-                                        <div class="d-flex align-items-center">
-                                            <i class="ri-calendar-event-line me-2" style="font-size: 20px;"></i>
-                                            <div>
-                                                <strong>Prochaine échéance :</strong> 
-                                                {{ \Carbon\Carbon::parse($prochaineEcheance->date_echeance)->format('d/m/Y') }}
-                                                <span class="ms-2">
-                                                    <strong>Montant :</strong> {{ number_format($prochaineEcheance->montant_du, 0, ',', ' ') }} FCFA
-                                                </span>
+                                    @if ($prochaineEcheance)
+                                        <div class="alert alert-info mb-3">
+                                            <div class="d-flex align-items-center">
+                                                <i class="ri-calendar-event-line me-2" style="font-size: 20px;"></i>
+                                                <div>
+                                                    <strong>Prochaine échéance :</strong>
+                                                    {{ \Carbon\Carbon::parse($prochaineEcheance->date_echeance)->format('d/m/Y') }}
+                                                    <span class="ms-2">
+                                                        <strong>Montant :</strong>
+                                                        {{ number_format($prochaineEcheance->montant_du, 0, ',', ' ') }}
+                                                        FCFA
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
                                     @endif
-                                    
+
                                     <!-- Boutons d'action -->
                                     <div class="row g-2 mt-2">
                                         <div class="col-md-4">
@@ -697,12 +786,14 @@
                     <h5 class="card-title mb-0"><i class="ri-tools-line me-2"></i>Actions</h5>
                 </div>
                 <div class="card-body">
-                    @if($location->paiements->count() == 0)
-                        <a href="{{ route('backend.locations.edit', $location) }}" class="btn btn-primary btn-sm w-100 mb-2">
+                    @if ($location->paiements->count() == 0)
+                        <a href="{{ route('backend.locations.edit', $location) }}"
+                            class="btn btn-primary btn-sm w-100 mb-2">
                             <i class="ri-edit-line me-1"></i>Modifier
                         </a>
                     @else
-                        <button class="btn btn-secondary btn-sm w-100 mb-2" disabled title="Modification impossible : des paiements ont été enregistrés">
+                        <button class="btn btn-secondary btn-sm w-100 mb-2" disabled
+                            title="Modification impossible : des paiements ont été enregistrés">
                             <i class="ri-lock-line me-1"></i>Modification verrouillée
                         </button>
                     @endif
@@ -760,6 +851,75 @@
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
                         <button type="submit" class="btn btn-primary">
                             <i class="ri-send-plane-line me-1"></i>Envoyer
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Confirmer retour prospect - Intéressé -->
+    <div class="modal fade" id="confirmerRetourProspectModal" tabindex="-1">
+        <div class="modal-dialog">
+            <form action="{{ route('backend.locations.confirmer-retour-prospect', $location) }}" method="POST">
+                @csrf
+                <input type="hidden" name="client_interesse" value="1">
+                <div class="modal-content">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title">Confirmer l'intérêt du client</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-success">
+                            <i class="ri-checkbox-circle-line me-1"></i>
+                            <strong>Le client a confirmé son intérêt pour le bien</strong>
+                        </div>
+                        <p>En confirmant, vous indiquez que le client est intéressé par le bien après réception de la fiche.
+                        </p>
+                        <p>Vous pourrez ensuite planifier une visite du bien.</p>
+                        <div class="mb-3">
+                            <label class="form-label">Note (optionnelle)</label>
+                            <textarea name="note_admin" class="form-control" rows="3"
+                                placeholder="Remarques concernant le retour du client"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="ri-checkbox-circle-line me-1"></i>Confirmer l'intérêt
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Refuser retour prospect - Non intéressé -->
+    <div class="modal fade" id="refuserRetourProspectModal" tabindex="-1">
+        <div class="modal-dialog">
+            <form action="{{ route('backend.locations.confirmer-retour-prospect', $location) }}" method="POST">
+                @csrf
+                <input type="hidden" name="client_interesse" value="0">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title">Client non intéressé</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-warning">
+                            <i class="ri-alert-line me-1"></i>
+                            <strong>Le client n'est pas intéressé par le bien</strong>
+                        </div>
+                        <p>En confirmant, la location sera automatiquement résiliée.</p>
+                        <div class="mb-3">
+                            <label class="form-label">Raison (optionnelle)</label>
+                            <textarea name="note_admin" class="form-control" rows="3" placeholder="Motif du refus ou remarques"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="ri-close-line me-1"></i>Confirmer l'annulation
                         </button>
                     </div>
                 </div>
@@ -828,7 +988,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Compte rendu de la visite </label>
-                            <textarea name="compte_rendu_visite" class="form-control" rows="4" 
+                            <textarea name="compte_rendu_visite" class="form-control" rows="4"
                                 placeholder="Décrivez comment s'est passée la visite..."></textarea>
                         </div>
                         {{-- <div class="mb-3">
@@ -866,7 +1026,8 @@
                             <h6 class="alert-heading mb-2">
                                 <i class="ri-information-line me-1"></i>Informations importantes
                             </h6>
-                            <p class="mb-0">Les montants de la caution, avance et frais sont préremplis selon la configuration. Vous pouvez les ajuster si le client paie partiellement.</p>
+                            <p class="mb-0">Les montants de la caution, avance et frais sont préremplis selon la
+                                configuration. Vous pouvez les ajuster si le client paie partiellement.</p>
                         </div>
 
                         <div class="row">
@@ -876,7 +1037,8 @@
                                     value="{{ $location->caution ?? 0 }}"
                                     placeholder="{{ number_format($location->caution ?? 0, 0, ',', ' ') }}" required
                                     step="1" min="0">
-                                <small class="text-muted">Requis: {{ number_format($location->caution ?? 0, 0, ',', ' ') }} FCFA</small>
+                                <small class="text-muted">Requis:
+                                    {{ number_format($location->caution ?? 0, 0, ',', ' ') }} FCFA</small>
                             </div>
 
                             <div class="mb-3 col-md-4">
@@ -885,7 +1047,8 @@
                                     value="{{ $location->montant_avance ?? 0 }}"
                                     placeholder="{{ number_format($location->montant_avance ?? 0, 0, ',', ' ') }}"
                                     step="1" min="0">
-                                <small class="text-muted">Requis: {{ number_format($location->montant_avance ?? 0, 0, ',', ' ') }} FCFA</small>
+                                <small class="text-muted">Requis:
+                                    {{ number_format($location->montant_avance ?? 0, 0, ',', ' ') }} FCFA</small>
                             </div>
 
                             <div class="mb-3 col-md-4">
@@ -894,7 +1057,8 @@
                                     value="{{ $location->montant_frais_agence ?? 0 }}"
                                     placeholder="{{ number_format($location->montant_frais_agence ?? 0, 0, ',', ' ') }}"
                                     step="1" min="0">
-                                <small class="text-muted">Requis: {{ number_format($location->montant_frais_agence ?? 0, 0, ',', ' ') }} FCFA</small>
+                                <small class="text-muted">Requis:
+                                    {{ number_format($location->montant_frais_agence ?? 0, 0, ',', ' ') }} FCFA</small>
                             </div>
                         </div>
 
@@ -932,7 +1096,8 @@
 
                         <div class="alert alert-warning">
                             <i class="ri-information-line me-1"></i>
-                            <strong>Note :</strong> La commission de l'agence ne sera calculée que sur les paiements mensuels de loyer, pas sur les paiements initiaux.
+                            <strong>Note :</strong> La commission de l'agence ne sera calculée que sur les paiements
+                            mensuels de loyer, pas sur les paiements initiaux.
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -963,7 +1128,7 @@
                                 <input type="number" name="loyer_mensuel" id="loyer_mensuel" class="form-control"
                                     value="{{ $location->loyer_mensuel ?? $location->annonce->prix }}" required
                                     step="1" min="0">
-                                    
+
                                 <small class="text-muted">Prix de l'annonce :
                                     {{ number_format($location->annonce->prix, 0, ',', ' ') }} FCFA (négociable)</small>
                             </div>
@@ -985,7 +1150,8 @@
                                 <label class="form-label">Avance sur loyer (en mois)</label>
                                 <input type="number" name="avance_sur_loyer" id="avance_sur_loyer" class="form-control"
                                     value="{{ $location->avance_sur_loyer ?? 0 }}" min="0" max="12">
-                                <small class="text-muted">0 à 12 mois. L'avance sera déduite des premières échéances</small>
+                                <small class="text-muted">0 à 12 mois. L'avance sera déduite des premières
+                                    échéances</small>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Montant de l'avance</label>
@@ -1006,15 +1172,20 @@
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Type de commission</label>
                                 <select name="type_commission" id="type_commission_config" class="form-select">
-                                    <option value="pourcentage" {{ $location->type_commission == 'pourcentage' ? 'selected' : '' }}>Pourcentage (%)</option>
-                                    <option value="montant" {{ $location->type_commission == 'montant' ? 'selected' : '' }}>Montant fixe (FCFA)</option>
+                                    <option value="pourcentage"
+                                        {{ $location->type_commission == 'pourcentage' ? 'selected' : '' }}>Pourcentage
+                                        (%)</option>
+                                    <option value="montant"
+                                        {{ $location->type_commission == 'montant' ? 'selected' : '' }}>Montant fixe
+                                        (FCFA)</option>
                                 </select>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Commission agence</label>
                                 <input type="number" name="commission_agence" class="form-control"
                                     value="{{ $location->commission_agence }}" step="1" min="0">
-                                <small class="text-muted">Appliquée sur chaque paiement de loyer (pas sur la caution)</small>
+                                <small class="text-muted">Appliquée sur chaque paiement de loyer (pas sur la
+                                    caution)</small>
                             </div>
                         </div>
 
@@ -1031,7 +1202,8 @@
                                     value="{{ $location->date_fin ? $location->date_fin->format('Y-m-d') : '' }}">
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label">Jour de paiement (1-31 du mois) <span class="text-danger">*</span></label>
+                                <label class="form-label">Jour de paiement (1-31 du mois) <span
+                                        class="text-danger">*</span></label>
                                 <input type="number" name="jour_paiement" class="form-control"
                                     value="{{ $location->jour_paiement }}" required min="1" max="31">
                             </div>
@@ -1106,7 +1278,7 @@
                 <input type="hidden" name="date_fin" value="{{ $location->date_fin?->format('Y-m-d') }}">
                 <input type="hidden" name="jour_paiement" value="{{ $location->jour_paiement }}">
                 <input type="hidden" name="conditions" value="{{ $location->conditions }}">
-                
+
                 <div class="modal-content">
                     <div class="modal-header bg-primary text-white">
                         <h5 class="modal-title"><i class="ri-percent-line me-1"></i>Modifier la commission</h5>
@@ -1115,23 +1287,28 @@
                     <div class="modal-body">
                         <div class="alert alert-info">
                             <i class="ri-information-line me-1"></i>
-                            La commission est appliquée sur chaque paiement de loyer mensuel (pas sur la caution ni l'avance).
+                            La commission est appliquée sur chaque paiement de loyer mensuel (pas sur la caution ni
+                            l'avance).
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">Type de commission <span class="text-danger">*</span></label>
                             <select name="type_commission" id="type_commission_modal" class="form-select" required>
-                                <option value="pourcentage" {{ $location->type_commission == 'pourcentage' ? 'selected' : '' }}>Pourcentage (%) du loyer</option>
-                                <option value="montant" {{ $location->type_commission == 'montant' ? 'selected' : '' }}>Montant fixe (FCFA)</option>
+                                <option value="pourcentage"
+                                    {{ $location->type_commission == 'pourcentage' ? 'selected' : '' }}>Pourcentage (%) du
+                                    loyer</option>
+                                <option value="montant" {{ $location->type_commission == 'montant' ? 'selected' : '' }}>
+                                    Montant fixe (FCFA)</option>
                             </select>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">Montant de la commission <span class="text-danger">*</span></label>
-                            <input type="number" name="commission_agence" id="commission_agence_modal" class="form-control"
-                                value="{{ $location->commission_agence ?? 0 }}" required step="1" min="0">
+                            <input type="number" name="commission_agence" id="commission_agence_modal"
+                                class="form-control" value="{{ $location->commission_agence ?? 0 }}" required
+                                step="1" min="0">
                             <small class="text-muted" id="commission_hint">
-                                @if($location->type_commission == 'pourcentage')
+                                @if ($location->type_commission == 'pourcentage')
                                     Ex: 10 pour 10% du loyer mensuel
                                 @else
                                     Ex: 5000 pour 5000 FCFA par mois
@@ -1139,13 +1316,15 @@
                             </small>
                         </div>
 
-                        @if($location->loyer_mensuel)
+                        @if ($location->loyer_mensuel)
                             <div class="alert alert-secondary">
                                 <strong>Aperçu du calcul :</strong><br>
                                 Loyer mensuel : {{ number_format($location->loyer_mensuel, 0, ',', ' ') }} FCFA<br>
                                 <span id="commission_preview">
-                                    @if($location->type_commission == 'pourcentage' && $location->commission_agence)
-                                        Commission : {{ number_format(($location->loyer_mensuel * $location->commission_agence / 100), 0, ',', ' ') }} FCFA
+                                    @if ($location->type_commission == 'pourcentage' && $location->commission_agence)
+                                        Commission :
+                                        {{ number_format(($location->loyer_mensuel * $location->commission_agence) / 100, 0, ',', ' ') }}
+                                        FCFA
                                         ({{ $location->commission_agence }}%)
                                     @elseif($location->commission_agence)
                                         Commission : {{ number_format($location->commission_agence, 0, ',', ' ') }} FCFA
@@ -1179,34 +1358,39 @@
                     <div class="modal-body">
                         <div class="alert alert-info">
                             <i class="ri-information-line me-1"></i>
-                            Cette action va générer de nouvelles échéances mensuelles à partir de la dernière échéance existante.
+                            Cette action va générer de nouvelles échéances mensuelles à partir de la dernière échéance
+                            existante.
                         </div>
-                        
+
                         @php
                             $derniereEcheance = $location->echeances()->orderBy('date_echeance', 'desc')->first();
                             $echeancesFutures = $location->echeances()->where('date_echeance', '>', now())->count();
                         @endphp
-                        
-                        @if($derniereEcheance)
+
+                        @if ($derniereEcheance)
                             <div class="mb-3 bg-light p-3 rounded">
-                                <p class="mb-2"><strong>Dernière échéance :</strong> {{ $derniereEcheance->date_echeance->format('d/m/Y') }}</p>
+                                <p class="mb-2"><strong>Dernière échéance :</strong>
+                                    {{ $derniereEcheance->date_echeance->format('d/m/Y') }}</p>
                                 <p class="mb-2">
-                                    <strong>Échéances déjà programmées :</strong> 
-                                    <span class="badge {{ $echeancesFutures < 3 ? 'bg-danger' : ($echeancesFutures < 6 ? 'bg-warning text-dark' : 'bg-success') }}">
+                                    <strong>Échéances déjà programmées :</strong>
+                                    <span
+                                        class="badge {{ $echeancesFutures < 3 ? 'bg-danger' : ($echeancesFutures < 6 ? 'bg-warning text-dark' : 'bg-success') }}">
                                         {{ $echeancesFutures }} mois à venir
                                     </span>
                                 </p>
-                                <p class="mb-0"><strong>Montant mensuel :</strong> {{ number_format($location->loyer_mensuel, 0, ',', ' ') }} FCFA</p>
-                                
-                                @if($echeancesFutures >= 6)
+                                <p class="mb-0"><strong>Montant mensuel :</strong>
+                                    {{ number_format($location->loyer_mensuel, 0, ',', ' ') }} FCFA</p>
+
+                                @if ($echeancesFutures >= 6)
                                     <div class="alert alert-success mt-2 mb-0">
                                         <i class="ri-information-line me-1"></i>
-                                        Vous avez déjà {{ $echeancesFutures }} mois d'échéances programmées. Vous pouvez quand même en générer plus si nécessaire.
+                                        Vous avez déjà {{ $echeancesFutures }} mois d'échéances programmées. Vous pouvez
+                                        quand même en générer plus si nécessaire.
                                     </div>
                                 @endif
                             </div>
                         @endif
-                        
+
                         <div class="mb-3">
                             <label class="form-label">Nombre de mois à générer <span class="text-danger">*</span></label>
                             <select name="nombre_mois" class="form-select" required>
@@ -1263,302 +1447,337 @@
     </div>
 
     <!-- Section Échéances: affichée uniquement quand la location est active -->
-    @if($location->statut == 'actif')
-    <div class="modal fade" id="echeancesModal" tabindex="-1">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title text-white"><i class="ri-calendar-line me-1"></i>Échéances et Historique des Paiements</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    @php
-                        $echeances = $location->echeances()->orderBy('date_echeance')->get();
-                        $totalDu = $echeances->sum('montant_du');
-                        $totalPaye = $echeances->sum('montant_paye');
-                        
-                        // Statistiques demandées
-                        $nombreMoisPayes = $echeances->where('statut', 'paye')->count();
-                        $echeancesImpayees = $echeances->whereIn('statut', ['impaye'])->count();
-                        $echeancesEnRetard = $echeances->whereIn('statut', ['en_retard'])->count();
-                        $montantImpaye = $echeances->whereIn('statut', ['impaye', 'en_retard'])->sum(function($e) {
-                            return $e->montant_du - $e->montant_paye;
-                        });
-                        
-                        // Prochaine échéance
-                        $prochaineEcheance = $echeances->where('statut', '!=', 'paye')
-                            ->where('date_echeance', '>=', now())
-                            ->sortBy('date_echeance')
-                            ->first();
-                    @endphp
-                    
-                    @if($echeances->count() > 0)
-                        <!-- Résumé global amélioré -->
-                        <div class="row mb-4">
-                            <div class="col-md-3">
-                                <div class="card border-info">
-                                    <div class="card-body text-center">
-                                        <h6 class="text-muted mb-2"><i class="ri-calendar-check-line"></i> Mois payés</h6>
-                                        <h4 class="text-info mb-0">{{ $nombreMoisPayes }}</h4>
-                                        <small class="text-muted">sur {{ $echeances->count() }} échéances</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card border-success">
-                                    <div class="card-body text-center">
-                                        <h6 class="text-muted mb-2"><i class="ri-money-dollar-circle-line"></i> Total payé</h6>
-                                        <h4 class="text-success mb-0">{{ number_format($totalPaye, 0, ',', ' ') }}</h4>
-                                        <small class="text-muted">FCFA</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card border-warning">
-                                    <div class="card-body text-center">
-                                        <h6 class="text-muted mb-2"><i class="ri-alarm-warning-line"></i> En retard</h6>
-                                        <h4 class="text-warning mb-0">{{ $echeancesEnRetard }}</h4>
-                                        <small class="text-muted">échéance(s)</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card border-danger">
-                                    <div class="card-body text-center">
-                                        <h6 class="text-muted mb-2"><i class="ri-alert-line"></i> Impayés</h6>
-                                        <h4 class="text-danger mb-0">{{ $echeancesImpayees }}</h4>
-                                        <small class="text-muted">{{ number_format($montantImpaye, 0, ',', ' ') }} FCFA</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+    @if ($location->statut == 'actif')
+        <div class="modal fade" id="echeancesModal" tabindex="-1">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title text-white"><i class="ri-calendar-line me-1"></i>Échéances et Historique
+                            des Paiements</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        @php
+                            $echeances = $location->echeances()->orderBy('date_echeance')->get();
+                            $totalDu = $echeances->sum('montant_du');
+                            $totalPaye = $echeances->sum('montant_paye');
 
-                        <!-- Prochaine échéance -->
-                        @if($prochaineEcheance)
-                        <div class="alert alert-info mb-4">
-                            <div class="d-flex align-items-center">
-                                <i class="ri-calendar-event-line me-3" style="font-size: 24px;"></i>
-                                <div>
-                                    <strong>Prochaine échéance :</strong> 
-                                    {{ \Carbon\Carbon::parse($prochaineEcheance->date_echeance)->format('d/m/Y') }}
-                                    <span class="ms-3">
-                                        <strong>Montant :</strong> {{ number_format($prochaineEcheance->montant_du, 0, ',', ' ') }} FCFA
-                                    </span>
-                                    @if($prochaineEcheance->montant_paye > 0)
-                                        <span class="ms-3 text-success">
-                                            ({{ number_format($prochaineEcheance->montant_paye, 0, ',', ' ') }} FCFA déjà payés)
-                                        </span>
-                                    @endif
+                            // Statistiques demandées
+                            $nombreMoisPayes = $echeances->where('statut', 'paye')->count();
+                            $echeancesImpayees = $echeances->whereIn('statut', ['impaye'])->count();
+                            $echeancesEnRetard = $echeances->whereIn('statut', ['en_retard'])->count();
+                            $montantImpaye = $echeances->whereIn('statut', ['impaye', 'en_retard'])->sum(function ($e) {
+                                return $e->montant_du - $e->montant_paye;
+                            });
+
+                            // Prochaine échéance
+                            $prochaineEcheance = $echeances
+                                ->where('statut', '!=', 'paye')
+                                ->where('date_echeance', '>=', now())
+                                ->sortBy('date_echeance')
+                                ->first();
+                        @endphp
+
+                        @if ($echeances->count() > 0)
+                            <!-- Résumé global amélioré -->
+                            <div class="row mb-4">
+                                <div class="col-md-3">
+                                    <div class="card border-info">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-muted mb-2"><i class="ri-calendar-check-line"></i> Mois payés
+                                            </h6>
+                                            <h4 class="text-info mb-0">{{ $nombreMoisPayes }}</h4>
+                                            <small class="text-muted">sur {{ $echeances->count() }} échéances</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card border-success">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-muted mb-2"><i class="ri-money-dollar-circle-line"></i> Total
+                                                payé</h6>
+                                            <h4 class="text-success mb-0">{{ number_format($totalPaye, 0, ',', ' ') }}
+                                            </h4>
+                                            <small class="text-muted">FCFA</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card border-warning">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-muted mb-2"><i class="ri-alarm-warning-line"></i> En retard
+                                            </h6>
+                                            <h4 class="text-warning mb-0">{{ $echeancesEnRetard }}</h4>
+                                            <small class="text-muted">échéance(s)</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card border-danger">
+                                        <div class="card-body text-center">
+                                            <h6 class="text-muted mb-2"><i class="ri-alert-line"></i> Impayés</h6>
+                                            <h4 class="text-danger mb-0">{{ $echeancesImpayees }}</h4>
+                                            <small class="text-muted">{{ number_format($montantImpaye, 0, ',', ' ') }}
+                                                FCFA</small>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        @endif
 
-                        <!-- Tableau des échéances avec historique -->
-                        <div class="accordion" id="accordionEcheances">
-                            @foreach($echeances as $index => $echeance)
-                                <div class="accordion-item">
-                                    <h2 class="accordion-header" id="heading{{ $echeance->id }}">
-                                        <button class="accordion-button {{ $index > 0 ? 'collapsed' : '' }}" type="button" 
-                                            data-bs-toggle="collapse" data-bs-target="#collapse{{ $echeance->id }}" 
-                                            aria-expanded="{{ $index == 0 ? 'true' : 'false' }}">
-                                            <div class="d-flex justify-content-between align-items-center w-100 me-3">
-                                                <div>
-                                                    <strong>Échéance du {{ \Carbon\Carbon::parse($echeance->date_echeance)->format('d/m/Y') }}</strong>
-                                                    <span class="badge {{ 
-                                                        $echeance->statut == 'paye' ? 'bg-success' : 
-                                                        ($echeance->statut == 'en_retard' ? 'bg-danger' : 
-                                                        ($echeance->statut == 'partiel' ? 'bg-warning' : 'bg-info'))
-                                                    }} ms-2">
-                                                        {{ ucfirst(str_replace('_', ' ', $echeance->statut)) }}
-                                                    </span>
-                                                </div>
-                                                <div class="text-end">
-                                                    <strong>{{ number_format($echeance->montant_paye, 0, ',', ' ') }}</strong> / 
-                                                    {{ number_format($echeance->montant_du, 0, ',', ' ') }} FCFA
-                                                </div>
-                                            </div>
-                                        </button>
-                                    </h2>
-                                    <div id="collapse{{ $echeance->id }}" class="accordion-collapse collapse {{ $index == 0 ? 'show' : '' }}" 
-                                        data-bs-parent="#accordionEcheances">
-                                        <div class="accordion-body">
-                                            @php
-                                                $paiementsEcheance = $echeance->paiements;
-                                            @endphp
-                                            
-                                            @if($paiementsEcheance->count() > 0)
-                                                <h6 class="mb-3"><i class="ri-history-line me-1"></i>Historique des paiements</h6>
-                                                <div class="table-responsive">
-                                                    <table class="table table-sm table-bordered">
-                                                        <thead class="table-light">
-                                                            <tr>
-                                                                <th>Date</th>
-                                                                <th>Montant</th>
-                                                                <th>Commission</th>
-                                                                <th>Méthode</th>
-                                                                <th>Référence</th>
-                                                                <th>Notes</th>
-                                                                <th width="120">Actions</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            @foreach($paiementsEcheance as $paiement)
-                                                                <tr>
-                                                                    <td>{{ \Carbon\Carbon::parse($paiement->date_paiement)->format('d/m/Y H:i') }}</td>
-                                                                    <td><strong class="text-success">{{ number_format($paiement->montant, 0, ',', ' ') }} FCFA</strong></td>
-                                                                    <td>
-                                                                        @if($paiement->commission_agence)
-                                                                            <span class="badge bg-warning">
-                                                                                {{ number_format($paiement->commission_agence, 0, ',', ' ') }}
-                                                                                {{ $paiement->type_commission == 'pourcentage' ? '%' : 'FCFA' }}
-                                                                            </span>
-                                                                        @else
-                                                                            -
-                                                                        @endif
-                                                                    </td>
-                                                                    <td>
-                                                                        <span class="badge bg-info">{{ ucfirst($paiement->methode_paiement) }}</span>
-                                                                    </td>
-                                                                    <td>{{ $paiement->reference ?? '-' }}</td>
-                                                                    <td>{{ $paiement->notes ?? '-' }}</td>
-                                                                    <td>
-                                                                        <a href="{{ route('backend.locations.recu-paiement', $paiement) }}" 
-                                                                           class="btn btn-sm btn-outline-primary" 
-                                                                           title="Télécharger le reçu">
-                                                                            <i class="ri-file-download-line me-1"></i>Reçu
-                                                                        </a>
-                                                                    </td>
-                                                                </tr>
-                                                            @endforeach
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            @else
-                                                <div class="alert alert-info">
-                                                    <i class="ri-information-line me-1"></i>Aucun paiement enregistré pour cette échéance.
-                                                </div>
-                                            @endif
-                                            
-                                            @if($echeance->statut != 'paye')
-                                                <button class="btn btn-sm btn-primary mt-2" data-bs-toggle="modal"
-                                                    data-bs-target="#payerEcheanceModal{{ $echeance->id }}">
-                                                    <i class="ri-wallet-line me-1"></i>Enregistrer un paiement
-                                                </button>
+                            <!-- Prochaine échéance -->
+                            @if ($prochaineEcheance)
+                                <div class="alert alert-info mb-4">
+                                    <div class="d-flex align-items-center">
+                                        <i class="ri-calendar-event-line me-3" style="font-size: 24px;"></i>
+                                        <div>
+                                            <strong>Prochaine échéance :</strong>
+                                            {{ \Carbon\Carbon::parse($prochaineEcheance->date_echeance)->format('d/m/Y') }}
+                                            <span class="ms-3">
+                                                <strong>Montant :</strong>
+                                                {{ number_format($prochaineEcheance->montant_du, 0, ',', ' ') }} FCFA
+                                            </span>
+                                            @if ($prochaineEcheance->montant_paye > 0)
+                                                <span class="ms-3 text-success">
+                                                    ({{ number_format($prochaineEcheance->montant_paye, 0, ',', ' ') }}
+                                                    FCFA déjà payés)
+                                                </span>
                                             @endif
                                         </div>
                                     </div>
                                 </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="alert alert-info">
-                            <i class="ri-information-line me-1"></i>Aucune échéance générée pour cette location.
-                        </div>
-                    @endif
+                            @endif
+
+                            <!-- Tableau des échéances avec historique -->
+                            <div class="accordion" id="accordionEcheances">
+                                @foreach ($echeances as $index => $echeance)
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header" id="heading{{ $echeance->id }}">
+                                            <button class="accordion-button {{ $index > 0 ? 'collapsed' : '' }}"
+                                                type="button" data-bs-toggle="collapse"
+                                                data-bs-target="#collapse{{ $echeance->id }}"
+                                                aria-expanded="{{ $index == 0 ? 'true' : 'false' }}">
+                                                <div class="d-flex justify-content-between align-items-center w-100 me-3">
+                                                    <div>
+                                                        <strong>Échéance du
+                                                            {{ \Carbon\Carbon::parse($echeance->date_echeance)->format('d/m/Y') }}</strong>
+                                                        <span
+                                                            class="badge {{ $echeance->statut == 'paye'
+                                                                ? 'bg-success'
+                                                                : ($echeance->statut == 'en_retard'
+                                                                    ? 'bg-danger'
+                                                                    : ($echeance->statut == 'partiel'
+                                                                        ? 'bg-warning'
+                                                                        : 'bg-info')) }} ms-2">
+                                                            {{ ucfirst(str_replace('_', ' ', $echeance->statut)) }}
+                                                        </span>
+                                                    </div>
+                                                    <div class="text-end">
+                                                        <strong>{{ number_format($echeance->montant_paye, 0, ',', ' ') }}</strong>
+                                                        /
+                                                        {{ number_format($echeance->montant_du, 0, ',', ' ') }} FCFA
+                                                    </div>
+                                                </div>
+                                            </button>
+                                        </h2>
+                                        <div id="collapse{{ $echeance->id }}"
+                                            class="accordion-collapse collapse {{ $index == 0 ? 'show' : '' }}"
+                                            data-bs-parent="#accordionEcheances">
+                                            <div class="accordion-body">
+                                                @php
+                                                    $paiementsEcheance = $echeance->paiements;
+                                                @endphp
+
+                                                @if ($paiementsEcheance->count() > 0)
+                                                    <h6 class="mb-3"><i class="ri-history-line me-1"></i>Historique des
+                                                        paiements</h6>
+                                                    <div class="table-responsive">
+                                                        <table class="table table-sm table-bordered">
+                                                            <thead class="table-light">
+                                                                <tr>
+                                                                    <th>Date</th>
+                                                                    <th>Montant</th>
+                                                                    <th>Commission</th>
+                                                                    <th>Méthode</th>
+                                                                    <th>Référence</th>
+                                                                    <th>Notes</th>
+                                                                    <th width="120">Actions</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                @foreach ($paiementsEcheance as $paiement)
+                                                                    <tr>
+                                                                        <td>{{ \Carbon\Carbon::parse($paiement->date_paiement)->format('d/m/Y H:i') }}
+                                                                        </td>
+                                                                        <td><strong
+                                                                                class="text-success">{{ number_format($paiement->montant, 0, ',', ' ') }}
+                                                                                FCFA</strong></td>
+                                                                        <td>
+                                                                            @if ($paiement->commission_agence)
+                                                                                <span class="badge bg-warning">
+                                                                                    {{ number_format($paiement->commission_agence, 0, ',', ' ') }}
+                                                                                    {{ $paiement->type_commission == 'pourcentage' ? '%' : 'FCFA' }}
+                                                                                </span>
+                                                                            @else
+                                                                                -
+                                                                            @endif
+                                                                        </td>
+                                                                        <td>
+                                                                            <span
+                                                                                class="badge bg-info">{{ ucfirst($paiement->methode_paiement) }}</span>
+                                                                        </td>
+                                                                        <td>{{ $paiement->reference ?? '-' }}</td>
+                                                                        <td>{{ $paiement->notes ?? '-' }}</td>
+                                                                        <td>
+                                                                            <a href="{{ route('backend.locations.recu-paiement', $paiement) }}"
+                                                                                class="btn btn-sm btn-outline-primary"
+                                                                                title="Télécharger le reçu">
+                                                                                <i
+                                                                                    class="ri-file-download-line me-1"></i>Reçu
+                                                                            </a>
+                                                                        </td>
+                                                                    </tr>
+                                                                @endforeach
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                @else
+                                                    <div class="alert alert-info">
+                                                        <i class="ri-information-line me-1"></i>Aucun paiement enregistré
+                                                        pour cette échéance.
+                                                    </div>
+                                                @endif
+
+                                                @if ($echeance->statut != 'paye')
+                                                    <button class="btn btn-sm btn-primary mt-2" data-bs-toggle="modal"
+                                                        data-bs-target="#payerEcheanceModal{{ $echeance->id }}">
+                                                        <i class="ri-wallet-line me-1"></i>Enregistrer un paiement
+                                                    </button>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="alert alert-info">
+                                <i class="ri-information-line me-1"></i>Aucune échéance générée pour cette location.
+                            </div>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Modals: Payer les échéances -->
-    @foreach($location->echeances ?? [] as $echeance)
-        <div class="modal fade" id="payerEcheanceModal{{ $echeance->id }}" tabindex="-1">
-            <div class="modal-dialog">
-                <form action="{{ route('backend.locations.enregistrer-paiement-loyer', $echeance) }}" method="POST">
-                    @csrf
-                    <div class="modal-content">
-                        <div class="modal-header bg-primary text-white">
-                            <h5 class="modal-title">Enregistrer paiement loyer</h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="alert alert-info mb-3">
-                                <strong>Échéance :</strong> {{ \Carbon\Carbon::parse($echeance->date_echeance)->format('d/m/Y') }}<br>
-                                <strong>Montant dû :</strong> {{ number_format($echeance->montant_du, 0, ',', ' ') }} FCFA<br>
-                                <strong>Déjà payé :</strong> {{ number_format($echeance->montant_paye, 0, ',', ' ') }} FCFA<br>
-                                <strong>Reste à payer :</strong> {{ number_format($echeance->montant_du - $echeance->montant_paye, 0, ',', ' ') }} FCFA
+        <!-- Modals: Payer les échéances -->
+        @foreach ($location->echeances ?? [] as $echeance)
+            <div class="modal fade" id="payerEcheanceModal{{ $echeance->id }}" tabindex="-1">
+                <div class="modal-dialog">
+                    <form action="{{ route('backend.locations.enregistrer-paiement-loyer', $echeance) }}"
+                        method="POST">
+                        @csrf
+                        <div class="modal-content">
+                            <div class="modal-header bg-primary text-white">
+                                <h5 class="modal-title">Enregistrer paiement loyer</h5>
+                                <button type="button" class="btn-close btn-close-white"
+                                    data-bs-dismiss="modal"></button>
                             </div>
-
-                            <div class="mb-3">
-                                <label class="form-label d-block">Type de paiement</label>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input type-paiement-radio" type="radio" 
-                                        name="type_paiement_{{ $echeance->id }}" 
-                                        id="paiement_total_{{ $echeance->id }}" 
-                                        value="total" checked>
-                                    <label class="form-check-label" for="paiement_total_{{ $echeance->id }}">
-                                        <i class="ri-money-dollar-circle-line me-1"></i>Montant total
-                                    </label>
+                            <div class="modal-body">
+                                <div class="alert alert-info mb-3">
+                                    <strong>Échéance :</strong>
+                                    {{ \Carbon\Carbon::parse($echeance->date_echeance)->format('d/m/Y') }}<br>
+                                    <strong>Montant dû :</strong> {{ number_format($echeance->montant_du, 0, ',', ' ') }}
+                                    FCFA<br>
+                                    <strong>Déjà payé :</strong> {{ number_format($echeance->montant_paye, 0, ',', ' ') }}
+                                    FCFA<br>
+                                    <strong>Reste à payer :</strong>
+                                    {{ number_format($echeance->montant_du - $echeance->montant_paye, 0, ',', ' ') }} FCFA
                                 </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input type-paiement-radio" type="radio" 
-                                        name="type_paiement_{{ $echeance->id }}" 
-                                        id="paiement_partiel_{{ $echeance->id }}" 
-                                        value="partiel">
-                                    <label class="form-check-label" for="paiement_partiel_{{ $echeance->id }}">
-                                        <i class="ri-percent-line me-1"></i>Montant partiel
-                                    </label>
+
+                                <div class="mb-3">
+                                    <label class="form-label d-block">Type de paiement</label>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input type-paiement-radio" type="radio"
+                                            name="type_paiement_{{ $echeance->id }}"
+                                            id="paiement_total_{{ $echeance->id }}" value="total" checked>
+                                        <label class="form-check-label" for="paiement_total_{{ $echeance->id }}">
+                                            <i class="ri-money-dollar-circle-line me-1"></i>Montant total
+                                        </label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input type-paiement-radio" type="radio"
+                                            name="type_paiement_{{ $echeance->id }}"
+                                            id="paiement_partiel_{{ $echeance->id }}" value="partiel">
+                                        <label class="form-check-label" for="paiement_partiel_{{ $echeance->id }}">
+                                            <i class="ri-percent-line me-1"></i>Montant partiel
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Montant du paiement <span
+                                            class="text-danger">*</span></label>
+                                    <input type="number" name="montant" class="form-control montant-paiement-input"
+                                        id="montant_input_{{ $echeance->id }}"
+                                        data-montant-total="{{ $echeance->montant_du - $echeance->montant_paye }}"
+                                        value="{{ $echeance->montant_du - $echeance->montant_paye }}" required
+                                        step="1" min="1"
+                                        max="{{ $echeance->montant_du - $echeance->montant_paye }}" readonly>
+                                    <small class="text-muted">Maximum:
+                                        {{ number_format($echeance->montant_du - $echeance->montant_paye, 0, ',', ' ') }}
+                                        FCFA</small>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Date du paiement <span
+                                            class="text-danger">*</span></label>
+                                    <input type="date" name="date_paiement" class="form-control"
+                                        value="{{ date('Y-m-d') }}" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Méthode de paiement <span
+                                            class="text-danger">*</span></label>
+                                    <select name="methode_paiement" class="form-select" required>
+                                        <option value="">Sélectionner une méthode</option>
+                                        <option value="espèces">Espèces</option>
+                                        <option value="virement">Virement bancaire</option>
+                                        <option value="chèque">Chèque</option>
+                                        <option value="carte_bancaire">Carte bancaire</option>
+                                        <option value="mobile_money">Mobile Money</option>
+                                        <option value="autre">Autre</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Référence du paiement</label>
+                                    <input type="text" name="reference" class="form-control"
+                                        placeholder="Ex: N° de transaction, chèque, etc.">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Notes</label>
+                                    <textarea name="notes" class="form-control" rows="2"></textarea>
+                                </div>
+
+                                <div class="alert alert-info">
+                                    <i class="ri-information-line me-1"></i>
+                                    La commission de l'agence sera automatiquement calculée selon la configuration
+                                    ({{ $location->commission_agence }}
+                                    {{ $location->type_commission == 'pourcentage' ? '%' : 'FCFA' }}).
                                 </div>
                             </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Montant du paiement <span class="text-danger">*</span></label>
-                                <input type="number" name="montant" class="form-control montant-paiement-input"
-                                    id="montant_input_{{ $echeance->id }}"
-                                    data-montant-total="{{ $echeance->montant_du - $echeance->montant_paye }}"
-                                    value="{{ $echeance->montant_du - $echeance->montant_paye }}"
-                                    required step="1" min="1" max="{{ $echeance->montant_du - $echeance->montant_paye }}"
-                                    readonly>
-                                <small class="text-muted">Maximum: {{ number_format($echeance->montant_du - $echeance->montant_paye, 0, ',', ' ') }} FCFA</small>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Date du paiement <span class="text-danger">*</span></label>
-                                <input type="date" name="date_paiement" class="form-control"
-                                    value="{{ date('Y-m-d') }}" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Méthode de paiement <span class="text-danger">*</span></label>
-                                <select name="methode_paiement" class="form-select" required>
-                                    <option value="">Sélectionner une méthode</option>
-                                    <option value="espèces">Espèces</option>
-                                    <option value="virement">Virement bancaire</option>
-                                    <option value="chèque">Chèque</option>
-                                    <option value="carte_bancaire">Carte bancaire</option>
-                                    <option value="mobile_money">Mobile Money</option>
-                                    <option value="autre">Autre</option>
-                                </select>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Référence du paiement</label>
-                                <input type="text" name="reference" class="form-control"
-                                    placeholder="Ex: N° de transaction, chèque, etc.">
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Notes</label>
-                                <textarea name="notes" class="form-control" rows="2"></textarea>
-                            </div>
-
-                            <div class="alert alert-info">
-                                <i class="ri-information-line me-1"></i>
-                                La commission de l'agence sera automatiquement calculée selon la configuration ({{ $location->commission_agence }} {{ $location->type_commission == 'pourcentage' ? '%' : 'FCFA' }}).
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary"
+                                    data-bs-dismiss="modal">Annuler</button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="ri-save-line me-1"></i>Enregistrer
+                                </button>
                             </div>
                         </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="ri-save-line me-1"></i>Enregistrer
-                            </button>
-                        </div>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
-        </div>
-    @endforeach
+        @endforeach
     @endif
 @endsection
 
@@ -1569,7 +1788,7 @@
             let numStr = value.replace(/[^\d]/g, '');
             return numStr.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
         }
-        
+
         // Fonction pour obtenir la valeur numérique
         function getMontantNumeric(value) {
             return parseFloat(value.replace(/\s/g, '')) || 0;
@@ -1583,7 +1802,7 @@
                     const echeanceId = this.name.split('_').pop();
                     const montantInput = document.getElementById('montant_input_' + echeanceId);
                     const montantTotal = montantInput.dataset.montantTotal;
-                    
+
                     if (this.value === 'total') {
                         montantInput.value = montantTotal;
                         montantInput.setAttribute('readonly', 'readonly');
@@ -1597,7 +1816,7 @@
 
             // Sélectionner uniquement les champs dans le modal de configuration
             const modalConfiguration = document.getElementById('configurerPaiementModal');
-            
+
             if (modalConfiguration) {
                 // NE PAS appliquer de formatage - laisser les champs en type="number" natif
                 // Cela évite les problèmes de conversion et de multiplication
@@ -1634,7 +1853,7 @@
                     calculerAvance();
                 });
                 nombreCautionsInput.addEventListener('input', calculerCaution);
-                
+
                 if (avanceSurLoyerInput) {
                     avanceSurLoyerInput.addEventListener('input', calculerAvance);
                 }
@@ -1679,9 +1898,11 @@
                 if (loyerMensuel > 0) {
                     if (type === 'pourcentage') {
                         const commission = (loyerMensuel * montant / 100);
-                        commissionPreview.innerHTML = `Commission : ${Math.round(commission).toLocaleString('fr-FR')} FCFA (${montant}%)`;
+                        commissionPreview.innerHTML =
+                            `Commission : ${Math.round(commission).toLocaleString('fr-FR')} FCFA (${montant}%)`;
                     } else {
-                        commissionPreview.innerHTML = `Commission : ${Math.round(montant).toLocaleString('fr-FR')} FCFA`;
+                        commissionPreview.innerHTML =
+                            `Commission : ${Math.round(montant).toLocaleString('fr-FR')} FCFA`;
                     }
                 }
             }
@@ -1705,13 +1926,13 @@
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.action = '{{ route('backend.locations.marquer-fiche-envoyee', $location) }}';
-                
+
                 const csrfToken = document.createElement('input');
                 csrfToken.type = 'hidden';
                 csrfToken.name = '_token';
                 csrfToken.value = '{{ csrf_token() }}';
                 form.appendChild(csrfToken);
-                
+
                 document.body.appendChild(form);
                 form.submit();
             }
@@ -1720,14 +1941,16 @@
         // Formater les champs de montant avec des séparateurs de milliers
         document.addEventListener('DOMContentLoaded', function() {
             // Sélectionner tous les inputs de type number pour les montants
-            const montantInputs = document.querySelectorAll('input[type="number"][name*="montant"], input[type="number"][name*="loyer"], input[type="number"][name*="caution"], input[type="number"][name*="commission"], input[type="number"][name*="frais"]');
-            
+            const montantInputs = document.querySelectorAll(
+                'input[type="number"][name*="montant"], input[type="number"][name*="loyer"], input[type="number"][name*="caution"], input[type="number"][name*="commission"], input[type="number"][name*="frais"]'
+                );
+
             montantInputs.forEach(input => {
                 // Convertir en type text pour permettre le formatage
                 input.setAttribute('type', 'text');
                 input.setAttribute('inputmode', 'numeric');
                 input.removeAttribute('pattern'); // Retirer le pattern pour éviter la validation
-                
+
                 // Formater la valeur initiale
                 if (input.value) {
                     const numValue = input.value.replace(/\s/g, '');
@@ -1735,14 +1958,14 @@
                         input.value = parseInt(numValue).toLocaleString('fr-FR').replace(/,/g, ' ');
                     }
                 }
-                
+
                 // Formater pendant la saisie
                 input.addEventListener('input', function(e) {
                     let value = e.target.value.replace(/\s/g, '');
-                    
+
                     // Garder seulement les chiffres
                     value = value.replace(/[^\d]/g, '');
-                    
+
                     // Formater avec des espaces
                     if (value) {
                         e.target.value = parseInt(value).toLocaleString('fr-FR').replace(/,/g, ' ');
@@ -1751,14 +1974,15 @@
                     }
                 });
             });
-            
+
             // Nettoyer tous les champs formatés avant soumission de n'importe quel formulaire
             document.querySelectorAll('form').forEach(form => {
                 form.addEventListener('submit', function(e) {
                     // Retirer les espaces de tous les champs formatés dans ce formulaire
-                    form.querySelectorAll('input[type="text"][inputmode="numeric"]').forEach(input => {
-                        input.value = input.value.replace(/\s/g, '');
-                    });
+                    form.querySelectorAll('input[type="text"][inputmode="numeric"]').forEach(
+                        input => {
+                            input.value = input.value.replace(/\s/g, '');
+                        });
                 });
             });
         });

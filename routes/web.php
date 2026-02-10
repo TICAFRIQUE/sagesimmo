@@ -38,7 +38,7 @@ Route::get('/search', [HomeController::class, 'search'])->name('search');
 Route::prefix('biens')->controller(PropertyController::class)->group(function () {
     Route::get('/', 'index')->name('properties.index');
     Route::get('/{slug}', 'show')->name('properties.show');
-    Route::post('/{slug}/contact', 'contact')->name('properties.contact')->middleware('auth');
+    Route::post('/{slug}/contact', 'contact')->name('properties.contact');
 });
 
 // Authentification
@@ -230,6 +230,7 @@ Route::middleware(['admin'])->prefix('admin')->group(function () {
         
         // Actions du workflow
         route::post('{vente}/envoyer-fiche', 'envoyerFiche')->name('backend.ventes.envoyer-fiche');
+        route::post('{vente}/confirmer-retour-prospect', 'confirmerRetourProspect')->name('backend.ventes.confirmer-retour-prospect');
         route::post('{vente}/planifier-visite', 'planifierVisite')->name('backend.ventes.planifier-visite');
         route::post('{vente}/visite-effectuee', 'visiteEffectuee')->name('backend.ventes.visite-effectuee');
         route::post('{vente}/configurer-paiement', 'configurerPaiement')->name('backend.ventes.configurer-paiement');
@@ -250,6 +251,7 @@ Route::middleware(['admin'])->prefix('admin')->group(function () {
         // Actions du workflow
         route::post('{location}/envoyer-fiche', 'envoyerFiche')->name('backend.locations.envoyer-fiche');
         route::post('{location}/marquer-fiche-envoyee', 'marquerFicheEnvoyee')->name('backend.locations.marquer-fiche-envoyee');
+        route::post('{location}/confirmer-retour-prospect', 'confirmerRetourProspect')->name('backend.locations.confirmer-retour-prospect');
         route::post('{location}/planifier-visite', 'planifierVisite')->name('backend.locations.planifier-visite');
         route::post('{location}/visite-effectuee', 'visiteEffectuee')->name('backend.locations.visite-effectuee');
         route::post('{location}/configurer-paiement', 'configurerPaiement')->name('backend.locations.configurer-paiement');

@@ -27,7 +27,9 @@ class Location extends Model implements HasMedia
         'date_debut',
         'date_fin',
         'date_visite',
-        'compte_rendu_visite',
+        'compte_rendu_visite', // Nouveau champ pour le compte rendu de visite
+        'client_interesse_visite', // Nouveau champ pour indiquer si le prospect est intéressé ou non après la visite
+        'client_interesse_retour', // Nouveau champ pour indiquer si le prospect est intéress
         'date_finalisation',
         'statut',
         'jour_paiement',
@@ -267,8 +269,9 @@ class Location extends Model implements HasMedia
     {
         $badges = [
             'brouillon' => '<span class="badge bg-secondary">Brouillon</span>',
-            'demande_client' => '<span class="badge bg-primary">Demande client</span>',
+            'demande_client' => '<span class="badge bg-primary">Nouvelle demande</span>',
             'fiche_envoyee' => '<span class="badge bg-info">Fiche envoyée</span>',
+            'retour_prospect' => '<span class="badge bg-secondary">En attente retour</span>',
             'visite_planifiee' => '<span class="badge bg-dark">Visite planifiée</span>',
             'en_attente_paiement' => '<span class="badge bg-warning">En attente paiement</span>',
             'actif' => '<span class="badge bg-success">Actif</span>',
@@ -286,7 +289,8 @@ class Location extends Model implements HasMedia
     {
         $progressions = [
             'brouillon' => 10,
-            'demande_client' => 20,
+            'demande_client' => 15,
+            'retour_prospect' => 25,
             'fiche_envoyee' => 40,
             'visite_planifiee' => 60,
             'en_attente_paiement' => 80,

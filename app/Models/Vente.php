@@ -22,6 +22,8 @@ class Vente extends Model implements HasMedia
         'date_signature',
         'date_visite',
         'compte_rendu_visite',
+        'client_interesse_visite',
+        'client_interesse_retour',
         'date_finalisation',
         'statut',
         'note_admin',
@@ -152,8 +154,9 @@ class Vente extends Model implements HasMedia
     public function getStatutBadgeAttribute()
     {
         $badges = [
-            'demande_client' => '<span class="badge bg-primary">Demande client</span>',
+            'demande_client' => '<span class="badge bg-primary">Nouvelle demande</span>',
             'fiche_envoyee' => '<span class="badge bg-info">Fiche envoyée</span>',
+            'retour_prospect' => '<span class="badge bg-secondary">En attente retour</span>',
             'visite_planifiee' => '<span class="badge bg-cyan">Visite planifiée</span>',
             'offre_acceptee' => '<span class="badge bg-warning">Offre acceptée</span>',
             'terminee' => '<span class="badge bg-success">Finalisé</span>',
@@ -169,7 +172,8 @@ class Vente extends Model implements HasMedia
     public function getProgressionAttribute()
     {
         $progressions = [
-            'demande_client' => 20,
+            'demande_client' => 15,
+            'retour_prospect' => 25,
             'fiche_envoyee' => 40,
             'visite_planifiee' => 60,
             'offre_acceptee' => 80,

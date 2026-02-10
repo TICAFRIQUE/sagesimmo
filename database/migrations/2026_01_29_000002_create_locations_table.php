@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('annonce_id')->constrained('annonces')->onDelete('cascade');
             $table->foreignId('locataire_id')->constrained('users')->onDelete('cascade');
             $table->text('message_client')->nullable();
-            
+
             // Configuration des paiements
             $table->unsignedBigInteger('loyer_mensuel')->nullable();
             $table->integer('avance_sur_loyer')->default(0); // Nombre de mois d'avance
@@ -27,18 +27,20 @@ return new class extends Migration
             $table->unsignedBigInteger('montant_frais_agence')->nullable();
             $table->unsignedBigInteger('commission_agence')->nullable();
             $table->enum('type_commission', ['pourcentage', 'montant'])->default('montant');
-            
+
             // Dates et workflow
             $table->date('date_debut')->nullable();
             $table->date('date_fin')->nullable();
             $table->dateTime('date_visite')->nullable();
             $table->text('compte_rendu_visite')->nullable();
+            $table->boolean('client_interesse_visite')->nullable(); // Nouveau champ pour indiquer si le prospect est intéressé ou non après la visite
+            $table->boolean('client_interesse_retour')->nullable(); // Nouveau champ pour indiquer si le prospect est intéressé ou non après le retour de la fiche
             $table->dateTime('date_finalisation')->nullable();
-            $table->enum('statut', ['demande_client', 'brouillon', 'fiche_envoyee', 'visite_planifiee', 'en_attente_paiement', 'actif', 'resilie'])->default('demande_client');
+            $table->enum('statut', ['demande_client', 'brouillon', 'fiche_envoyee', 'retour_prospect', 'visite_planifiee', 'en_attente_paiement', 'actif', 'resilie'])->default('demande_client');
             $table->integer('jour_paiement')->nullable();
             $table->text('conditions')->nullable();
             $table->text('note_admin')->nullable();
-            
+
             $table->timestamps();
         });
     }

@@ -766,52 +766,9 @@
                             </div>
                         @endif
 
-                        @auth
-                            @if($demandeExistante)
-                                <div class="alert alert-warning">
-                                    <i class="ri-information-line"></i> Vous avez déjà une demande en cours pour ce bien.
-                                    <a href="{{ route('client.demandes') }}" class="alert-link">Consulter mes demandes</a>
-                                </div>
-                            @else
-                                <form action="{{ route('properties.contact', $bien->slug) }}" method="POST">
-                                    @csrf
-                                    <div class="row g-3">
-                                        <div class="col-12">
-                                            <div class="alert alert-info">
-                                                <i class="ri-user-line"></i> Vous êtes connecté en tant que <strong>{{ Auth::user()->username }}</strong>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-12">
-                                            <label for="message" class="form-label">Message *</label>
-                                            <textarea class="form-control @error('message') is-invalid @enderror" id="message" name="message" rows="4"
-                                                required>{{ old('message', 'Bonjour, je suis intéressé(e) par ce bien. Pouvez-vous me contacter pour plus d\'informations ?') }}</textarea>
-                                            @error('message')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-
-                                        <div class="col-12">
-                                            <button type="submit" class="btn btn-accent btn-lg w-100">
-                                                <i class="ri-send-plane-fill"></i> Envoyer la demande
-                                            </button>
-                                        </div>
-                                    </div>
-                                </form>
-                            @endif
-                        @else
-                            <div class="alert alert-warning">
-                                <i class="ri-lock-line"></i> Vous devez être connecté pour envoyer une demande d'intérêt.
-                            </div>
-                            <div class="d-grid gap-2">
-                                <a href="{{ route('login') }}" class="btn btn-accent btn-lg">
-                                    <i class="ri-login-box-line"></i> Se connecter
-                                </a>
-                                <a href="{{ route('register') }}" class="btn btn-outline-accent btn-lg">
-                                    <i class="ri-user-add-line"></i> Créer un compte
-                                </a>
-                            </div>
-                        @endauth
+                        <div class="alert alert-info">
+                            <i class="ri-information-line"></i> Cliquez sur le bouton "Je suis intéressé" dans la barre latérale pour devenir prospect et envoyer votre demande.
+                        </div>
                     </div>
                 </div>
 
@@ -861,15 +818,9 @@
                             {{-- <a href="tel:+33123456789" class="btn btn-outline-primary w-100 mb-2">
                                 <i class="ri-phone-line"></i> Appeler
                             </a> --}}
-                            @auth
-                                <a href="#contact-form" class="btn btn-accent w-100">
-                                    <i class="ri-message-3-line"></i> Je suis intéressé
-                                </a>
-                            @else
-                                <a href="{{ route('login') }}" class="btn btn-accent w-100">
-                                    <i class="ri-login-box-line"></i> Se connecter pour être intéressé
-                                </a>
-                            @endauth
+                            <button type="button" class="btn btn-accent w-100" data-bs-toggle="modal" data-bs-target="#interestModal">
+                                <i class="ri-message-3-line"></i> Je suis intéressé
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -967,10 +918,101 @@
             </div>
         </section>
     @endif
+
+<!-- Modal: Formulaire d'intérêt (Prospect) -->
+<div class="modal fade" id="interestModal" tabindex="-1" aria-labelledby="interestModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form action="{{ route('properties.contact', $bien->slug) }}" method="POST">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title" id="interestModalLabel">
+                        <i class="ri-message-3-line"></i> Je suis intéressé(e) par ce bien
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    @if (session('success'))
+                        <div class="alert alert-success alert-dismissible fade show">
+                            {{ session('success') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    @endif
+
+                    @if (session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show">
+                            {{ session('error') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    @endif
+
+                    <div class="alert alert-info mb-3">
+                        <i class="ri-information-line"></i> Remplissez ce formulaire pour devenir prospect. Nous vous recontacterons rapidement.
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="username" class="form-label">Nom complet *</label>
+                            <input type="text" class="form-control @error('username') is-invalid @enderror" 
+                                id="username" name="username" value="{{ old('username') }}" required
+                                placeholder="Ex: Jean Kouassi">
+                            @error('username')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">Email *</label>
+                            <input type="email" class="form-control @error('email') is-invalid @enderror" 
+                                id="email" name="email" value="{{ old('email') }}" required>
+                            @error('email')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-md-6">
+                            <label for="phone" class="form-label">Téléphone *</label>
+                            <input type="text" class="form-control @error('phone') is-invalid @enderror" 
+                                id="phone" name="phone" value="{{ old('phone') }}" required
+                                placeholder="+225 XX XX XX XX XX">
+                            @error('phone')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-12">
+                            <label for="message_prospect" class="form-label">Message *</label>
+                            <textarea class="form-control @error('message') is-invalid @enderror" 
+                                id="message_prospect" name="message" rows="4" required
+                                placeholder="Décrivez votre intérêt pour ce bien...">{{ old('message', 'Bonjour, je suis intéressé(e) par ce bien. Pouvez-vous me contacter pour plus d\'informations ?') }}</textarea>
+                            @error('message')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="ri-close-line"></i> Annuler
+                    </button>
+                    <button type="submit" class="btn btn-accent">
+                        <i class="ri-send-plane-fill"></i> Envoyer ma demande
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @section('scripts')
     <script>
+        // Rouvrir le modal si des erreurs de validation existent
+        @if($errors->any())
+            document.addEventListener('DOMContentLoaded', function() {
+                var interestModal = new bootstrap.Modal(document.getElementById('interestModal'));
+                interestModal.show();
+            });
+        @endif
+
         @if ($bien->hasMedia('images'))
             // Images du bien
             const propertyImages = [

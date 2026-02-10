@@ -469,9 +469,7 @@
                                         {{ $location->annonce->ville }}, {{ $location->annonce->quartier }}
                                     </p>
                                     <div class="d-flex align-items-center gap-2">
-                                        <span class="badge {{ $location->statut_badge }}">
-                                            {{ ucfirst(str_replace('_', ' ', $location->statut)) }}
-                                        </span>
+                                         {!! $location->statut_badge !!}
                                         @if($location->date_debut)
                                             <small class="text-muted">
                                                 <i class="ri-calendar-line"></i>

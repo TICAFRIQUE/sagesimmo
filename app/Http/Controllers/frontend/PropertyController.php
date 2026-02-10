@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers\frontend;
 
+use Str;
+use App\Models\User;
 use App\Models\Annonce;
 use App\Models\TypeBien;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use App\Notifications\NouvelleDemandeVente;
 use App\Notifications\NouvelleDemandeLocation;
-use App\Models\User;
 
 class PropertyController extends Controller
 {
@@ -120,24 +122,7 @@ class PropertyController extends Controller
             ->take(3)
             ->get();
 
-        // Vérifier si l'utilisateur a déjà une demande active pour ce bien
-        $demandeExistante = false;
-        if (Auth::check()) {
-            $user = Auth::user();
-            if ($bien->type_transaction == 'vente') {
-                $demandeExistante = \App\Models\Vente::where('annonce_id', $bien->id)
-                    ->where('client_id', $user->id)
-                    ->whereNotIn('statut', ['annule', 'paiement_valide'])
-                    ->exists();
-            } else {
-                $demandeExistante = \App\Models\Location::where('annonce_id', $bien->id)
-                    ->where('locataire_id', $user->id)
-                    ->whereNotIn('statut', ['annule', 'termine', 'resilie'])
-                    ->exists();
-            }
-        }
-
-        return view('frontend.pages.properties.show', compact('bien', 'biensSimilaires', 'demandeExistante'));
+        return view('frontend.pages.properties.show', compact('bien', 'biensSimilaires'));
     }
 
     /**
@@ -145,39 +130,57 @@ class PropertyController extends Controller
      */
     public function contact(Request $request, $slug)
     {
+        // Validation des champs du formulaire prospect
         $request->validate([
+            'username' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'required|string|max:20',
             'message' => 'required|string',
         ]);
 
         $bien = Annonce::where('slug', $slug)->firstOrFail();
 
-        // Récupérer les informations de l'utilisateur connecté
-        $user = Auth::user();
-        
-        // Vérifier si le client a déjà une demande active pour ce bien
+        // Vérifier si un prospect avec cet email existe déjà
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            // Créer le prospect
+            $user = User::create([
+                'username' => $request->username,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'password' => Hash::make('password'), // Mot de passe aléatoire
+                'email_verified_at' => now(), // Vérifié automatiquement
+            ]);
+
+            // Assigner le rôle prospect
+            $user->assignRole('prospect');
+        }
+
+        // Vérifier si ce user a déjà une demande active pour ce bien
         if ($bien->type_transaction == 'vente') {
             $demandeExistante = \App\Models\Vente::where('annonce_id', $bien->id)
                 ->where('client_id', $user->id)
                 ->whereNotIn('statut', ['annule', 'paiement_valide'])
                 ->exists();
-                
+
             if ($demandeExistante) {
-                return back()->with('error', 'Vous avez déjà une demande en cours pour ce bien. Consultez vos demandes dans votre espace client.');
+                return back()->with('error', 'Vous avez déjà une demande en cours pour ce bien.');
             }
         } else {
             $demandeExistante = \App\Models\Location::where('annonce_id', $bien->id)
                 ->where('locataire_id', $user->id)
                 ->whereNotIn('statut', ['annule', 'termine', 'resilie'])
                 ->exists();
-                
+
             if ($demandeExistante) {
-                return back()->with('error', 'Vous avez déjà une demande en cours pour ce bien. Consultez vos demandes dans votre espace client.');
+                return back()->with('error', 'Vous avez déjà une demande en cours pour ce bien.');
             }
         }
-        
+
         // Récupérer tous les admins pour les notifier
         $admins = User::role(['superadmin', 'administrateur', 'developpeur'])->get();
-        
+
         // Créer directement une vente ou location selon le type de transaction
         if ($bien->type_transaction == 'vente') {
             $vente = \App\Models\Vente::create([
@@ -188,10 +191,10 @@ class PropertyController extends Controller
                 'date_vente' => now(),
                 'statut' => 'demande_client',
             ]);
-            
+
             // Charger les relations avant la notification
             $vente->load(['client', 'annonce']);
-            
+
             // Notifier tous les admins
             foreach ($admins as $admin) {
                 $admin->notify(new NouvelleDemandeVente($vente));
@@ -205,10 +208,10 @@ class PropertyController extends Controller
                 'date_debut' => now(),
                 'statut' => 'demande_client',
             ]);
-            
+
             // Charger les relations avant la notification
             $location->load(['locataire', 'annonce']);
-            
+
             // Notifier tous les admins
             foreach ($admins as $admin) {
                 $admin->notify(new NouvelleDemandeLocation($location));

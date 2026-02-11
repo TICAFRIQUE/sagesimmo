@@ -10,21 +10,15 @@
     }
     
     * {
-        margin: 0;
+     /*    margin: 0;
         padding: 0;
         box-sizing: border-box;
-    }
-    
-    html, body {
-        overflow-x: hidden;
-        max-width: 100%;
-    }
+    } */
     
     body {
         font-family: 'Inter', sans-serif;
         color: var(--text-dark);
-        line-height: 1.6;
-        position: relative;
+      /*   l/* ine-height: 1.6; */ */
     }
     
     h1, h2, h3, h4, h5, h6 {

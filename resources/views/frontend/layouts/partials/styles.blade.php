@@ -821,5 +821,28 @@
         padding: 1rem;
         text-align: center;
     }
+
+    /* Hover effects */
+    .hover-shadow {
+        transition: all 0.3s ease;
+    }
+
+    .hover-shadow:hover {
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+        transform: translateY(-5px);
+    }
+
+    .transition-all {
+        transition: all 0.3s ease;
+    }
+
+    /* About section image effects */
+    .img-fluid.rounded-4 {
+        transition: transform 0.3s ease;
+    }
+
+    .img-fluid.rounded-4:hover {
+        transform: scale(1.02);
+    }
 </style>
 

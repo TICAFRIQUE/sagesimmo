@@ -818,7 +818,7 @@
                             {{-- <a href="tel:+33123456789" class="btn btn-outline-primary w-100 mb-2">
                                 <i class="ri-phone-line"></i> Appeler
                             </a> --}}
-                            <button type="button" class="btn btn-accent w-100" data-bs-toggle="modal" data-bs-target="#interestModal">
+                            <button type="button" class="btn btn-accent w-100 d-none d-md-block" data-bs-toggle="modal" data-bs-target="#interestModal">
                                 <i class="ri-message-3-line"></i> Je suis intéressé
                             </button>
                         </div>
@@ -1079,4 +1079,50 @@
             });
         @endif
     </script>
+
+    <!-- Bouton flottant mobile -->
+    <div class="mobile-cta-bar d-md-none">
+        <button type="button" class="btn btn-accent w-100 py-3 rounded-0 shadow-lg" 
+                data-bs-toggle="modal" 
+                data-bs-target="#interestModal"
+                style="font-size: 1.1rem; font-weight: 600;">
+            <i class="ri-message-3-line me-2"></i> Je suis intéressé
+        </button>
+    </div>
+
+    <style>
+        .mobile-cta-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 1040;
+            background: white;
+            border-top: 2px solid var(--accent-color, #E84E1B);
+            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.15);
+            animation: slideUp 0.3s ease-out;
+        }
+
+        .mobile-cta-bar .btn {
+            border-radius: 0 !important;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Ajuster le padding du body sur mobile pour éviter le chevauchement */
+        @media (max-width: 767.98px) {
+            body {
+                padding-bottom: 70px;
+            }
+        }
+    </style>
 @endsection

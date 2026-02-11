@@ -15,10 +15,16 @@
         box-sizing: border-box;
     }
     
+    html, body {
+        overflow-x: hidden;
+        max-width: 100%;
+    }
+    
     body {
         font-family: 'Inter', sans-serif;
         color: var(--text-dark);
         line-height: 1.6;
+        position: relative;
     }
     
     h1, h2, h3, h4, h5, h6 {

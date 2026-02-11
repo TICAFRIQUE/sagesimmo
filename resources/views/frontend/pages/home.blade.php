@@ -252,7 +252,7 @@
     @endif
 
     <!-- Section Propriétaires - Confiez-nous votre bien -->
-    <section class="section-padding position-relative" style="overflow: hidden;">
+    <section class="section-padding position-relative">
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-6 mb-4 mb-lg-0" data-aos="fade-right">

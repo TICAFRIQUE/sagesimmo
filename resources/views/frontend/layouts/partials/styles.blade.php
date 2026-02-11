@@ -15,13 +15,18 @@
         box-sizing: border-box;
     }
     
+    html {
+        overflow-x: hidden;
+    }
+    
     body {
         font-family: 'Inter', sans-serif;
         color: var(--text-dark);
         line-height: 1.6;
         overflow-x: hidden;
+        padding-top: 80px;
     }
-    }
+    
     
     h1, h2, h3, h4, h5, h6 {
         font-family: 'Playfair Display', serif;
@@ -32,8 +37,11 @@
     .site-header {
         background: #fff;
         box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        position: sticky;
+        position: fixed;
         top: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
         z-index: 1000;
     }
     

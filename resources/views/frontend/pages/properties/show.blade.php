@@ -4,11 +4,6 @@
 
 @section('css')
     <style>
-        /* Prevent horizontal scrolling */
-        body {
-            overflow-x: hidden;
-        }
-        
         .property-gallery {
             position: relative;
             margin-bottom: 2rem;
@@ -201,28 +196,7 @@
             padding: 2rem;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
             position: sticky;
-            top: 20px;
-            max-height: calc(100vh - 40px);
-            overflow-y: auto;
-            overflow-x: hidden;
-        }
-        
-        /* Hide scrollbar but keep functionality */
-        .property-details-card::-webkit-scrollbar {
-            width: 6px;
-        }
-        
-        .property-details-card::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        
-        .property-details-card::-webkit-scrollbar-thumb {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 3px;
-        }
-        
-        .property-details-card::-webkit-scrollbar-thumb:hover {
-            background: rgba(0, 0, 0, 0.3);
+            top: 100px;
         }
 
         .price-tag {
@@ -277,12 +251,11 @@
             background: var(--bg-light);
             padding: 4rem 0;
             margin-top: 0;
-            overflow-x: hidden;
         }
 
         .similar-carousel {
             position: relative;
-            overflow: hidden;
+            overflow: visible;
         }
 
         .similar-carousel .carousel-inner {
@@ -543,7 +516,6 @@
         
         .similar-property-image {
             width: 100%;
-            min-width: 100%;
             height: 200px;
         }
     }
@@ -584,31 +556,11 @@
 
         @media (max-width: 768px) {
             .similar-carousel .carousel-control-prev {
-                left: 5px;
+                left: 10px;
             }
 
             .similar-carousel .carousel-control-next {
-                right: 5px;
-            }
-            
-            .similar-properties-section {
-                overflow-x: hidden;
-            }
-            
-            .container {
-                overflow-x: hidden;
-            }
-            
-            /* Disable sticky on mobile */
-            .property-details-card {
-                position: relative;
-                top: 0;
-                max-height: none;
-                overflow-y: visible;
-            }
-            
-            .property-carousel {
-                height: 300px;
+                right: 10px;
             }
         }
     </style>
@@ -628,9 +580,9 @@
         </div>
     </div> --}}
 
-    <section class="section-padding" style="overflow-x: hidden; overflow-y: visible;">
+    <section class="section-padding">
         <div class="container">
-            <div class="row" style="overflow: visible;">
+            <div class="row">
                 <!-- Contenu principal -->
                 <div class="col-lg-8">
                     <!-- Galerie photos - Carousel -->
@@ -821,9 +773,9 @@
                 </div>
 
                 <!-- Sidebar -->
-                <div class="col-lg-4" style="height: fit-content;">
+                <div class="col-lg-4">
                     <!-- Informations principales -->
-                    <div class="property-details-card">
+                    <div class="property-details-card" data-aos="fade-left">
                         <div class="price-tag">
                             {{ number_format($bien->prix, 0, ',', ' ') }} FCFA
                             @if ($bien->type_transaction == 'location')

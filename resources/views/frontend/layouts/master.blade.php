@@ -34,6 +34,8 @@
     @include('frontend.layouts.partials.styles')
 
     @yield('css')
+
+    
 </head>
 
 <body>

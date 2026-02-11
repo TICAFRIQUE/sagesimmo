@@ -5,10 +5,51 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Sage Immo - Plateforme de Gestion Immobilière')</title>
+    <title>@yield('title', 'Sages Immo - Plateforme Immobilière #1 en Côte d\'Ivoire | Vente, Location & Gestion')</title>
+
+    {{-- SEO Meta Tags --}}
+    <meta name="description" content="@yield('meta_description', 'Sages Immo : Votre partenaire immobilier de confiance en Côte d\'Ivoire. Achat, vente, location et gestion de biens immobiliers. Plus de 10 ans d\'expérience à Abidjan. Trouvez votre bien idéal aujourd\'hui !')">
+    <meta name="keywords" content="@yield('meta_keywords', 'agence immobilière Abidjan, vente appartement Côte d\'Ivoire, location maison Abidjan, achat villa Cocody, gestion immobilière CI, immobilier Marcory, appartement à louer Plateau, terrain à vendre Abidjan, Sages Immo, agence immobilière Côte d\'Ivoire, propriété Riviera, immobilier Yopougon')">
+    <meta name="author" content="Sages Immo">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="geo.region" content="CI">
+    <meta name="geo.placename" content="Abidjan">
+    <link rel="canonical" href="@yield('canonical', request()->url())">
+
+    {{-- Open Graph / Facebook --}}
+    <meta property="og:type" content="@yield('og_type', 'website')">
+    <meta property="og:url" content="@yield('og_url', request()->url())">
+    <meta property="og:title" content="@yield('og_title', 'Sages Immo - Agence Immobilière #1 en Côte d\'Ivoire | Vente, Location & Gestion')">
+    <meta property="og:description" content="@yield('og_description', 'Trouvez votre bien immobilier idéal en Côte d\'Ivoire avec Sages Immo. Villas, appartements, terrains à vendre ou à louer. Expert en gestion immobilière depuis plus de 10 ans.')">
+    <meta property="og:image" content="@yield('og_image', asset('images/logo/logo.png'))">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Sages Immo - Votre expert immobilier en Côte d\'Ivoire">
+    <meta property="og:site_name" content="Sages Immo">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:locale:alternate" content="fr_CI">
+
+    {{-- Twitter Card --}}
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="@yield('twitter_url', request()->url())">
+    <meta name="twitter:title" content="@yield('twitter_title', 'Sages Immo - Immobilier en Côte d\'Ivoire | Vente & Location')">
+    <meta name="twitter:description" content="@yield('twitter_description', 'Achat, vente, location et gestion de biens immobiliers en Côte d\'Ivoire. Plus de 10 ans d\'expertise au service de vos projets.')">
+    <meta name="twitter:image" content="@yield('twitter_image', asset('images/logo/logo.png'))">
+    <meta name="twitter:image:alt" content="Sages Immo - Plateforme immobilière Côte d\'Ivoire">
+    <meta name="twitter:site" content="@SagesImmo">
+    <meta name="twitter:creator" content="@SagesImmo">
 
     <!-- Favicon -->
-    <link rel="shortcut icon" href="{{ asset('images/favicon.ico') }}">
+    <link rel="shortcut icon" href="{{ asset('images/favicon/favicon.ico') }}">
+    {{-- Favicons --}}
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/favicon/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/favicon/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/favicon/favicon-16x16.png') }}">
+    <link rel="manifest" href="{{ asset('images/favicon/site.webmanifest') }}">
+
+
+
+
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -28,14 +69,15 @@
 
     <!-- Select2 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css"
+        rel="stylesheet" />
 
     <!-- Custom CSS -->
     @include('frontend.layouts.partials.styles')
 
     @yield('css')
 
-    
+
 </head>
 
 <body>
@@ -55,22 +97,15 @@
     <!-- Floating Buttons -->
     <div class="floating-buttons">
         <!-- WhatsApp Button -->
-        <a href="https://wa.me/{{ $data_parametre?->contact_whatsapp }}?text=Bonjour%2C%20je%20souhaite%20avoir%20des%20informations" 
-           target="_blank" 
-           class="floating-btn whatsapp-btn"
-           data-bs-toggle="tooltip" 
-           data-bs-placement="left" 
-           title="Contactez-nous sur WhatsApp">
+        <a href="https://wa.me/{{ $data_parametre?->contact_whatsapp }}?text=Bonjour%2C%20je%20souhaite%20avoir%20des%20informations"
+            target="_blank" class="floating-btn whatsapp-btn" data-bs-toggle="tooltip" data-bs-placement="left"
+            title="Contactez-nous sur WhatsApp">
             <i class="ri-whatsapp-line"></i>
         </a>
 
         <!-- Scroll to Top Button -->
-        <button id="scrollToTop" 
-                class="floating-btn scroll-top-btn" 
-                style="display: none;"
-                data-bs-toggle="tooltip" 
-                data-bs-placement="left" 
-                title="Retour en haut">
+        <button id="scrollToTop" class="floating-btn scroll-top-btn" style="display: none;" data-bs-toggle="tooltip"
+            data-bs-placement="left" title="Retour en haut">
             <i class="ri-arrow-up-line"></i>
         </button>
     </div>
@@ -80,7 +115,7 @@
             position: fixed;
             bottom: 30px;
             right: 30px;
-            z-index: 1000;
+            z-index: 1050; /* Au-dessus de la barre mobile CTA (z-index: 1040) */
             display: flex;
             flex-direction: column;
             gap: 15px;
@@ -128,9 +163,11 @@
             0% {
                 box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             }
+
             50% {
                 box-shadow: 0 4px 25px rgba(0, 0, 0, 0.3);
             }
+
             100% {
                 box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             }
@@ -139,7 +176,7 @@
         /* Responsive */
         @media (max-width: 768px) {
             .floating-buttons {
-                bottom: 20px;
+                bottom: 90px; /* Ajusté pour ne pas chevaucher la barre CTA mobile */
                 right: 20px;
             }
 
@@ -150,6 +187,20 @@
 
             .floating-btn i {
                 font-size: 24px;
+            }
+        }
+        
+        /* Ajustement supplémentaire pour les petits écrans */
+        @media (max-width: 576px) {
+            .floating-buttons {
+                bottom: 85px;
+                right: 15px;
+                gap: 10px;
+            }
+            
+            .floating-btn {
+                width: 48px;
+                height: 48px;
             }
         }
     </style>

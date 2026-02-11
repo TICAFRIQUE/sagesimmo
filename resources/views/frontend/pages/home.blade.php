@@ -79,12 +79,12 @@
                                         </div>
 
                                         <div class="col-md-6">
-                                            <input type="number" class="form-control" name="prix_min"
+                                            <input type="number" class="form-control" name="prix_min" min="1"
                                                 placeholder="Prix min (FCFA)">
                                         </div>
 
                                         <div class="col-md-6">
-                                            <input type="number" class="form-control" name="prix_max"
+                                            <input type="number" class="form-control" name="prix_max" min="1"
                                                 placeholder="Prix max (FCFA)">
                                         </div>
 

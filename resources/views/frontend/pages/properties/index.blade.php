@@ -26,8 +26,8 @@
                             <h5 class="mb-0 me-3">
                                 <i class="ri-filter-3-line"></i> Filtres
                             </h5>
-                            <button class="btn btn-sm btn-outline-secondary ms-auto" type="button"
-                                data-bs-toggle="collapse" data-bs-target="#filterCollapse">
+                            <button class="btn btn-sm btn-outline-secondary ms-auto" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#filterCollapse">
                                 <i class="ri-arrow-down-s-line"></i> Afficher/Masquer
                             </button>
                         </div>
@@ -36,7 +36,7 @@
                             <form action="{{ route('properties.index') }}" method="GET">
                                 <div class="row g-3">
                                     <!-- Type d'annonce -->
-                                    <div class="col-lg-2 col-md-4 col-sm-6">
+                                    <div class="col-lg-3 col-md-4 col-sm-6">
                                         <label for="type_annonce" class="form-label fw-bold small">Type d'annonce</label>
                                         <select class="form-select form-select-sm" name="type_annonce" id="type_annonce">
                                             <option value="" {{ !request('type_annonce') ? 'selected' : '' }}>Tous
@@ -50,7 +50,7 @@
                                     </div>
 
                                     <!-- Type de bien -->
-                                    <div class="col-lg-2 col-md-4 col-sm-6">
+                                    <div class="col-lg-3 col-md-4 col-sm-6">
                                         <label for="type_bien_id" class="form-label fw-bold small">Type de bien</label>
                                         <select class="form-select form-select-sm" name="type_bien_id" id="type_bien_id">
                                             <option value="">Tous</option>
@@ -64,7 +64,7 @@
                                     </div>
 
                                     <!-- Ville -->
-                                    <div class="col-lg-2 col-md-4 col-sm-6">
+                                    <div class="col-lg-3 col-md-4 col-sm-6">
                                         <label for="ville" class="form-label fw-bold small">Ville</label>
                                         <select class="form-select form-select-sm" name="ville" id="ville"
                                             onchange="chargerCommunesFiltre()">
@@ -78,7 +78,7 @@
                                     </div>
 
                                     <!-- Commune -->
-                                    <div class="col-lg-2 col-md-4 col-sm-6">
+                                    <div class="col-lg-3 col-md-4 col-sm-6">
                                         <label for="commune" class="form-label fw-bold small">Commune</label>
                                         <select class="form-select form-select-sm" name="commune" id="commune"
                                             {{ !request('ville') ? 'disabled' : '' }}>
@@ -94,21 +94,21 @@
                                     </div>
 
                                     <!-- Prix Min -->
-                                    <div class="col-lg-2 col-md-4 col-sm-6">
+                                    <div class="col-lg-3 col-md-4 col-sm-6">
                                         <label class="form-label fw-bold small">Prix Min (FCFA)</label>
-                                        <input type="number" class="form-control form-control-sm" name="prix_min"
-                                            value="{{ request('prix_min') }}" placeholder="Ex: 50000">
+                                        <input type="number" class="form-control form-control-sm" min="1"
+                                            name="prix_min" value="{{ request('prix_min') }}" placeholder="Ex: 50000">
                                     </div>
 
                                     <!-- Prix Max -->
-                                    <div class="col-lg-2 col-md-4 col-sm-6">
+                                    <div class="col-lg-3 col-md-4 col-sm-6">
                                         <label class="form-label fw-bold small">Prix Max (FCFA)</label>
-                                        <input type="number" class="form-control form-control-sm" name="prix_max"
-                                            value="{{ request('prix_max') }}" placeholder="Ex: 500000">
+                                        <input type="number" class="form-control form-control-sm" min="1"
+                                            name="prix_max" value="{{ request('prix_max') }}" placeholder="Ex: 500000">
                                     </div>
 
-                                     <!-- Chambres -->
-                                    <div class="col-lg-2 col-md-4 col-sm-6">
+                                    <!-- Chambres -->
+                                    <div class="col-lg-3 col-md-4 col-sm-6">
                                         <label for="chambres" class="form-label fw-bold small">Chambres min.</label>
                                         <select class="form-select form-select-sm" name="chambres" id="chambres">
                                             <option value="">Toutes</option>
@@ -125,43 +125,13 @@
                                         </select>
                                     </div>
 
-                                    <!-- Superficie Min -->
-                                    <div class="col-lg-2 col-md-4 col-sm-6">
-                                        <label class="form-label fw-bold small">Surf. Min</label>
-                                        <input type="number" class="form-control form-control-sm" name="superficie_min"
-                                            value="{{ request('superficie_min') }}" placeholder="m²">
-                                    </div>
-
-                                    <!-- Superficie Max -->
-                                    <div class="col-lg-2 col-md-4 col-sm-6">
-                                        <label class="form-label fw-bold small">Surf. Max</label>
-                                        <input type="number" class="form-control form-control-sm" name="superficie_max"
-                                            value="{{ request('superficie_max') }}" placeholder="m²">
-                                    </div>
-
-                                   
-
-                                    <!-- Salles de bain -->
-                                    {{-- <div class="col-lg-2 col-md-4 col-sm-6">
-                                        <label for="salles_bain" class="form-label fw-bold small">Salles bain min.</label>
-                                        <select class="form-select form-select-sm" name="salles_bain" id="salles_bain">
-                                            <option value="">Toutes</option>
-                                            <option value="1" {{ request('salles_bain') == '1' ? 'selected' : '' }}>
-                                                1+</option>
-                                            <option value="2" {{ request('salles_bain') == '2' ? 'selected' : '' }}>
-                                                2+</option>
-                                            <option value="3" {{ request('salles_bain') == '3' ? 'selected' : '' }}>
-                                                3+</option>
-                                        </select>
-                                    </div> --}}
 
                                     <!-- Boutons -->
                                     <div class="col-lg-3 col-md-6 d-flex align-items-end gap-2">
                                         <button type="submit" class="btn btn-accent btn-sm flex-fill">
                                             <i class="ri-search-line"></i> Rechercher
                                         </button>
-                                        <a href="{{ route('properties.index') }}"
-                                            class="btn btn-outline-secondary btn-sm">
+                                        <a href="{{ route('properties.index') }}" class="btn btn-outline-secondary btn-sm py-2">
                                             <i class="ri-refresh-line"></i> Réinitialiser
                                         </a>
                                     </div>
@@ -187,7 +157,7 @@
                             @endif
                         </div>
 
-                        <div class="d-flex gap-2 align-items-center">
+                        {{-- <div class="d-flex gap-2 align-items-center">
                             <label class="mb-0">Trier par:</label>
                             <select class="form-select form-select-sm" style="width: auto;"
                                 onchange="window.location.href=this.value">
@@ -212,14 +182,13 @@
                                     Plus grande superficie
                                 </option>
                             </select>
-                        </div>
+                        </div> --}}
                     </div>
 
                     <!-- Grille des biens -->
                     <div class="row g-4">
                         @forelse($biens as $bien)
-                            <div class="col-lg-4 col-md-6" data-aos="fade-up"
-                                data-aos-delay="{{ $loop->iteration * 50 }}">
+                            <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="{{ $loop->iteration * 50 }}">
                                 @include('frontend.components.property-card', ['property' => $bien])
                             </div>
                         @empty

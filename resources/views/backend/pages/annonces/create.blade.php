@@ -134,10 +134,40 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="proprietaire_id" class="form-label">Propriétaire du bien <span
-                                    class="text-danger">*</span></label>
+                            <label class="form-label">Type de propriétaire <span class="text-danger">*</span></label>
+                            <div class="d-flex gap-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="type_proprietaire" 
+                                        id="proprietaire_externe" value="externe" 
+                                        {{ old('est_bien_agence') != '1' ? 'checked' : '' }}
+                                        onchange="toggleProprietaireField()">
+                                    <label class="form-check-label" for="proprietaire_externe">
+                                        Propriétaire externe
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="type_proprietaire" 
+                                        id="bien_agence" value="agence"
+                                        {{ old('est_bien_agence') == '1' ? 'checked' : '' }}
+                                        onchange="toggleProprietaireField()">
+                                    <label class="form-check-label" for="bien_agence">
+                                        Bien de l'agence
+                                    </label>
+                                </div>
+                            </div>
+                            <input type="hidden" name="est_bien_agence" id="est_bien_agence" value="{{ old('est_bien_agence', '0') }}">
+                            <small class="form-text text-muted">
+                                Choisissez "Bien de l'agence" si le bien appartient à l'agence, 
+                                sinon sélectionnez "Propriétaire externe"
+                            </small>
+                        </div>
+
+                        <div class="mb-3" id="proprietaire_field" style="{{ old('est_bien_agence') == '1' ? 'display:none;' : '' }}">
+                            <label for="proprietaire_id" class="form-label">Propriétaire du bien 
+                                <span class="text-danger" id="proprietaire_required">*</span>
+                            </label>
                             <select class="form-select @error('proprietaire_id') is-invalid @enderror"
-                                id="proprietaire_id" name="proprietaire_id" required>
+                                id="proprietaire_id" name="proprietaire_id">
                                 <option value="">Sélectionner le propriétaire...</option>
                                 @foreach ($proprietaires as $proprietaire)
                                     <option value="{{ $proprietaire->id }}"
@@ -428,6 +458,11 @@
         $(document).ready(function() {
             // Données ville-commune
             const villesCommunesData = @json($villes);
+            
+            console.log('=== DEBUG VILLE-COMMUNE ===');
+            console.log('Données chargées:', villesCommunesData);
+            console.log('ABIDJAN existe?', villesCommunesData['ABIDJAN']);
+            console.log('Nombre de communes ABIDJAN:', villesCommunesData['ABIDJAN'] ? villesCommunesData['ABIDJAN'].length : 0);
 
             // Constantes de validation
             const MAX_IMAGE_SIZE = 1 * 1024 * 1024; // 1 MB
@@ -465,28 +500,58 @@
             const villeSelect = document.getElementById('ville');
             const communeSelect = document.getElementById('commune');
 
+            console.log('=== ELEMENTS DOM ===');
+            console.log('Ville select trouvé?', villeSelect !== null);
+            console.log('Commune select trouvé?', communeSelect !== null);
+            
             if (villeSelect && communeSelect) {
-                villeSelect.addEventListener('change', function() {
-                    communeSelect.innerHTML = '<option value="">Sélectionner une commune...</option>';
+                console.log('=== INITIALISATION GESTION VILLE-COMMUNE ===');
+                
+                function chargerCommunes() {
+                    const villeSelectionnee = villeSelect.value;
+                    const communeActuelle = communeSelect.dataset.currentCommune || '';
+                    
+                    console.log('--- chargerCommunes appelée ---');
+                    console.log('Ville sélectionnée:', villeSelectionnee);
+                    console.log('Données pour cette ville:', villesCommunesData[villeSelectionnee]);
+                    
+                    // Vider les options avec Select2
+                    $('#commune').empty().append('<option value="">Sélectionner une commune...</option>');
 
-                    if (this.value && villesCommunesData[this.value]) {
-                        const communes = villesCommunesData[this.value];
-                        communeSelect.disabled = false;
-
+                    // Activer le champ commune si la ville a des communes disponibles
+                    if (villeSelectionnee && villesCommunesData[villeSelectionnee] && villesCommunesData[villeSelectionnee].length > 0) {
+                        const communes = villesCommunesData[villeSelectionnee];
+                        console.log('✓ Activation du champ commune avec', communes.length, 'communes');
+                        
                         communes.forEach(commune => {
-                            const option = document.createElement('option');
-                            option.value = commune;
-                            option.textContent = commune;
-                            communeSelect.appendChild(option);
+                            const option = new Option(commune, commune, false, commune === communeActuelle);
+                            $('#commune').append(option);
                         });
+                        
+                        // Activer le select avec Select2
+                        $('#commune').prop('disabled', false).trigger('change.select2');
+                        
+                        console.log('Options ajoutées:', $('#commune option').length);
+                        console.log('Champ disabled?', $('#commune').prop('disabled'));
                     } else {
-                        communeSelect.disabled = true;
+                        // Griser le champ pour les villes sans communes
+                        console.log('✗ Désactivation du champ commune');
+                        // Désactiver le select avec Select2
+                        $('#commune').prop('disabled', true).trigger('change.select2');
                     }
+                }
+
+                // Écouter le changement avec Select2
+                $('#ville').on('change', function() {
+                    console.log('=== CHANGEMENT DE VILLE ===');
+                    chargerCommunes();
                 });
 
-                if (villeSelect.value) {
-                    villeSelect.dispatchEvent(new Event('change'));
-                }
+                // Initialiser au chargement (après que Select2 soit initialisé)
+                console.log('=== INITIALISATION AU CHARGEMENT ===');
+                setTimeout(chargerCommunes, 100);
+            } else {
+                console.error('❌ Erreur: éléments ville ou commune non trouvés!');
             }
 
             // Variables pour stocker les fichiers
@@ -714,6 +779,31 @@
 
             // Calcul initial si des valeurs existent
             calculerCommission();
+
+            // Initialiser l'état du champ propriétaire au chargement de la page
+            toggleProprietaireField();
         });
+
+        // Fonction pour gérer l'affichage du champ propriétaire
+        function toggleProprietaireField() {
+            const typeProprietaire = document.querySelector('input[name="type_proprietaire"]:checked').value;
+            const proprietaireField = document.getElementById('proprietaire_field');
+            const proprietaireSelect = document.getElementById('proprietaire_id');
+            const proprietaireRequired = document.getElementById('proprietaire_required');
+            const estBienAgenceInput = document.getElementById('est_bien_agence');
+            
+            if (typeProprietaire === 'agence') {
+                // Bien de l'agence
+                proprietaireField.style.display = 'none';
+                proprietaireSelect.removeAttribute('required');
+                proprietaireSelect.value = '';
+                estBienAgenceInput.value = '1';
+            } else {
+                // Propriétaire externe
+                proprietaireField.style.display = 'block';
+                proprietaireSelect.setAttribute('required', 'required');
+                estBienAgenceInput.value = '0';
+            }
+        }
     </script>
 @endsection

@@ -62,6 +62,8 @@
                                             </option>
                                             <option value="acheteur" {{ request('role') == 'acheteur' ? 'selected' : '' }}>
                                                 Acheteur</option>
+                                            <option value="prospect" {{ request('role') == 'prospect' ? 'selected' : '' }}>
+                                                Prospect</option>
                                             {{-- <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>Administrateur</option> --}}
                                         </select>
                                     </div>

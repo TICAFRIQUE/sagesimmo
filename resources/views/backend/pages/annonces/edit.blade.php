@@ -381,10 +381,40 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="proprietaire_id" class="form-label">Propriétaire du bien <span
-                                    class="text-danger">*</span></label>
+                            <label class="form-label">Type de propriétaire <span class="text-danger">*</span></label>
+                            <div class="d-flex gap-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="type_proprietaire" 
+                                        id="proprietaire_externe" value="externe" 
+                                        {{ old('est_bien_agence', $annonce->est_bien_agence) != '1' ? 'checked' : '' }}
+                                        onchange="toggleProprietaireField()">
+                                    <label class="form-check-label" for="proprietaire_externe">
+                                        Propriétaire externe
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="type_proprietaire" 
+                                        id="bien_agence" value="agence"
+                                        {{ old('est_bien_agence', $annonce->est_bien_agence) == '1' ? 'checked' : '' }}
+                                        onchange="toggleProprietaireField()">
+                                    <label class="form-check-label" for="bien_agence">
+                                        Bien de l'agence
+                                    </label>
+                                </div>
+                            </div>
+                            <input type="hidden" name="est_bien_agence" id="est_bien_agence" value="{{ old('est_bien_agence', $annonce->est_bien_agence ? '1' : '0') }}">
+                            <small class="form-text text-muted">
+                                Choisissez "Bien de l'agence" si le bien appartient à l'agence, 
+                                sinon sélectionnez "Propriétaire externe"
+                            </small>
+                        </div>
+
+                        <div class="mb-3" id="proprietaire_field" style="{{ old('est_bien_agence', $annonce->est_bien_agence) == '1' ? 'display:none;' : '' }}">
+                            <label for="proprietaire_id" class="form-label">Propriétaire du bien 
+                                <span class="text-danger" id="proprietaire_required">*</span>
+                            </label>
                             <select class="form-select @error('proprietaire_id') is-invalid @enderror"
-                                id="proprietaire_id" name="proprietaire_id" required>
+                                id="proprietaire_id" name="proprietaire_id">
                                 <option value="">Sélectionner le propriétaire...</option>
                                 @foreach ($proprietaires as $proprietaire)
                                     <option value="{{ $proprietaire->id }}"
@@ -1027,36 +1057,50 @@
 
             // Données ville-commune
             const villesCommunesData = @json($villes);
+            
+            console.log('=== DEBUG VILLE-COMMUNE (EDIT) ===');
+            console.log('Données chargées:', villesCommunesData);
+            console.log('ABIDJAN existe?', villesCommunesData['ABIDJAN']);
 
             function chargerCommunes(villeSelectionnee, communeActuelle = null) {
                 const communeSelect = document.getElementById('commune');
 
-                if (!communeSelect) return;
+                if (!communeSelect) {
+                    console.error('❌ Commune select non trouvé!');
+                    return;
+                }
 
-                communeSelect.innerHTML = '<option value="">Sélectionner une commune...</option>';
+                console.log('--- chargerCommunes Edit appelée ---');
+                console.log('Ville sélectionnée:', villeSelectionnee);
+                console.log('Données pour cette ville:', villesCommunesData[villeSelectionnee]);
 
-                if (villeSelectionnee && villesCommunesData[villeSelectionnee]) {
+                // Vider les options avec Select2
+                $('#commune').empty().append('<option value="">Sélectionner une commune...</option>');
+
+                // Activer le champ commune si la ville a des communes disponibles
+                if (villeSelectionnee && villesCommunesData[villeSelectionnee] && villesCommunesData[villeSelectionnee].length > 0) {
                     const communes = villesCommunesData[villeSelectionnee];
+                    console.log('✓ Activation du champ commune avec', communes.length, 'communes');
 
-                    if (communes.length > 0) {
-                        communeSelect.disabled = false;
-
-                        communes.forEach(commune => {
-                            const option = document.createElement('option');
-                            option.value = commune;
-                            option.textContent = commune;
-
-                            if (communeActuelle && commune === communeActuelle) {
-                                option.selected = true;
-                            }
-
-                            communeSelect.appendChild(option);
-                        });
-                    } else {
-                        communeSelect.disabled = true;
-                    }
+                    communes.forEach(commune => {
+                        const option = new Option(commune, commune, false, communeActuelle && commune === communeActuelle);
+                        $('#commune').append(option);
+                    });
+                    
+                    // Activer le select avec Select2
+                    $('#commune').prop('disabled', false).trigger('change.select2');
+                    
+                    console.log('Options ajoutées:', $('#commune option').length);
+                    console.log('Champ disabled?', $('#commune').prop('disabled'));
                 } else {
-                    communeSelect.disabled = true;
+                    // Griser le champ pour les villes sans communes
+                    console.log('✗ Désactivation du champ commune');
+                    console.log('  - Ville sélectionnée?', !!villeSelectionnee);
+                    console.log('  - Données existent?', !!villesCommunesData[villeSelectionnee]);
+                    console.log('  - Tableau non vide?', villesCommunesData[villeSelectionnee] ? villesCommunesData[villeSelectionnee].length > 0 : false);
+                    
+                    // Désactiver le select avec Select2
+                    $('#commune').prop('disabled', true).trigger('change.select2');
                 }
             }
 
@@ -1064,17 +1108,30 @@
             const villeSelect = document.getElementById('ville');
             const communeSelect = document.getElementById('commune');
 
+            console.log('=== ELEMENTS DOM (EDIT) ===');
+            console.log('Ville select trouvé?', villeSelect !== null);
+            console.log('Commune select trouvé?', communeSelect !== null);
+
             if (villeSelect && communeSelect) {
                 const villeInitiale = villeSelect.value;
                 const communeInitiale = communeSelect.dataset.currentCommune || null;
 
-                if (villeInitiale) {
-                    chargerCommunes(villeInitiale, communeInitiale);
-                }
+                console.log('=== INITIALISATION EDIT ===');
+                console.log('Ville initiale:', villeInitiale);
+                console.log('Commune initiale:', communeInitiale);
 
-                villeSelect.addEventListener('change', function() {
+                // Initialiser au chargement de la page (après que Select2 soit initialisé)
+                setTimeout(() => {
+                    chargerCommunes(villeInitiale, communeInitiale);
+                }, 100);
+
+                // Écouter le changement avec Select2
+                $('#ville').on('change', function() {
+                    console.log('=== CHANGEMENT DE VILLE (EDIT) ===');
                     chargerCommunes(this.value);
                 });
+            } else {
+                console.error('❌ Erreur: éléments ville ou commune non trouvés (EDIT)!');
             }
 
             // Fonction utilitaire pour formater la taille des fichiers
@@ -1273,6 +1330,31 @@
             // Calcul initial au chargement de la page
             calculerCommission();
 
+            // Initialiser l'état du champ propriétaire au chargement de la page
+            toggleProprietaireField();
+
         }); // Fin de $(document).ready()
+
+        // Fonction pour gérer l'affichage du champ propriétaire
+        function toggleProprietaireField() {
+            const typeProprietaire = document.querySelector('input[name="type_proprietaire"]:checked').value;
+            const proprietaireField = document.getElementById('proprietaire_field');
+            const proprietaireSelect = document.getElementById('proprietaire_id');
+            const proprietaireRequired = document.getElementById('proprietaire_required');
+            const estBienAgenceInput = document.getElementById('est_bien_agence');
+            
+            if (typeProprietaire === 'agence') {
+                // Bien de l'agence
+                proprietaireField.style.display = 'none';
+                proprietaireSelect.removeAttribute('required');
+                proprietaireSelect.value = '';
+                estBienAgenceInput.value = '1';
+            } else {
+                // Propriétaire externe
+                proprietaireField.style.display = 'block';
+                proprietaireSelect.setAttribute('required', 'required');
+                estBienAgenceInput.value = '0';
+            }
+        }
     </script>
 @endsection

@@ -119,4 +119,20 @@ class User extends Authenticatable implements HasMedia
     {
         return $this->hasMany(Annonce::class, 'proprietaire_id');
     }
+
+    /**
+     * Scope pour récupérer uniquement les propriétaires
+     */
+    public function scopeProprietaires($query)
+    {
+        return $query->role('proprietaire');
+    }
+
+    /**
+     * Obtenir le nom complet de l'utilisateur
+     */
+    public function getNameAttribute()
+    {
+        return $this->username;
+    }
 }

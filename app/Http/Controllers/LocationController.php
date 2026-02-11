@@ -414,6 +414,9 @@ class LocationController extends Controller
             'statut_publication' => 0,
         ]);
 
+          // Convertir le client en locataire en lui attribuant le rôle "locataire"
+        $location->client->syncRoles(['locataire']);
+
         Alert::success('Succès', 'Premier paiement validé ! Location activée et échéances générées. Les ' . $location->avance_sur_loyer . ' premières échéances sont marquées comme payées.');
         return back();
     }

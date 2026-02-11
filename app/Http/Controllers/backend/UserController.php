@@ -123,9 +123,44 @@ class UserController extends Controller
             'locations.echeances',
             'locations.paiements',
             'annonces.media',
-            'annonces.typeBien'
+            'annonces.typeBien',
+            'annonces.locations.locataire',
+            'annonces.locations.echeances',
+            'annonces.locations.paiements',
+            'annonces.ventes.client',
+            'annonces.ventes.paiements'
         ]);
-        return view('backend.pages.users.show', compact('user'));
+
+        // Calculer les statistiques financières pour les propriétaires
+        $statsFinancieres = null;
+        if ($user->hasRole('proprietaire') && $user->annonces->count() > 0) {
+            $statsFinancieres = [
+                // Revenus locatifs
+                'revenus_locatifs_total' => $user->annonces->flatMap(function($annonce) {
+                    return $annonce->locations->flatMap->paiements;
+                })->sum('montant'),
+                
+                'revenus_locatifs_attendus' => $user->annonces->flatMap(function($annonce) {
+                    return $annonce->locations->flatMap->echeances->where('statut', 'en_attente');
+                })->sum('montant'),
+                
+                'nombre_locations_actives' => $user->annonces->flatMap->locations->where('statut', 'en_cours')->count(),
+                
+                // Revenus de ventes
+                'revenus_ventes_total' => $user->annonces->flatMap(function($annonce) {
+                    return $annonce->ventes->flatMap->paiements;
+                })->sum('montant'),
+                
+                'nombre_ventes' => $user->annonces->flatMap->ventes->count(),
+                
+                // Nombre de biens
+                'biens_disponibles' => $user->annonces->where('statut', 'disponible')->count(),
+                'biens_loues' => $user->annonces->where('statut', 'loue')->count(),
+                'biens_vendus' => $user->annonces->where('statut', 'vendu')->count(),
+            ];
+        }
+
+        return view('backend.pages.users.show', compact('user', 'statsFinancieres'));
     }
 
     /**

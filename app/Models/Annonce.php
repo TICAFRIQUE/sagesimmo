@@ -41,6 +41,7 @@ class Annonce extends Model implements HasMedia
         'caracteristiques_supplementaires',
         'reference',
         'proprietaire_id',
+        'est_bien_agence',
         'created_by_id',
         'nombre_vues',
     ];
@@ -52,6 +53,7 @@ class Annonce extends Model implements HasMedia
         'latitude' => 'decimal:8',
         'longitude' => 'decimal:8',
         'en_vedette' => 'boolean',
+        'est_bien_agence' => 'boolean',
         'date_disponibilite' => 'date',
     ];
 
@@ -183,6 +185,22 @@ class Annonce extends Model implements HasMedia
     }
 
     /**
+     * Scope pour les biens de l'agence
+     */
+    public function scopeBienAgence($query)
+    {
+        return $query->where('est_bien_agence', true);
+    }
+
+    /**
+     * Scope pour les biens de propriétaires externes
+     */
+    public function scopeBienExterne($query)
+    {
+        return $query->where('est_bien_agence', false);
+    }
+
+    /**
      * Générer une référence unique
      */
     public static function genererReference()
@@ -200,5 +218,25 @@ class Annonce extends Model implements HasMedia
     public function getPrixFormate()
     {
         return number_format($this->prix, 0, ',', ' ') . ' FCFA';
+    }
+
+    /**
+     * Obtenir le nom du propriétaire ou "Agence"
+     */
+    public function getNomProprietaireAttribute()
+    {
+        if ($this->est_bien_agence) {
+            return 'Agence';
+        }
+        
+        return $this->proprietaire ? $this->proprietaire->name : 'N/A';
+    }
+
+    /**
+     * Vérifier si le bien appartient à l'agence
+     */
+    public function appartientAgence()
+    {
+        return $this->est_bien_agence;
     }
 }

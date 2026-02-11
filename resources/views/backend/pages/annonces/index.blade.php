@@ -47,6 +47,105 @@
                         </div>
                     @endif
 
+                    <!-- Filtres -->
+                    <div class="card border mb-3">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0">
+                                <i class="ri-filter-3-line me-2"></i>Filtres de recherche
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <form method="GET" action="{{ route('backend.annonces.index') }}" id="filterForm">
+                                <div class="row g-3">
+                                    <!-- Filtre par type de propriétaire -->
+                                    <div class="col-md-3">
+                                        <label for="type_proprietaire" class="form-label">Type de propriétaire</label>
+                                        <select class="form-select" name="type_proprietaire" id="type_proprietaire">
+                                            <option value="">Tous</option>
+                                            <option value="agence" {{ request('type_proprietaire') == 'agence' ? 'selected' : '' }}>Biens de l'agence</option>
+                                            <option value="externe" {{ request('type_proprietaire') == 'externe' ? 'selected' : '' }}>Propriétaires externes</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Filtre par propriétaire -->
+                                    <div class="col-md-3">
+                                        <label for="proprietaire_id" class="form-label">Propriétaire</label>
+                                        <select class="form-select" name="proprietaire_id" id="proprietaire_id">
+                                            <option value="">Tous les propriétaires</option>
+                                            @foreach($proprietaires as $proprietaire)
+                                                <option value="{{ $proprietaire->id }}" {{ request('proprietaire_id') == $proprietaire->id ? 'selected' : '' }}>
+                                                    {{ $proprietaire->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    <!-- Filtre par statut -->
+                                    <div class="col-md-3">
+                                        <label for="statut" class="form-label">Statut</label>
+                                        <select class="form-select" name="statut" id="statut">
+                                            <option value="">Tous les statuts</option>
+                                            <option value="disponible" {{ request('statut') == 'disponible' ? 'selected' : '' }}>Disponible</option>
+                                            <option value="loue" {{ request('statut') == 'loue' ? 'selected' : '' }}>Loué</option>
+                                            <option value="vendu" {{ request('statut') == 'vendu' ? 'selected' : '' }}>Vendu</option>
+                                            <option value="en_attente" {{ request('statut') == 'en_attente' ? 'selected' : '' }}>En attente</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Boutons -->
+                                    <div class="col-md-3 d-flex align-items-end gap-2">
+                                        <button type="submit" class="btn btn-primary flex-grow-1">
+                                            <i class="ri-search-line me-1"></i>Filtrer
+                                        </button>
+                                        <a href="{{ route('backend.annonces.index') }}" class="btn btn-secondary">
+                                            <i class="ri-refresh-line"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Indicateur de résultats -->
+                    @if(request()->hasAny(['type_proprietaire', 'proprietaire_id', 'statut']))
+                        <div class="alert alert-info d-flex align-items-center justify-content-between mb-3" role="alert">
+                            <div>
+                                <i class="ri-information-line me-2"></i>
+                                <strong>{{ $annonces->count() }}</strong> résultat(s) trouvé(s) avec les filtres actifs :
+                                
+                                @if(request('type_proprietaire'))
+                                    <span class="badge bg-primary ms-2">
+                                        Type: {{ request('type_proprietaire') == 'agence' ? 'Biens de l\'agence' : 'Propriétaires externes' }}
+                                    </span>
+                                @endif
+                                
+                                @if(request('proprietaire_id'))
+                                    @php
+                                        $prop = $proprietaires->find(request('proprietaire_id'));
+                                    @endphp
+                                    @if($prop)
+                                        <span class="badge bg-primary ms-2">
+                                            Propriétaire: {{ $prop->name }}
+                                        </span>
+                                    @endif
+                                @endif
+                                
+                                @if(request('statut'))
+                                    <span class="badge bg-primary ms-2">
+                                        Statut: {{ ucfirst(str_replace('_', ' ', request('statut'))) }}
+                                    </span>
+                                @endif
+                            </div>
+                            <a href="{{ route('backend.annonces.index') }}" class="btn btn-sm btn-light">
+                                <i class="ri-close-line me-1"></i>Réinitialiser
+                            </a>
+                        </div>
+                    @else
+                        <div class="mb-3">
+                            <span class="text-muted"><i class="ri-file-list-line me-1"></i><strong>{{ $annonces->count() }}</strong> annonce(s) au total</span>
+                        </div>
+                    @endif
+
                     <div class="table-responsive">
                         <table id="buttons-datatables" class="display table table-bordered table-hover" style="width:100%">
                             <thead>
@@ -96,8 +195,14 @@
                                         <td><strong>{{ number_format($annonce->prix, 0, ',', ' ') }} FCFA</strong></td>
                                         <td>{{ $annonce->ville }}</td>
                                         <td>
-                                            @if($annonce->proprietaire)
-                                                <span class="badge bg-dark">{{ $annonce->proprietaire->name }}</span>
+                                            @if($annonce->est_bien_agence)
+                                                <span class="badge bg-success" title="Bien appartenant à l'agence">
+                                                    <i class="ri-building-line"></i> Agence
+                                                </span>
+                                            @elseif($annonce->proprietaire)
+                                                <span class="badge bg-dark" title="Bien d'un propriétaire externe">
+                                                    {{ $annonce->proprietaire->name }}
+                                                </span>
                                             @else
                                                 <span class="badge bg-secondary">N/A</span>
                                             @endif
@@ -189,6 +294,26 @@
 
     <script>
          window.routeName = "annonces";
+
+         // Gestion des filtres
+         $(document).ready(function() {
+             // Gérer l'activation/désactivation du filtre propriétaire
+             $('#type_proprietaire').on('change', function() {
+                 const typeProprietaire = $(this).val();
+                 const proprietaireSelect = $('#proprietaire_id');
+                 
+                 if (typeProprietaire === 'agence') {
+                     // Désactiver le filtre propriétaire pour les biens de l'agence
+                     proprietaireSelect.prop('disabled', true).val('');
+                 } else {
+                     // Activer le filtre propriétaire
+                     proprietaireSelect.prop('disabled', false);
+                 }
+             });
+
+             // Initialiser l'état au chargement
+             $('#type_proprietaire').trigger('change');
+         });
      </script>
 @endsection
 

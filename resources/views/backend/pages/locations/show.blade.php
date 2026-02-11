@@ -162,7 +162,10 @@
                                     </button>
                                 @else
                                     <span class="badge bg-success"><i class="ri-check-line me-1"></i>
-                                        {{ $location->client_interesse_retour == 1 ? 'Client intéréssé' : ($location->client_interesse_retour == 0 ? 'Client non intéréssé' : 'En attente') }}
+                                        {{ [
+                                            1 => 'Client intéressé',
+                                            0 => 'Client non intéressé',
+                                        ][$location->client_interesse_retour] ?? 'En attente' }}
                                     </span>
                                 @endif
                             </div>
@@ -221,7 +224,7 @@
 
                                     </div>
                                 @endif
-                               
+
                             </div>
                             @if (in_array($location->statut, ['en_attente_paiement', 'actif']))
                                 <i class="ri-checkbox-circle-fill text-success" style="font-size: 24px;"></i>
@@ -1208,14 +1211,14 @@
                                     value="{{ $location->jour_paiement }}" required min="1" max="31">
                             </div>
                         </div>
-                        <div class="mb-3">
+                        {{-- <div class="mb-3">
                             <label class="form-label">Conditions de paiement (optionnelles)</label>
                             <textarea name="conditions" class="form-control" rows="3" placeholder="Ex: Paiement mensuel...">{{ $location->conditions }}</textarea>
-                        </div>
-                        <div class="mb-3">
+                        </div> --}}
+                        {{-- <div class="mb-3">
                             <label class="form-label">Note interne (optionnelle)</label>
                             <textarea name="note_admin" class="form-control" rows="2"></textarea>
-                        </div>
+                        </div> --}}
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
@@ -1763,7 +1766,8 @@
                                     <i class="ri-information-line me-1"></i>
                                     La commission de l'agence sera automatiquement calculée selon la configuration
                                     ({{ $location->commission_agence }}
-                                    {{ $location->type_commission == 'pourcentage' ? '%' : 'FCFA' }}).
+                                    {{ $location->type_commission == 'pourcentage' ? '%' : 'FCFA' }})
+                                    .
                                 </div>
                             </div>
                             <div class="modal-footer">
@@ -1943,7 +1947,7 @@
             // Sélectionner tous les inputs de type number pour les montants
             const montantInputs = document.querySelectorAll(
                 'input[type="number"][name*="montant"], input[type="number"][name*="loyer"], input[type="number"][name*="caution"], input[type="number"][name*="commission"], input[type="number"][name*="frais"]'
-                );
+            );
 
             montantInputs.forEach(input => {
                 // Convertir en type text pour permettre le formatage

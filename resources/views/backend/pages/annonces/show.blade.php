@@ -401,6 +401,24 @@
                     <hr>
 
                     <div class="d-grid gap-2">
+                        @if($annonce->statut == 'loue' && $annonce->locations->count() > 0)
+                            @php
+                                $locationActive = $annonce->locations->sortByDesc('created_at')->first();
+                            @endphp
+                            <a href="{{ route('backend.locations.show', $locationActive) }}" class="btn btn-success">
+                                <i class="ri-eye-line me-1"></i> Voir le suivi de location
+                            </a>
+                        @endif
+
+                        @if($annonce->statut == 'vendu' && $annonce->ventes->count() > 0)
+                            @php
+                                $venteActive = $annonce->ventes->sortByDesc('created_at')->first();
+                            @endphp
+                            <a href="{{ route('backend.ventes.show', $venteActive) }}" class="btn btn-success">
+                                <i class="ri-eye-line me-1"></i> Voir le suivi de vente
+                            </a>
+                        @endif
+
                         <a href="{{ route('backend.annonces.edit', $annonce->id) }}" class="btn btn-primary">
                             <i class="ri-pencil-line me-1"></i> Modifier
                         </a>
@@ -420,7 +438,22 @@
                     <h6 class="card-title mb-0">Informations</h6>
                 </div>
                 <div class="card-body">
-                    @if($annonce->proprietaire)
+                    <div class="mb-3">
+                        <strong>Type de propriété:</strong>
+                        <div class="mt-1">
+                            @if($annonce->est_bien_agence)
+                                <span class="badge bg-success">
+                                    <i class="ri-building-line me-1"></i>Bien de l'agence
+                                </span>
+                            @else
+                                <span class="badge bg-info">
+                                    <i class="ri-user-line me-1"></i>Bien d'un propriétaire externe
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+
+                    @if(!$annonce->est_bien_agence && $annonce->proprietaire)
                         <div class="mb-3">
                             <strong>Propriétaire du bien:</strong>
                             <div class="mt-1">

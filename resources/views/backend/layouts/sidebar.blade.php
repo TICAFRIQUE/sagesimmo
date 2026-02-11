@@ -79,14 +79,14 @@
 
 
                 <!-- Annonces -->
-                @can('voir-annonce')
+                {{-- @can('voir-annonce') --}}
                     <li class="nav-item">
                         <a class="nav-link menu-link {{ Route::is('backend.annonces.*') ? 'active' : '' }} "
                             href="{{ route('backend.annonces.index') }}">
                             <i class="ri-home-4-line"></i> <span>Annonces</span>
                         </a>
                     </li>
-                @endcan
+                {{-- @endcan --}}
 
                 <!-- Utilisateurs -->
                 <li class="nav-item">

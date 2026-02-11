@@ -16,13 +16,38 @@ class AnnonceController extends Controller
     /**
      * Afficher la liste des annonces
      */
-    public function index()
+    public function index(Request $request)
     {
-        $annonces = Annonce::with(['proprietaire', 'createdBy', 'media', 'typeBien', 'equipements'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $query = Annonce::with(['proprietaire', 'createdBy', 'media', 'typeBien', 'equipements']);
 
-        return view('backend.pages.annonces.index', compact('annonces'));
+        // Filtre par type de propriétaire
+        if ($request->filled('type_proprietaire')) {
+            if ($request->type_proprietaire === 'agence') {
+                $query->where('est_bien_agence', true);
+            } elseif ($request->type_proprietaire === 'externe') {
+                $query->where('est_bien_agence', false);
+                
+                // Filtre par propriétaire spécifique (uniquement pour les biens externes)
+                if ($request->filled('proprietaire_id')) {
+                    $query->where('proprietaire_id', $request->proprietaire_id);
+                }
+            }
+        } elseif ($request->filled('proprietaire_id')) {
+            // Si pas de type spécifié mais un propriétaire, filtrer par propriétaire
+            $query->where('proprietaire_id', $request->proprietaire_id);
+        }
+
+        // Filtre par statut
+        if ($request->filled('statut')) {
+            $query->where('statut', $request->statut);
+        }
+
+        $annonces = $query->orderBy('created_at', 'desc')->get();
+        
+        // Récupérer la liste des propriétaires pour le filtre
+        $proprietaires = User::proprietaires()->orderBy('username')->get();
+
+        return view('backend.pages.annonces.index', compact('annonces', 'proprietaires'));
     }
 
     /**
@@ -34,8 +59,8 @@ class AnnonceController extends Controller
         $equipements = Equipement::actif()->ordered()->get();
         $villes = config('ville-commune');
         
-        // Récupérer tous les utilisateurs qui peuvent être propriétaires
-        $proprietaires = User::orderBy('username')->get();
+        // Récupérer uniquement les utilisateurs ayant le rôle de propriétaire
+        $proprietaires = User::proprietaires()->orderBy('username')->get();
 
         return view('backend.pages.annonces.create', compact('typeBiens', 'equipements', 'villes', 'proprietaires'));
     }
@@ -45,12 +70,13 @@ class AnnonceController extends Controller
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        // Règles de validation de base
+        $rules = [
             'titre' => 'required|string|max:255',
             'description' => 'required|string',
             'type_transaction' => 'required|in:vente,location',
             'type_bien_id' => 'required|exists:type_biens,id',
-            'proprietaire_id' => 'required|exists:users,id',
+            'est_bien_agence' => 'nullable|boolean',
             'prix' => 'required|numeric|min:0',
             'surface' => 'nullable|numeric|min:0',
             'nombre_chambres' => 'nullable|integer|min:0',
@@ -70,14 +96,23 @@ class AnnonceController extends Controller
             'image_principale' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'documents.*' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
-        ], [
+        ];
+
+        // Si ce n'est pas un bien de l'agence, le propriétaire est obligatoire
+        if (!$request->has('est_bien_agence') || !$request->est_bien_agence) {
+            $rules['proprietaire_id'] = 'required|exists:users,id';
+        } else {
+            $rules['proprietaire_id'] = 'nullable|exists:users,id';
+        }
+
+        $validator = Validator::make($request->all(), $rules, [
             'titre.required' => 'Le titre est obligatoire.',
             'description.required' => 'La description est obligatoire.',
             'type_transaction.required' => 'Le type de transaction est obligatoire.',
             'type_bien_id.required' => 'Le type de bien est obligatoire.',
-            'tyoprietaire_id.required' => 'Le propriétaire est obligatoire.',
+            'proprietaire_id.required' => 'Le propriétaire est obligatoire pour un bien externe.',
             'proprietaire_id.exists' => 'Le propriétaire sélectionné n\'est pas valide.',
-            'prpe_bien_id.exists' => 'Le type de bien sélectionné n\'est pas valide.',
+            'type_bien_id.exists' => 'Le type de bien sélectionné n\'est pas valide.',
             'prix.required' => 'Le prix est obligatoire.',
             'prix.numeric' => 'Le prix doit être un nombre.',
             'adresse.required' => 'L\'adresse est obligatoire.',
@@ -95,6 +130,12 @@ class AnnonceController extends Controller
         $data['created_by_id'] = Auth::id(); // L'utilisateur connecté qui crée l'annonce
         $data['reference'] = Annonce::genererReference();
         $data['en_vedette'] = $request->has('en_vedette');
+        $data['est_bien_agence'] = $request->has('est_bien_agence') && $request->est_bien_agence;
+        
+        // Si c'est un bien de l'agence et qu'aucun propriétaire n'est spécifié, on met null
+        if ($data['est_bien_agence'] && empty($data['proprietaire_id'])) {
+            $data['proprietaire_id'] = null;
+        }
 
         $annonce = Annonce::create($data);
 
@@ -159,8 +200,8 @@ class AnnonceController extends Controller
         $villes = config('ville-commune');
         $annonce->load(['typeBien', 'equipements']);
         
-        // Récupérer tous les utilisateurs qui peuvent être propriétaires
-        $proprietaires = User::orderBy('username')->get();
+        // Récupérer uniquement les utilisateurs ayant le rôle de propriétaire
+        $proprietaires = User::proprietaires()->orderBy('username')->get();
 
         return view('backend.pages.annonces.edit', compact('annonce', 'typeBiens', 'equipements', 'villes', 'proprietaires'));
     }
@@ -170,12 +211,13 @@ class AnnonceController extends Controller
      */
     public function update(Request $request, Annonce $annonce)
     {
-        $validator = Validator::make($request->all(), [
+        // Règles de validation de base
+        $rules = [
             'titre' => 'required|string|max:255',
-            'proprietaire_id' => 'required|exists:users,id',
             'description' => 'required|string',
             'type_transaction' => 'required|in:vente,location',
             'type_bien_id' => 'required|exists:type_biens,id',
+            'est_bien_agence' => 'nullable|boolean',
             'prix' => 'required|numeric|min:0',
             'surface' => 'nullable|numeric|min:0',
             'nombre_chambres' => 'nullable|integer|min:0',
@@ -195,7 +237,16 @@ class AnnonceController extends Controller
             'image_principale' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'images.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'documents.*' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
-        ]);
+        ];
+
+        // Si ce n'est pas un bien de l'agence, le propriétaire est obligatoire
+        if (!$request->has('est_bien_agence') || !$request->est_bien_agence) {
+            $rules['proprietaire_id'] = 'required|exists:users,id';
+        } else {
+            $rules['proprietaire_id'] = 'nullable|exists:users,id';
+        }
+
+        $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
             return redirect()->back()
@@ -205,6 +256,12 @@ class AnnonceController extends Controller
 
         $data = $request->except(['image_principale', 'images', 'documents', 'equipements', 'commission', 'type_commission']);
         $data['en_vedette'] = $request->has('en_vedette');
+        $data['est_bien_agence'] = $request->has('est_bien_agence') && $request->est_bien_agence;
+        
+        // Si c'est un bien de l'agence et qu'aucun propriétaire n'est spécifié, on met null
+        if ($data['est_bien_agence'] && empty($data['proprietaire_id'])) {
+            $data['proprietaire_id'] = null;
+        }
 
         $annonce->update($data);
 

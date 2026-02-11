@@ -382,10 +382,10 @@
                         </div>
 
                         <!-- Decorative elements -->
-                        <div class="position-absolute top-0 start-0 translate-middle d-none d-lg-block">
+                        <div class="position-absolute top-0 start-0 translate-middle">
                             <div class="rounded-circle bg-accent" style="width: 60px; height: 60px; opacity: 0.3;"></div>
                         </div>
-                        <div class="position-absolute bottom-0 end-0 translate-middle d-none d-lg-block">
+                        <div class="position-absolute bottom-0 end-0 translate-middle">
                             <div class="rounded-circle bg-primary" style="width: 80px; height: 80px; opacity: 0.2;"></div>
                         </div>
                     </div>

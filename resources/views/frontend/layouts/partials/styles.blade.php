@@ -10,15 +10,17 @@
     }
     
     * {
-     /*    margin: 0;
+        margin: 0;
         padding: 0;
         box-sizing: border-box;
-    } */
+    }
     
     body {
         font-family: 'Inter', sans-serif;
         color: var(--text-dark);
-      /*   l/* ine-height: 1.6; */ */
+        line-height: 1.6;
+        overflow-x: hidden;
+    }
     }
     
     h1, h2, h3, h4, h5, h6 {
@@ -843,6 +845,13 @@
 
     .img-fluid.rounded-4:hover {
         transform: scale(1.02);
+    }
+
+    /* Prevent decorative elements from causing overflow on mobile */
+    @media (max-width: 991.98px) {
+        .position-absolute.translate-middle {
+            display: none;
+        }
     }
 </style>
 

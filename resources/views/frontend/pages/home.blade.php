@@ -275,21 +275,53 @@
         </section>
     @endif
 
-    <!-- Call to Action -->
+    <!-- Nos Services -->
     <section class="section-padding" style="background: linear-gradient(135deg, #43542A 0%, #2d3a1c 100%);">
         <div class="container">
-            <div class="row align-items-center">
-                <div class="col-lg-8" data-aos="fade-right">
-                    <h2 class="text-white mb-3">Prêt à trouver votre bien idéal ?</h2>
-                    <p class="text-white fs-5 mb-0">
-                        Inscrivez-vous gratuitement et accédez à toutes nos offres exclusives
-                    </p>
+            <div class="text-center mb-5">
+                <h2 class="text-white mb-3" data-aos="fade-up">Pourquoi choisir Sage Immo ?</h2>
+                <p class="text-white-50 fs-5" data-aos="fade-up">Des services de qualité pour tous vos projets immobiliers</p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
+                    <div class="text-center p-4" style="background: rgba(255, 255, 255, 0.1); border-radius: 15px; backdrop-filter: blur(10px);">
+                        <div class="mb-3">
+                            <i class="ri-shield-check-line" style="font-size: 3rem; color: #ffc107;"></i>
+                        </div>
+                        <h4 class="text-white mb-3">Fiabilité & Sécurité</h4>
+                        <p class="text-white-50 mb-0">Transactions sécurisées et accompagnement professionnel à chaque étape</p>
+                    </div>
                 </div>
-                <div class="col-lg-4 text-lg-end mt-4 mt-lg-0" data-aos="fade-left">
-                    <a href="{{ route('register') }}" class="btn btn-accent btn-lg">
-                        <i class="ri-user-add-line"></i> S'inscrire maintenant
-                    </a>
+
+                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="200">
+                    <div class="text-center p-4" style="background: rgba(255, 255, 255, 0.1); border-radius: 15px; backdrop-filter: blur(10px);">
+                        <div class="mb-3">
+                            <i class="ri-customer-service-2-line" style="font-size: 3rem; color: #ffc107;"></i>
+                        </div>
+                        <h4 class="text-white mb-3">Support 24/7</h4>
+                        <p class="text-white-50 mb-0">Une équipe dédiée à votre écoute pour répondre à toutes vos questions</p>
+                    </div>
                 </div>
+
+                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300">
+                    <div class="text-center p-4" style="background: rgba(255, 255, 255, 0.1); border-radius: 15px; backdrop-filter: blur(10px);">
+                        <div class="mb-3">
+                            <i class="ri-hand-heart-line" style="font-size: 3rem; color: #ffc107;"></i>
+                        </div>
+                        <h4 class="text-white mb-3">Large Sélection</h4>
+                        <p class="text-white-50 mb-0">Des centaines de biens disponibles pour tous les budgets et besoins</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-5" data-aos="fade-up">
+                {{-- <a href="mailto:contact@sageimmo.com" class="btn btn-accent btn-lg me-3">
+                    <i class="ri-mail-line"></i> Nous contacter
+                </a> --}}
+                <a href="{{ route('properties.index') }}" class="btn btn-outline-light btn-lg">
+                    <i class="ri-search-line"></i> Parcourir les biens
+                </a>
             </div>
         </div>
     </section>

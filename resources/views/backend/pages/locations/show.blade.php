@@ -598,13 +598,26 @@
                                         $echeances = $location->echeances()->orderBy('date_echeance')->get();
                                         $nombreMoisPayes = $echeances->where('statut', 'paye')->count();
                                         $totalPaye = $echeances->sum('montant_paye');
-                                        $echeancesImpayees = $echeances->whereIn('statut', ['impaye'])->count();
-                                        $echeancesEnRetard = $echeances->whereIn('statut', ['en_retard'])->count();
-                                        $montantImpaye = $echeances
-                                            ->whereIn('statut', ['impaye', 'en_retard'])
-                                            ->sum(function ($e) {
-                                                return $e->montant_du - $e->montant_paye;
-                                            });
+                                        
+                                        // Calcul correct des impayés et retards basé sur les dates et montants
+                                        $echeancesImpayees = $echeances->filter(function($e) {
+                                            return $e->date_echeance->isPast() && 
+                                                   $e->montant_paye < $e->montant_du && 
+                                                   $e->date_echeance->diffInDays(now()) > 30;
+                                        })->count();
+                                        
+                                        $echeancesEnRetard = $echeances->filter(function($e) {
+                                            $joursRetard = $e->date_echeance->isPast() ? $e->date_echeance->diffInDays(now()) : 0;
+                                            return $e->date_echeance->isPast() && 
+                                                   $e->montant_paye < $e->montant_du && 
+                                                   $joursRetard > 0 && $joursRetard <= 30;
+                                        })->count();
+                                        
+                                        $montantImpaye = $echeances->filter(function($e) {
+                                            return $e->date_echeance->isPast() && $e->montant_paye < $e->montant_du;
+                                        })->sum(function ($e) {
+                                            return $e->montant_du - $e->montant_paye;
+                                        });
                                         $prochaineEcheance = $echeances
                                             ->where('statut', '!=', 'paye')
                                             ->where('date_echeance', '>=', now())
@@ -1467,9 +1480,24 @@
 
                             // Statistiques demandées
                             $nombreMoisPayes = $echeances->where('statut', 'paye')->count();
-                            $echeancesImpayees = $echeances->whereIn('statut', ['impaye'])->count();
-                            $echeancesEnRetard = $echeances->whereIn('statut', ['en_retard'])->count();
-                            $montantImpaye = $echeances->whereIn('statut', ['impaye', 'en_retard'])->sum(function ($e) {
+                            
+                            // Calcul correct des impayés et retards basé sur les dates et montants
+                            $echeancesImpayees = $echeances->filter(function($e) {
+                                return $e->date_echeance->isPast() && 
+                                       $e->montant_paye < $e->montant_du && 
+                                       $e->date_echeance->diffInDays(now()) > 30;
+                            })->count();
+                            
+                            $echeancesEnRetard = $echeances->filter(function($e) {
+                                $joursRetard = $e->date_echeance->isPast() ? $e->date_echeance->diffInDays(now()) : 0;
+                                return $e->date_echeance->isPast() && 
+                                       $e->montant_paye < $e->montant_du && 
+                                       $joursRetard > 0 && $joursRetard <= 30;
+                            })->count();
+                            
+                            $montantImpaye = $echeances->filter(function($e) {
+                                return $e->date_echeance->isPast() && $e->montant_paye < $e->montant_du;
+                            })->sum(function ($e) {
                                 return $e->montant_du - $e->montant_paye;
                             });
 
@@ -1563,15 +1591,31 @@
                                                     <div>
                                                         <strong>Échéance du
                                                             {{ \Carbon\Carbon::parse($echeance->date_echeance)->format('d/m/Y') }}</strong>
-                                                        <span
-                                                            class="badge {{ $echeance->statut == 'paye'
-                                                                ? 'bg-success'
-                                                                : ($echeance->statut == 'en_retard'
-                                                                    ? 'bg-danger'
-                                                                    : ($echeance->statut == 'partiel'
-                                                                        ? 'bg-warning'
-                                                                        : 'bg-info')) }} ms-2">
-                                                            {{ ucfirst(str_replace('_', ' ', $echeance->statut)) }}
+                                                        @php
+                                                            // Calcul dynamique du statut réel
+                                                            $estComplet = $echeance->montant_paye >= $echeance->montant_du;
+                                                            $dateDepassee = $echeance->date_echeance->isPast();
+                                                            $joursRetard = $dateDepassee ? (int) $echeance->date_echeance->diffInDays(now()) : 0;
+                                                            
+                                                            if ($estComplet) {
+                                                                $statutAffichage = 'Payé';
+                                                                $badgeClass = 'bg-success';
+                                                            } elseif ($dateDepassee && $joursRetard > 30) {
+                                                                $statutAffichage = 'Impayé (' . $joursRetard . 'j)';
+                                                                $badgeClass = 'bg-danger';
+                                                            } elseif ($dateDepassee && $joursRetard > 0) {
+                                                                $statutAffichage = 'En retard (' . $joursRetard . 'j)';
+                                                                $badgeClass = 'bg-danger';
+                                                            } elseif ($echeance->montant_paye > 0) {
+                                                                $statutAffichage = 'Partiel';
+                                                                $badgeClass = 'bg-info';
+                                                            } else {
+                                                                $statutAffichage = 'À échéance';
+                                                                $badgeClass = 'bg-secondary';
+                                                            }
+                                                        @endphp
+                                                        <span class="badge {{ $badgeClass }} ms-2">
+                                                            {{ $statutAffichage }}
                                                         </span>
                                                     </div>
                                                     <div class="text-end">

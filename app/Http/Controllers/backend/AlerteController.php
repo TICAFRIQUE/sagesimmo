@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers\Backend;
 
-use App\Http\Controllers\Controller;
 use App\Models\Echeance;
 use App\Models\Location;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Artisan;
 
 class AlerteController extends Controller
 {
@@ -50,7 +51,7 @@ class AlerteController extends Controller
      */
     public function mettreAJourStatuts()
     {
-        \Artisan::call('echeances:verifier-retards');
+        Artisan::call('echeances:verifier-retards');
         
         alert()->success('Succès', 'Les statuts des échéances ont été mis à jour');
         return redirect()->back();

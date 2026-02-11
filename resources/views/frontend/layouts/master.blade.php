@@ -50,6 +50,108 @@
     <!-- Footer -->
     @include('frontend.layouts.partials.footer')
 
+    <!-- Floating Buttons -->
+    <div class="floating-buttons">
+        <!-- WhatsApp Button -->
+        <a href="https://wa.me/{{ $data_parametre?->contact_whatsapp }}?text=Bonjour%2C%20je%20souhaite%20avoir%20des%20informations" 
+           target="_blank" 
+           class="floating-btn whatsapp-btn"
+           data-bs-toggle="tooltip" 
+           data-bs-placement="left" 
+           title="Contactez-nous sur WhatsApp">
+            <i class="ri-whatsapp-line"></i>
+        </a>
+
+        <!-- Scroll to Top Button -->
+        <button id="scrollToTop" 
+                class="floating-btn scroll-top-btn" 
+                style="display: none;"
+                data-bs-toggle="tooltip" 
+                data-bs-placement="left" 
+                title="Retour en haut">
+            <i class="ri-arrow-up-line"></i>
+        </button>
+    </div>
+
+    <style>
+        .floating-buttons {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .floating-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            animation: pulse 2s infinite;
+        }
+
+        .floating-btn i {
+            font-size: 28px;
+            color: white;
+        }
+
+        .whatsapp-btn {
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+        }
+
+        .whatsapp-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
+        }
+
+        .scroll-top-btn {
+            background: linear-gradient(135deg, #43542A 0%, #2d3a1c 100%);
+        }
+
+        .scroll-top-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(67, 84, 42, 0.4);
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            }
+            50% {
+                box-shadow: 0 4px 25px rgba(0, 0, 0, 0.3);
+            }
+            100% {
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .floating-buttons {
+                bottom: 20px;
+                right: 20px;
+            }
+
+            .floating-btn {
+                width: 50px;
+                height: 50px;
+            }
+
+            .floating-btn i {
+                font-size: 24px;
+            }
+        }
+    </style>
+
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -62,6 +164,34 @@
             duration: 800,
             easing: 'ease-in-out',
             once: true
+        });
+
+        // Scroll to Top functionality
+        $(document).ready(function() {
+            const scrollTopBtn = $('#scrollToTop');
+
+            // Show/hide scroll to top button
+            $(window).scroll(function() {
+                if ($(this).scrollTop() > 300) {
+                    scrollTopBtn.fadeIn();
+                } else {
+                    scrollTopBtn.fadeOut();
+                }
+            });
+
+            // Smooth scroll to top
+            scrollTopBtn.click(function() {
+                $('html, body').animate({
+                    scrollTop: 0
+                }, 600);
+                return false;
+            });
+
+            // Initialize tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
         });
 
         // Initialize Select2

@@ -105,9 +105,38 @@ class DashboardController extends Controller
         $paiementsMois = Paiement::whereBetween('date_paiement', [$debutMois, $finMois])->get();
         $loyersPercus = $paiementsMois->where('type_paiement', 'loyer')->sum('montant');
         $cautionsPercues = $paiementsMois->where('type_paiement', 'caution')->sum('montant');
-        $ventesRealisees = $paiementsMois->whereIn('type_paiement', ['vente', 'acompte'])->sum('montant');
-        $commissionsAgence = $paiementsMois->sum('commission_agence');
+        $ventesRealisees = $paiementsMois->where('type_paiement', 'prix_achat')->sum('montant');
+        $commissionsAgence = $paiementsMois->sum(function($p) {
+            // Calcul de la commission réelle
+            if ($p->type_commission === 'pourcentage') {
+                return ($p->montant * $p->commission_agence) / 100;
+            }
+            return $p->commission_agence ?? 0;
+        });
         $revenusTotalMois = $paiementsMois->sum('montant');
+        
+        // KPI spécifiques LOCATIONS du mois
+        $revenuMensuelLocations = $paiementsMois->where('type_paiement', 'loyer')->sum('montant');
+        $commissionMensuelleLocations = $paiementsMois->where('type_paiement', 'loyer')
+            ->sum(function($p) {
+                // Calcul de la commission réelle
+                if ($p->type_commission === 'pourcentage') {
+                    return ($p->montant * $p->commission_agence) / 100;
+                }
+                return $p->commission_agence ?? 0;
+            });
+        
+        // KPI spécifiques VENTES du mois
+        $ventesActives = Vente::whereIn('statut', ['demande_client', 'fiche_envoyee', 'retour_prospect', 'visite_planifiee', 'offre_acceptee'])->count();
+        $revenuMensuelVentes = $paiementsMois->where('type_paiement', 'prix_achat')->sum('montant');
+        $commissionMensuelleVentes = $paiementsMois->where('type_paiement', 'prix_achat')
+            ->sum(function($p) {
+                // Calcul de la commission réelle
+                if ($p->type_commission === 'pourcentage') {
+                    return ($p->montant * $p->commission_agence) / 100;
+                }
+                return $p->commission_agence ?? 0;
+            });
         
         // Revenus mois précédent pour comparaison
         $debutMoisPrecedent = Carbon::now()->subMonth()->startOfMonth();
@@ -165,7 +194,9 @@ class DashboardController extends Controller
             'totalClients', 'totalProprietaires', 'nouveauxClientsMois',
             'loyersPercus', 'cautionsPercues', 'ventesRealisees', 'commissionsAgence', 
             'revenusTotalMois', 'evolutionRevenus', 'visitesTotal', 'notificationsNonLues',
-            'dernieresLocations', 'dernieresVentes', 'prochainesEcheances'
+            'dernieresLocations', 'dernieresVentes', 'prochainesEcheances',
+            'revenuMensuelLocations', 'commissionMensuelleLocations',
+            'ventesActives', 'revenuMensuelVentes', 'commissionMensuelleVentes'
         ));
     }
 }

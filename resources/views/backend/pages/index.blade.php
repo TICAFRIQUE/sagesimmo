@@ -152,33 +152,52 @@
             <div class="card">
                 <div class="card-header bg-info-subtle">
                     <h5 class="card-title mb-0">
-                        <i class="ri-home-heart-line me-2"></i>Locations
+                        <i class="ri-home-heart-line me-2"></i>Locations 
                     </h5>
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
+                        <!-- Locations actives -->
                         <div class="col-6">
-                            <div class="border rounded p-3 text-center">
-                                <h3 class="text-info mb-1">{{ $locationsActives }}</h3>
-                                <small class="text-muted">Locations actives</small>
+                            <div class="border rounded p-3 text-center bg-light">
+                                <div class="d-flex align-items-center justify-content-center mb-2">
+                                    <i class="ri-home-3-line text-info fs-4 me-2"></i>
+                                    <h3 class="text-info mb-0">{{ $locationsActives }}</h3>
+                                </div>
+                                <small class="text-muted fw-semibold">Locations actives</small>
                             </div>
                         </div>
+                        
+                        <!-- Revenu mensuel -->
                         <div class="col-6">
-                            <div class="border rounded p-3 text-center">
-                                <h3 class="text-primary mb-1">{{ number_format($loyersMensuels, 0, ',', ' ') }}</h3>
-                                <small class="text-muted">Loyers mensuels (FCFA)</small>
+                            <div class="border rounded p-3 text-center bg-light">
+                                <div class="d-flex align-items-center justify-content-center mb-2">
+                                    <i class="ri-money-dollar-circle-line text-success fs-4 me-2"></i>
+                                    <h3 class="text-success mb-0">{{ number_format($revenuMensuelLocations / 1000, 0) }}K</h3>
+                                </div>
+                                <small class="text-muted fw-semibold">Revenu mensuel (FCFA)</small>
                             </div>
                         </div>
+                        
+                        <!-- Nouvelles demandes -->
                         <div class="col-6">
-                            <div class="border rounded p-3 text-center">
-                                <h3 class="text-success mb-1">{{ $echeancesMoisPayees }}/{{ $echeancesMoisTotal }}</h3>
-                                <small class="text-muted">Échéances du mois</small>
+                            <div class="border rounded p-3 text-center bg-light">
+                                <div class="d-flex align-items-center justify-content-center mb-2">
+                                    <i class="ri-notification-3-line text-warning fs-4 me-2"></i>
+                                    <h3 class="text-warning mb-0">{{ $nouvellesDemandesLocation }}</h3>
+                                </div>
+                                <small class="text-muted fw-semibold">Nouvelles demandes</small>
                             </div>
                         </div>
+                        
+                        <!-- Commission mensuelle -->
                         <div class="col-6">
-                            <div class="border rounded p-3 text-center">
-                                <h3 class="text-warning mb-1">{{ $nouvellesDemandesLocation }}</h3>
-                                <small class="text-muted">Nouvelles demandes</small>
+                            <div class="border rounded p-3 text-center bg-light">
+                                <div class="d-flex align-items-center justify-content-center mb-2">
+                                    <i class="ri-wallet-3-line text-primary fs-4 me-2"></i>
+                                    <h3 class="text-primary mb-0">{{ number_format($commissionMensuelleLocations / 1000, 0) }}K</h3>
+                                </div>
+                                <small class="text-muted fw-semibold">Commission mensuelle (FCFA)</small>
                             </div>
                         </div>
                     </div>
@@ -214,28 +233,47 @@
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
+                        <!-- Ventes actives -->
                         <div class="col-6">
-                            <div class="border rounded p-3 text-center">
-                                <h3 class="text-primary mb-1">{{ $ventesEnCours }}</h3>
-                                <small class="text-muted">Ventes en cours</small>
+                            <div class="border rounded p-3 text-center bg-light">
+                                <div class="d-flex align-items-center justify-content-center mb-2">
+                                    <i class="ri-shopping-bag-3-line text-primary fs-4 me-2"></i>
+                                    <h3 class="text-primary mb-0">{{ $ventesActives }}</h3>
+                                </div>
+                                <small class="text-muted fw-semibold">Ventes actives</small>
                             </div>
                         </div>
+                        
+                        <!-- Revenu mensuel -->
                         <div class="col-6">
-                            <div class="border rounded p-3 text-center">
-                                <h3 class="text-success mb-1">{{ $ventesFinaliseesMois }}</h3>
-                                <small class="text-muted">Finalisées ce mois</small>
+                            <div class="border rounded p-3 text-center bg-light">
+                                <div class="d-flex align-items-center justify-content-center mb-2">
+                                    <i class="ri-money-dollar-circle-line text-success fs-4 me-2"></i>
+                                    <h3 class="text-success mb-0">{{ number_format($revenuMensuelVentes / 1000000, 1) }}M</h3>
+                                </div>
+                                <small class="text-muted fw-semibold">Revenu mensuel (FCFA)</small>
                             </div>
                         </div>
+                        
+                        <!-- Nouvelles demandes -->
                         <div class="col-6">
-                            <div class="border rounded p-3 text-center">
-                                <h3 class="text-warning mb-1">{{ $nouvellesDemandesVente }}</h3>
-                                <small class="text-muted">Nouvelles demandes</small>
+                            <div class="border rounded p-3 text-center bg-light">
+                                <div class="d-flex align-items-center justify-content-center mb-2">
+                                    <i class="ri-notification-3-line text-warning fs-4 me-2"></i>
+                                    <h3 class="text-warning mb-0">{{ $nouvellesDemandesVente }}</h3>
+                                </div>
+                                <small class="text-muted fw-semibold">Nouvelles demandes</small>
                             </div>
                         </div>
+                        
+                        <!-- Commission mensuelle -->
                         <div class="col-6">
-                            <div class="border rounded p-3 text-center">
-                                <h3 class="text-info mb-1">{{ number_format($valeurVentesEnCours / 1000000, 1) }}M</h3>
-                                <small class="text-muted">Valeur en cours (FCFA)</small>
+                            <div class="border rounded p-3 text-center bg-light">
+                                <div class="d-flex align-items-center justify-content-center mb-2">
+                                    <i class="ri-wallet-3-line text-info fs-4 me-2"></i>
+                                    <h3 class="text-info mb-0">{{ number_format($commissionMensuelleVentes / 1000, 0) }}K</h3>
+                                </div>
+                                <small class="text-muted fw-semibold">Commission mensuelle (FCFA)</small>
                             </div>
                         </div>
                     </div>

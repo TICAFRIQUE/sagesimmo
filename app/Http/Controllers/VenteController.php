@@ -8,6 +8,7 @@ use App\Models\Annonce;
 use App\Models\User;
 use Illuminate\Http\Request;
 use RealRashid\SweetAlert\Facades\Alert;
+use App\Http\Controllers\Controller;
 
 class VenteController extends Controller
 {

@@ -46,35 +46,35 @@ class UsersTableSeeder extends Seeder
         $developer->assignRole('developpeur');
         
         // Générer 20 utilisateurs clients avec rôles
-        $this->command->info('Génération de 20 utilisateurs clients...');
+        // $this->command->info('Génération de 20 utilisateurs clients...');
         
-        $roles = ['locataire', 'proprietaire', 'acheteur'];
-        $prenoms = ['Jean', 'Marie', 'Kouadio', 'Aya', 'Ibrahim', 'Fatima', 'Yao', 'Aminata', 'Kofi', 'Adjoua'];
-        $noms = ['Kouassi', 'Diallo', 'Traoré', 'N\'Guessan', 'Ouattara', 'Koné', 'Bamba', 'Yapi', 'Touré', 'Brou'];
+        // $roles = ['locataire', 'proprietaire', 'acheteur'];
+        // $prenoms = ['Jean', 'Marie', 'Kouadio', 'Aya', 'Ibrahim', 'Fatima', 'Yao', 'Aminata', 'Kofi', 'Adjoua'];
+        // $noms = ['Kouassi', 'Diallo', 'Traoré', 'N\'Guessan', 'Ouattara', 'Koné', 'Bamba', 'Yapi', 'Touré', 'Brou'];
 
-        for ($i = 1; $i <= 20; $i++) {
-            $prenom = $prenoms[array_rand($prenoms)];
-            $nom = $noms[array_rand($noms)];
-            $roleName = $roles[array_rand($roles)];
+        // for ($i = 1; $i <= 20; $i++) {
+        //     $prenom = $prenoms[array_rand($prenoms)];
+        //     $nom = $noms[array_rand($noms)];
+        //     $roleName = $roles[array_rand($roles)];
             
-            $email = strtolower($prenom . '.' . $nom . $i . '@example.com');
-            $phone = '07' . rand(10, 99) . rand(10, 99) . rand(10, 99) . rand(10, 99);
+        //     $email = strtolower($prenom . '.' . $nom . $i . '@example.com');
+        //     $phone = '07' . rand(10, 99) . rand(10, 99) . rand(10, 99) . rand(10, 99);
 
-            // Créer l'utilisateur
-            $user = User::create([
-                'username' => $prenom . ' ' . $nom,
-                'email' => $email,
-                'phone' => $phone,
-                'role' => $roleName,
-                'password' => Hash::make('password'),
-                'email_verified_at' => now(),
-            ]);
+        //     // Créer l'utilisateur
+        //     $user = User::create([
+        //         'username' => $prenom . ' ' . $nom,
+        //         'email' => $email,
+        //         'phone' => $phone,
+        //         'role' => $roleName,
+        //         'password' => Hash::make('password'),
+        //         'email_verified_at' => now(),
+        //     ]);
 
-            // Assigner le rôle
-            $user->assignRole($roleName);
+        //     // Assigner le rôle
+        //     $user->assignRole($roleName);
 
-            $this->command->info("✓ {$user->username} créé avec le rôle: {$roleName}");
-        }
+        //     $this->command->info("✓ {$user->username} créé avec le rôle: {$roleName}");
+        // }
 
         $this->command->newLine();
         $this->command->info('✅ 20 utilisateurs créés avec succès!');

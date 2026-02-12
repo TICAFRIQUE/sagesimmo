@@ -4,6 +4,14 @@ namespace Database\Seeders;
 
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Database\Seeders\AnnoncesTableSeeder;
+use Database\Seeders\EquipementsTableSeeder;
+use Database\Seeders\ModelHasRolesTableSeeder;
+use Database\Seeders\ModulesTableSeeder;
+use Database\Seeders\PermissionsTableSeeder;
+use Database\Seeders\RolesTableSeeder;
+use Database\Seeders\TypeBiensTableSeeder;
+use Database\Seeders\UsersTableSeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -26,6 +34,6 @@ class DatabaseSeeder extends Seeder
         // $this->call(ModelHasRolesTableSeeder::class);
         $this->call(TypeBiensTableSeeder::class);
         $this->call(EquipementsTableSeeder::class);
-        $this->call(AnnoncesTableSeeder::class);
+        // $this->call(AnnoncesTableSeeder::class);
     }
 }

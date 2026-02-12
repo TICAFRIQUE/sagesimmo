@@ -384,6 +384,9 @@ class LocationController extends Controller
         }
 
         $montantTotal = ($validated['montant_caution'] ?? 0) + ($validated['montant_avance'] ?? 0) + ($validated['montant_frais'] ?? 0);
+       
+        // Convertir le client en locataire en lui attribuant le rôle "locataire"
+        $location->locataire->syncRoles(['locataire']);
         Alert::success('Succès', 'Premier paiement de ' . number_format($montantTotal, 0, ',', ' ') . ' FCFA enregistré avec succès.');
         return back();
     }
@@ -414,8 +417,8 @@ class LocationController extends Controller
             'statut_publication' => 0,
         ]);
 
-          // Convertir le client en locataire en lui attribuant le rôle "locataire"
-        $location->client->syncRoles(['locataire']);
+        // Convertir le client en locataire en lui attribuant le rôle "locataire"
+        $location->locataire->syncRoles(['locataire']);
 
         Alert::success('Succès', 'Premier paiement validé ! Location activée et échéances générées. Les ' . $location->avance_sur_loyer . ' premières échéances sont marquées comme payées.');
         return back();
@@ -517,19 +520,19 @@ class LocationController extends Controller
     {
         // Charger les relations nécessaires
         $paiement->load('payable', 'echeance');
-        
+
         // Vérifier que le payable est bien une Location
         if (!$paiement->payable instanceof Location) {
             Alert::error('Erreur', 'Ce paiement n\'est pas associé à une location.');
             return back();
         }
-        
+
         $location = $paiement->payable;
         $echeance = $paiement->echeance;
-        
+
         // Charger les relations supplémentaires
         $location->load('annonce.typeBien', 'locataire');
-        
+
         $data = [
             'paiement' => $paiement,
             'location' => $location,
@@ -542,7 +545,7 @@ class LocationController extends Controller
             ->setPaper('a4', 'portrait');
 
         $filename = 'recu-paiement-' . $paiement->id . '-' . Carbon::now()->format('Ymd') . '.pdf';
-        
+
         return $pdf->download($filename);
     }
 }

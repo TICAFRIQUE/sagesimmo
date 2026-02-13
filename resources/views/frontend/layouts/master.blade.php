@@ -96,6 +96,21 @@
 
     <!-- Floating Buttons -->
     <div class="floating-buttons">
+
+        <!--bouton accueil / home-->
+        <a href="{{ route('home') }}" class="floating-btn home-btn  " data-bs-toggle="tooltip" data-bs-placement="left"
+            title="Accueil">
+            <i class="ri-home-4-line"></i>
+        </a>
+
+
+        <!-- Bouton flottant recherche bien (mobile) -->
+        <button class="floating-btn search-btn d-block d-md-none" data-bs-toggle="modal"
+            data-bs-target="#searchBienModal" title="Rechercher un bien">
+            <i class="ri-search-line"></i>
+        </button>
+
+
         <!-- WhatsApp Button -->
         <a href="https://wa.me/{{ $data_parametre?->contact_whatsapp }}?text=Bonjour%2C%20je%20souhaite%20avoir%20des%20informations"
             target="_blank" class="floating-btn whatsapp-btn" data-bs-toggle="tooltip" data-bs-placement="left"
@@ -104,10 +119,10 @@
         </a>
 
         <!-- Scroll to Top Button -->
-        <button id="scrollToTop" class="floating-btn scroll-top-btn" style="display: none;" data-bs-toggle="tooltip"
+        {{-- <button id="scrollToTop" class="floating-btn scroll-top-btn"  data-bs-toggle="tooltip"
             data-bs-placement="left" title="Retour en haut">
             <i class="ri-arrow-up-line"></i>
-        </button>
+        </button> --}}
     </div>
 
     <style>
@@ -115,7 +130,8 @@
             position: fixed;
             bottom: 30px;
             right: 30px;
-            z-index: 1050; /* Au-dessus de la barre mobile CTA (z-index: 1040) */
+            z-index: 1050;
+            /* Au-dessus de la barre mobile CTA (z-index: 1040) */
             display: flex;
             flex-direction: column;
             gap: 15px;
@@ -159,6 +175,26 @@
             box-shadow: 0 6px 20px rgba(67, 84, 42, 0.4);
         }
 
+        /* Style visible pour le bouton de recherche */
+        .search-btn {
+            background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
+        }
+
+        .search-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.35);
+        }
+
+        /* style pour le bouton d'accueil */
+        .home-btn {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        }
+
+        .home-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(30, 58, 138, 0.4);
+        }
+
         @keyframes pulse {
             0% {
                 box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
@@ -176,7 +212,8 @@
         /* Responsive */
         @media (max-width: 768px) {
             .floating-buttons {
-                bottom: 90px; /* Ajusté pour ne pas chevaucher la barre CTA mobile */
+                bottom: 90px;
+                /* Ajusté pour ne pas chevaucher la barre CTA mobile */
                 right: 20px;
             }
 
@@ -189,7 +226,7 @@
                 font-size: 24px;
             }
         }
-        
+
         /* Ajustement supplémentaire pour les petits écrans */
         @media (max-width: 576px) {
             .floating-buttons {
@@ -197,13 +234,16 @@
                 right: 15px;
                 gap: 10px;
             }
-            
+
             .floating-btn {
                 width: 48px;
                 height: 48px;
             }
         }
     </style>
+
+    {{-- Search modal included globally so floating button works on every page --}}
+    @include('frontend.layouts.partials.search-modal')
 
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>

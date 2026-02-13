@@ -4,7 +4,7 @@
 
 @section('content')
     <!-- Page Header -->
-    {{-- <div class="page-header" style="background: linear-gradient(135deg, #43542A 0%, #2d3a1c 100%); padding: 4rem 0;">
+    <div class="page-header d-block d-md-none d-lg-none d-xl-none d-xxl-none" style="background: linear-gradient(135deg, #43542A 0%, #2d3a1c 100%); padding: 4rem 0;">
         <div class="container">
             <h1 class="text-white mb-3" data-aos="fade-down">Nos biens immobiliers</h1>
             <nav aria-label="breadcrumb" data-aos="fade-up">
@@ -14,12 +14,12 @@
                 </ol>
             </nav>
         </div>
-    </div> --}}
+    </div>
 
     <section class="section-padding">
         <div class="container">
             <!-- Filtre horizontal -->
-            <div class="filter-horizontal mb-4" data-aos="fade-down">
+            <div class="filter-horizontal mb-4 d-none d-lg-block d-xl-block d-xxl-block d-md-block" data-aos="fade-down">
                 <div class="card shadow-sm">
                     <div class="card-body p-4">
                         <div class="d-flex align-items-center mb-3">
@@ -215,6 +215,12 @@
             </div>
         </div>
     </section>
+
+    <!-- Bouton flottant mobile recherche bien -->
+    {{-- <button class="floating-btn search-btn d-block d-md-none" data-bs-toggle="modal" data-bs-target="#searchBienModal" title="Rechercher un bien" style="position:fixed;bottom:90px;right:20px;z-index:1050;background:linear-gradient(135deg,#43542A 0%,#2d3a1c 100%);">
+        <i class="ri-search-line"></i>
+    </button> --}}
+    @include('frontend.layouts.partials.search-modal')
 @endsection
 
 @section('css')

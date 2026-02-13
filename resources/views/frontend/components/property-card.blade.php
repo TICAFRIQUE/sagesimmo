@@ -1,21 +1,32 @@
 <div class="card property-card">
     <div class="property-image">
-        @if($property->hasMedia('images') && $property->getMedia('images')->count() > 0)
-            @php
-                $images = $property->getMedia('images');
-                $carouselId = 'carousel-' . $property->slug;
-            @endphp
+        @php
+            $imagePrincipale = $property->getFirstMedia('image_principale');
+            $autresImages = $property->getMedia('images');
             
+            // Construire la collection ordonnée : image principale en premier, puis les autres
+            $allImages = collect();
+            if ($imagePrincipale) {
+                $allImages->push($imagePrincipale);
+            }
+            foreach ($autresImages as $img) {
+                $allImages->push($img);
+            }
+            
+            $carouselId = 'carousel-' . $property->slug;
+        @endphp
+
+        @if($allImages->count() > 0)
             <div id="{{ $carouselId }}" class="carousel slide property-carousel" data-bs-ride="false">
                 <div class="carousel-inner">
-                    @foreach($images as $index => $image)
+                    @foreach($allImages as $index => $image)
                         <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
                             <img src="{{ $image->getUrl() }}" class="d-block w-100" alt="{{ $property->titre }}">
                         </div>
                     @endforeach
                 </div>
                 
-                @if($images->count() > 1)
+                @if($allImages->count() > 1)
                     <!-- Contrôles Previous/Next -->
                     <button class="carousel-control-prev" type="button" data-bs-target="#{{ $carouselId }}" data-bs-slide="prev">
                         <span class="carousel-control-prev-icon" aria-hidden="true"></span>
@@ -28,7 +39,7 @@
                     
                     <!-- Indicateurs (points) -->
                     <div class="carousel-indicators">
-                        @foreach($images as $index => $image)
+                        @foreach($allImages as $index => $image)
                             <button type="button" data-bs-target="#{{ $carouselId }}" 
                                     data-bs-slide-to="{{ $index }}" 
                                     class="{{ $index === 0 ? 'active' : '' }}" 

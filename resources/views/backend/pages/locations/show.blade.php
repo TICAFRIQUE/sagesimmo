@@ -96,7 +96,7 @@
 
                     <!-- Étape 1: Envoi de la fiche -->
                     <div
-                        class="workflow-step {{ in_array($location->statut, ['retour_prospect', 'fiche_envoyee', 'visite_planifiee', 'en_attente_paiement', 'actif']) ? 'completed' : (in_array($location->statut, ['demande_client', 'brouillon']) ? 'active' : '') }}">
+                        class="workflow-step {{ in_array($location->statut, ['retour_prospect', 'fiche_envoyee', 'visite_planifiee', 'en_attente_paiement', 'actif', 'resilie']) ? 'completed' : (in_array($location->statut, ['demande_client', 'brouillon']) ? 'active' : '') }}">
                         <div class="d-flex justify-content-between align-items-start">
                             <div class="flex-grow-1">
                                 <h6 class="mb-2">
@@ -135,6 +135,7 @@
                                     'visite_planifiee',
                                     'en_attente_paiement',
                                     'actif',
+                                    'resilie',
                                 ]))
                                 <i class="ri-checkbox-circle-fill text-success" style="font-size: 24px;"></i>
                             @endif
@@ -143,7 +144,7 @@
 
                     <!-- Étape 2: Attente retour du prospect -->
                     <div
-                        class="workflow-step {{ in_array($location->statut, ['fiche_envoyee', 'visite_planifiee', 'en_attente_paiement', 'actif']) ? 'completed' : ($location->statut == 'retour_prospect' ? 'active' : '') }}">
+                        class="workflow-step {{ in_array($location->statut, ['fiche_envoyee', 'visite_planifiee', 'en_attente_paiement', 'actif', 'resilie']) ? 'completed' : ($location->statut == 'retour_prospect' ? 'active' : '') }}">
                         <div class="d-flex justify-content-between align-items-start">
                             <div class="flex-grow-1">
                                 <h6 class="mb-2">
@@ -169,7 +170,7 @@
                                     </span>
                                 @endif
                             </div>
-                            @if (in_array($location->statut, ['fiche_envoyee', 'visite_planifiee', 'en_attente_paiement', 'actif']))
+                            @if (in_array($location->statut, ['fiche_envoyee', 'visite_planifiee', 'en_attente_paiement', 'actif', 'resilie']))
                                 <i class="ri-checkbox-circle-fill text-success" style="font-size: 24px;"></i>
                             @endif
                         </div>
@@ -177,7 +178,7 @@
 
                     <!-- Étape 3: Planification de la visite -->
                     <div
-                        class="workflow-step {{ in_array($location->statut, ['visite_planifiee', 'en_attente_paiement', 'actif']) ? 'completed' : ($location->statut == 'fiche_envoyee' ? 'active' : '') }}">
+                        class="workflow-step {{ in_array($location->statut, ['visite_planifiee', 'en_attente_paiement', 'actif', 'resilie']) ? 'completed' : ($location->statut == 'fiche_envoyee' ? 'active' : '') }}">
                         <div class="d-flex justify-content-between align-items-start">
                             <div class="flex-grow-1">
                                 <h6 class="mb-2">
@@ -197,7 +198,7 @@
                                     </p>
                                 @endif
                             </div>
-                            @if (in_array($location->statut, ['visite_planifiee', 'en_attente_paiement', 'actif']))
+                            @if (in_array($location->statut, ['visite_planifiee', 'en_attente_paiement', 'actif', 'resilie']))
                                 <i class="ri-checkbox-circle-fill text-success" style="font-size: 24px;"></i>
                             @endif
                         </div>
@@ -205,7 +206,7 @@
 
                     <!-- Étape 3: Visite effectuée -->
                     <div
-                        class="workflow-step {{ in_array($location->statut, ['en_attente_paiement', 'actif']) ? 'completed' : ($location->statut == 'visite_planifiee' ? 'active' : '') }}">
+                        class="workflow-step {{ in_array($location->statut, ['en_attente_paiement', 'actif', 'resilie']) ? 'completed' : ($location->statut == 'visite_planifiee' ? 'active' : '') }}">
                         <div class="d-flex justify-content-between align-items-start">
                             <div class="flex-grow-1">
                                 <h6 class="mb-2">
@@ -226,7 +227,7 @@
                                 @endif
 
                             </div>
-                            @if (in_array($location->statut, ['en_attente_paiement', 'actif']))
+                            @if (in_array($location->statut, ['en_attente_paiement', 'actif', 'resilie']))
                                 <i class="ri-checkbox-circle-fill text-success" style="font-size: 24px;"></i>
                             @endif
                         </div>
@@ -234,7 +235,7 @@
 
                     <!-- Étape 4: Gestion des paiements -->
                     <div
-                        class="workflow-step {{ $location->statut == 'actif' ? 'completed' : ($location->statut == 'en_attente_paiement' ? 'active' : '') }}">
+                        class="workflow-step {{ in_array($location->statut, ['actif', 'resilie']) ? 'completed' : ($location->statut == 'en_attente_paiement' ? 'active' : '') }}">
                         <div class="d-flex justify-content-between align-items-start">
                             <div class="flex-grow-1">
                                 <h6 class="mb-2">
@@ -524,8 +525,8 @@
                                             <i class="ri-settings-line me-1"></i>Configurer le paiement
                                         </button>
                                     @endif
-                                @elseif($location->statut == 'actif')
-                                    <!-- Location active - afficher les infos -->
+                                @elseif(in_array($location->statut, ['actif', 'resilie']))
+                                    <!-- Location active/résiliée - afficher les infos -->
                                     <div class="info-card mt-2">
                                         <div class="row mb-2">
                                             <div class="col-6"><strong>Loyer mensuel:</strong></div>
@@ -550,11 +551,13 @@
                                                     @else
                                                         FCFA
                                                     @endif
-                                                    <button class="btn btn-sm btn-link p-0 ms-2" data-bs-toggle="modal"
-                                                        data-bs-target="#modifierCommissionModal"
-                                                        title="Modifier la commission">
-                                                        <i class="ri-edit-line"></i>
-                                                    </button>
+                                                    @if ($location->statut == 'actif')
+                                                        <button class="btn btn-sm btn-link p-0 ms-2" data-bs-toggle="modal"
+                                                            data-bs-target="#modifierCommissionModal"
+                                                            title="Modifier la commission">
+                                                            <i class="ri-edit-line"></i>
+                                                        </button>
+                                                    @endif
                                                 </div>
                                             </div>
                                         @endif
@@ -565,28 +568,41 @@
                                         </div>
                                     </div>
 
-                                    <!-- Bouton pour modifier la configuration même en mode actif -->
-                                    <button class="btn btn-sm btn-outline-primary mt-2" data-bs-toggle="modal"
-                                        data-bs-target="#configurerPaiementModal">
-                                        <i class="ri-settings-line me-1"></i>Modifier la configuration
-                                    </button>
+                                    @if ($location->statut == 'actif')
+                                        <!-- Bouton pour modifier la configuration même en mode actif -->
+                                        <button class="btn btn-sm btn-outline-primary mt-2" data-bs-toggle="modal"
+                                            data-bs-target="#configurerPaiementModal">
+                                            <i class="ri-settings-line me-1"></i>Modifier la configuration
+                                        </button>
+                                    @endif
                                 @endif
                             </div>
-                            @if ($location->statut == 'actif')
+                            @if (in_array($location->statut, ['actif', 'resilie']))
                                 <i class="ri-checkbox-circle-fill text-success" style="font-size: 24px;"></i>
                             @endif
                         </div>
                     </div>
 
-                    <!-- Étape 5: Location active -->
-                    @if ($location->statut == 'actif')
+                    <!-- Étape 5: Location active / résiliée -->
+                    @if (in_array($location->statut, ['actif', 'resilie']))
                         <div class="workflow-step completed">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div class="w-100">
-                                    <h6 class="mb-1"><i class="ri-trophy-line me-1"></i>Location active</h6>
-                                    <p class="mb-0">Le bien a été marqué comme loué. Les échéances ont été générées.</p>
+                                    @if ($location->statut == 'resilie')
+                                        <h6 class="mb-1"><i class="ri-close-circle-line me-1 text-warning"></i>Location résiliée</h6>
+                                        <div class="alert alert-warning mt-2 mb-2">
+                                            <i class="ri-alert-line me-1"></i>
+                                            <strong>Contrat résilié.</strong> Les paiements ne sont plus autorisés.
+                                            @if ($location->note_admin)
+                                                <br><strong>Raison :</strong> {{ $location->note_admin }}
+                                            @endif
+                                        </div>
+                                    @else
+                                        <h6 class="mb-1"><i class="ri-trophy-line me-1"></i>Location active</h6>
+                                        <p class="mb-0">Le bien a été marqué comme loué. Les échéances ont été générées.</p>
+                                    @endif
 
-                                    @if ($location->doitGenererNouvellesEcheances())
+                                    @if ($location->statut == 'actif' && $location->doitGenererNouvellesEcheances())
                                         <div class="alert alert-warning mt-2 mb-2">
                                             <i class="ri-alert-line me-1"></i>
                                             <strong>Attention!</strong> Il reste moins de 3 mois d'échéances à venir.
@@ -687,24 +703,26 @@
 
                                     <!-- Boutons d'action -->
                                     <div class="row g-2 mt-2">
-                                        <div class="col-md-4">
+                                        <div class="{{ $location->statut == 'actif' ? 'col-md-4' : 'col-md-12' }}">
                                             <button class="btn btn-primary w-100" data-bs-toggle="modal"
                                                 data-bs-target="#echeancesModal">
                                                 <i class="ri-calendar-line me-1"></i>Voir échéances & paiements
                                             </button>
                                         </div>
-                                        <div class="col-md-4">
-                                            <button class="btn btn-success w-100" data-bs-toggle="modal"
-                                                data-bs-target="#genererEcheancesModal">
-                                                <i class="ri-add-line me-1"></i>Générer nouvelles échéances
-                                            </button>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <button class="btn btn-warning w-100" data-bs-toggle="modal"
-                                                data-bs-target="#resilierModal">
-                                                <i class="ri-close-line me-1"></i>Résilier la location
-                                            </button>
-                                        </div>
+                                        @if ($location->statut == 'actif')
+                                            <div class="col-md-4">
+                                                <button class="btn btn-success w-100" data-bs-toggle="modal"
+                                                    data-bs-target="#genererEcheancesModal">
+                                                    <i class="ri-add-line me-1"></i>Générer nouvelles échéances
+                                                </button>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <button class="btn btn-warning aw-100" data-bs-toggle="modal"
+                                                    data-bs-target="#resilierModal">
+                                                    <i class="ri-close-line me-1"></i>Résilier la location
+                                                </button>
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                                 <i class="ri-checkbox-circle-fill text-success ms-3" style="font-size: 24px;"></i>
@@ -713,14 +731,7 @@
                     @endif
 
                     <!-- Location résiliée -->
-                    @if ($location->statut == 'resilie')
-                        <div class="alert alert-warning mt-3">
-                            <h6><i class="ri-alert-line me-1"></i>Location résiliée</h6>
-                            @if ($location->note_admin)
-                                <p class="mb-0">{{ $location->note_admin }}</p>
-                            @endif
-                        </div>
-                    @endif
+                    {{-- Le détail de la résiliation est affiché dans l'étape 5 ci-dessus --}}
 
                     <!-- Location terminée -->
                     @if ($location->statut == 'termine')
@@ -1462,8 +1473,8 @@
         </div>
     </div>
 
-    <!-- Section Échéances: affichée uniquement quand la location est active -->
-    @if ($location->statut == 'actif')
+    <!-- Section Échéances: affichée quand la location est active ou résiliée -->
+    @if (in_array($location->statut, ['actif', 'resilie']))
         <div class="modal fade" id="echeancesModal" tabindex="-1">
             <div class="modal-dialog modal-xl">
                 <div class="modal-content">
@@ -1694,11 +1705,15 @@
                                                     </div>
                                                 @endif
 
-                                                @if ($echeance->statut != 'paye')
+                                                @if ($echeance->statut != 'paye' && $location->statut != 'resilie')
                                                     <button class="btn btn-sm btn-primary mt-2" data-bs-toggle="modal"
                                                         data-bs-target="#payerEcheanceModal{{ $echeance->id }}">
                                                         <i class="ri-wallet-line me-1"></i>Enregistrer un paiement
                                                     </button>
+                                                @elseif ($echeance->statut != 'paye' && $location->statut == 'resilie')
+                                                    <div class="alert alert-warning mt-2 mb-0 py-1 px-2">
+                                                        <small><i class="ri-lock-line me-1"></i>Paiement impossible - contrat résilié</small>
+                                                    </div>
                                                 @endif
                                             </div>
                                         </div>
@@ -1715,7 +1730,8 @@
             </div>
         </div>
 
-        <!-- Modals: Payer les échéances -->
+        <!-- Modals: Payer les échéances (uniquement si location active) -->
+        @if ($location->statut == 'actif')
         @foreach ($location->echeances ?? [] as $echeance)
             <div class="modal fade" id="payerEcheanceModal{{ $echeance->id }}" tabindex="-1">
                 <div class="modal-dialog">
@@ -1826,6 +1842,7 @@
                 </div>
             </div>
         @endforeach
+        @endif
     @endif
 @endsection
 

@@ -587,15 +587,23 @@
                 <div class="col-lg-8">
                     <!-- Galerie photos - Carousel -->
                     <div class="property-gallery" data-aos="fade-up">
-                        @if ($bien->hasMedia('images'))
-                            @php
-                                $images = $bien->getMedia('images');
-                                $carouselId = 'property-carousel-' . $bien->slug;
-                            @endphp
+                        @php
+                            $imagePrincipale = $bien->getFirstMedia('image_principale');
+                            $autresImages = $bien->getMedia('images');
+                            $allImages = collect();
+                            if ($imagePrincipale) {
+                                $allImages->push($imagePrincipale);
+                            }
+                            foreach ($autresImages as $img) {
+                                $allImages->push($img);
+                            }
+                            $carouselId = 'property-carousel-' . $bien->slug;
+                        @endphp
 
+                        @if ($allImages->count() > 0)
                             <div id="{{ $carouselId }}" class="carousel slide property-carousel" data-bs-ride="false">
                                 <div class="carousel-inner">
-                                    @foreach ($images as $index => $image)
+                                    @foreach ($allImages as $index => $image)
                                         <div class="carousel-item {{ $index === 0 ? 'active' : '' }}"
                                             onclick="openLightbox({{ $index }})">
                                             <img src="{{ $image->getUrl() }}" class="d-block w-100"
@@ -604,7 +612,7 @@
                                     @endforeach
                                 </div>
 
-                                @if ($images->count() > 1)
+                                @if ($allImages->count() > 1)
                                     <!-- Contrôles de navigation -->
                                     <button class="carousel-control-prev" type="button"
                                         data-bs-target="#{{ $carouselId }}" data-bs-slide="prev">
@@ -619,7 +627,7 @@
 
                                     <!-- Indicateurs -->
                                     <div class="carousel-indicators">
-                                        @foreach ($images as $index => $image)
+                                        @foreach ($allImages as $index => $image)
                                             <button type="button" data-bs-target="#{{ $carouselId }}"
                                                 data-bs-slide-to="{{ $index }}"
                                                 class="{{ $index === 0 ? 'active' : '' }}"
@@ -636,7 +644,7 @@
 
                                 <span class="image-count-badge">
                                     <i class="ri-image-line"></i>
-                                    {{ $images->count() }} {{ $images->count() > 1 ? 'photos' : 'photo' }}
+                                    {{ $allImages->count() }} {{ $allImages->count() > 1 ? 'photos' : 'photo' }}
                                 </span>
                             </div>
                         @else
@@ -647,7 +655,7 @@
                     </div>
 
                     <!-- Lightbox Modal -->
-                    @if ($bien->hasMedia('images'))
+                    @if ($allImages->count() > 0)
                         <div class="lightbox-modal" id="lightboxModal">
                             <button class="lightbox-close" onclick="closeLightbox()">×</button>
                             <button class="lightbox-nav lightbox-prev" onclick="changeLightboxImage(-1)">
@@ -1013,10 +1021,10 @@
             });
         @endif
 
-        @if ($bien->hasMedia('images'))
+        @if ($allImages->count() > 0)
             // Images du bien
             const propertyImages = [
-                @foreach ($bien->getMedia('images') as $media)
+                @foreach ($allImages as $media)
                     '{{ $media->getUrl() }}',
                 @endforeach
             ];

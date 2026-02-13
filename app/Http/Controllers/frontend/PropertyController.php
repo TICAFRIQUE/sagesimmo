@@ -140,8 +140,10 @@ class PropertyController extends Controller
 
         $bien = Annonce::where('slug', $slug)->firstOrFail();
 
-        // Vérifier si un prospect avec cet email existe déjà
-        $user = User::where('email', $request->email)->first();
+        // Vérifier si un prospect avec cet email ou ce téléphone existe déjà
+        $user = User::where('email', $request->email)
+            ->orWhere('phone', $request->phone)
+            ->first();
 
         if (!$user) {
             // Créer le prospect
@@ -149,12 +151,18 @@ class PropertyController extends Controller
                 'username' => $request->username,
                 'email' => $request->email,
                 'phone' => $request->phone,
-                'password' => Hash::make('password'), // Mot de passe aléatoire
-                'email_verified_at' => now(), // Vérifié automatiquement
+                'password' => Hash::make('password'),
+                'email_verified_at' => now(),
             ]);
 
             // Assigner le rôle prospect
             $user->assignRole('prospect');
+        } else {
+            // Mettre à jour les infos si nécessaire
+            $user->update([
+                'username' => $user->username ?: $request->username,
+                'phone' => $user->phone ?: $request->phone,
+            ]);
         }
 
         // Vérifier si ce user a déjà une demande active pour ce bien

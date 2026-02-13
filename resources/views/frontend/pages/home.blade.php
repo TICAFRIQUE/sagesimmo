@@ -195,6 +195,135 @@
         </div>
     </section> --}}
 
+
+        <!-- Qui sommes-nous -->
+    <section class="section-padding">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="section-title" data-aos="fade-up">Qui sommes-nous ?</h2>
+                <p class="section-subtitle" data-aos="fade-up">L'agence immobilière de confiance en Côte d'Ivoire</p>
+            </div>
+
+            <div class="row align-items-center g-5">
+                <div class="col-lg-6" data-aos="fade-right">
+                    <div class="position-relative">
+                        <img src="{{ asset('images/about-team.jpg') }}" alt="Équipe Sage Immo"
+                            class="img-fluid rounded-4 shadow-lg"
+                            onerror="this.src='https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=600'">
+
+                        <div class="position-absolute bottom-0 start-0 m-4 p-4 bg-white rounded-3 shadow-lg"
+                            style="max-width: 250px;">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="ri-award-line fs-1 text-accent me-3"></i>
+                                <div>
+                                    <h3 class="mb-0 fw-bold" style="color: #43542A;">10+</h3>
+                                    <p class="mb-0 small text-muted">Années d'expérience</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6" data-aos="fade-left">
+                    <h3 class="fw-bold mb-4" style="color: #43542A;">Votre partenaire immobilier depuis 2015</h3>
+
+                    <p class="text-muted mb-4">
+                        Sages Immo est une agence immobilière ivoirienne de référence, spécialisée dans la
+                        location, la vente et la gestion de biens immobiliers. Forte de plus de 10 ans d'expérience,
+                        notre équipe d'experts accompagne particuliers et professionnels dans tous leurs projets.
+                    </p>
+
+                    <p class="text-muted mb-4">
+                        Nous nous distinguons par notre approche personnalisée, notre connaissance approfondie
+                        du marché local et notre engagement à offrir des services de qualité supérieure. Notre mission
+                        est de faciliter vos transactions immobilières en toute transparence et sécurité.
+                    </p>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-sm-6">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="rounded-circle bg-accent bg-opacity-10 p-3">
+                                        <i class="ri-team-line fs-4 text-accent"></i>
+                                    </div>
+                                </div>
+                                <div class="ms-3">
+                                    <h5 class="mb-0">500+</h5>
+                                    <p class="text-muted small mb-0">Clients satisfaits</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="rounded-circle bg-accent bg-opacity-10 p-3">
+                                        <i class="ri-home-smile-line fs-4 text-accent"></i>
+                                    </div>
+                                </div>
+                                <div class="ms-3">
+                                    <h5 class="mb-0">200+</h5>
+                                    <p class="text-muted small mb-0">Biens gérés</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-3">
+                        <a href="{{ route('properties.index') }}" class="btn btn-accent btn-lg">
+                            <i class="ri-search-line me-2"></i>Découvrir nos biens
+                        </a>
+                        {{-- <a href="mailto:contact@sageimmo.com" class="btn btn-outline-primary btn-lg">
+                            <i class="ri-mail-line me-2"></i>Contactez-nous
+                        </a> --}}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nos valeurs -->
+            <div class="row g-4 mt-5 d-none d-lg-flex d-md-flex">
+                <div class="col-12 text-center mb-4">
+                    <h3 class="fw-bold" style="color: #43542A;" data-aos="fade-up">Nos valeurs</h3>
+                </div>
+                <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="100">
+                    <div class="text-center p-4 h-100 border rounded-3 hover-shadow transition-all">
+                        <div class="mb-3">
+                            <i class="ri-shield-check-line fs-1 text-accent"></i>
+                        </div>
+                        <h5 class="fw-bold mb-2">Transparence</h5>
+                        <p class="text-muted small mb-0">Des informations claires et honnêtes à chaque étape</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="200">
+                    <div class="text-center p-4 h-100 border rounded-3 hover-shadow transition-all">
+                        <div class="mb-3">
+                            <i class="ri-customer-service-2-line fs-1 text-accent"></i>
+                        </div>
+                        <h5 class="fw-bold mb-2">Écoute</h5>
+                        <p class="text-muted small mb-0">Votre satisfaction est notre priorité absolue</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="300">
+                    <div class="text-center p-4 h-100 border rounded-3 hover-shadow transition-all">
+                        <div class="mb-3">
+                            <i class="ri-lightbulb-flash-line fs-1 text-accent"></i>
+                        </div>
+                        <h5 class="fw-bold mb-2">Expertise</h5>
+                        <p class="text-muted small mb-0">Une connaissance approfondie du marché immobilier</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="400">
+                    <div class="text-center p-4 h-100 border rounded-3 hover-shadow transition-all">
+                        <div class="mb-3">
+                            <i class="ri-medal-line fs-1 text-accent"></i>
+                        </div>
+                        <h5 class="fw-bold mb-2">Excellence</h5>
+                        <p class="text-muted small mb-0">Un service de qualité supérieure à chaque instant</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Biens récents -->
     <section class="section-padding">
         <div class="container">
@@ -418,133 +547,7 @@
         </section>
     @endif
 
-    <!-- Qui sommes-nous -->
-    {{-- <section class="section-padding">
-        <div class="container">
-            <div class="text-center mb-5">
-                <h2 class="section-title" data-aos="fade-up">Qui sommes-nous ?</h2>
-                <p class="section-subtitle" data-aos="fade-up">L'agence immobilière de confiance au Sénégal</p>
-            </div>
 
-            <div class="row align-items-center g-5">
-                <div class="col-lg-6" data-aos="fade-right">
-                    <div class="position-relative">
-                        <img src="{{ asset('images/about-team.jpg') }}" alt="Équipe Sage Immo"
-                            class="img-fluid rounded-4 shadow-lg"
-                            onerror="this.src='https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=600'">
-
-                        <div class="position-absolute bottom-0 start-0 m-4 p-4 bg-white rounded-3 shadow-lg"
-                            style="max-width: 250px;">
-                            <div class="d-flex align-items-center mb-2">
-                                <i class="ri-award-line fs-1 text-accent me-3"></i>
-                                <div>
-                                    <h3 class="mb-0 fw-bold" style="color: #43542A;">10+</h3>
-                                    <p class="mb-0 small text-muted">Années d'expérience</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-6" data-aos="fade-left">
-                    <h3 class="fw-bold mb-4" style="color: #43542A;">Votre partenaire immobilier depuis 2015</h3>
-
-                    <p class="text-muted mb-4">
-                        Sage Immo est une agence immobilière sénégalaise de référence, spécialisée dans la
-                        location, la vente et la gestion de biens immobiliers. Forte de plus de 10 ans d'expérience,
-                        notre équipe d'experts accompagne particuliers et professionnels dans tous leurs projets.
-                    </p>
-
-                    <p class="text-muted mb-4">
-                        Nous nous distinguons par notre approche personnalisée, notre connaissance approfondie
-                        du marché local et notre engagement à offrir des services de qualité supérieure. Notre mission
-                        est de faciliter vos transactions immobilières en toute transparence et sécurité.
-                    </p>
-
-                    <div class="row g-4 mb-4">
-                        <div class="col-sm-6">
-                            <div class="d-flex align-items-center">
-                                <div class="flex-shrink-0">
-                                    <div class="rounded-circle bg-accent bg-opacity-10 p-3">
-                                        <i class="ri-team-line fs-4 text-accent"></i>
-                                    </div>
-                                </div>
-                                <div class="ms-3">
-                                    <h5 class="mb-0">500+</h5>
-                                    <p class="text-muted small mb-0">Clients satisfaits</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-sm-6">
-                            <div class="d-flex align-items-center">
-                                <div class="flex-shrink-0">
-                                    <div class="rounded-circle bg-accent bg-opacity-10 p-3">
-                                        <i class="ri-home-smile-line fs-4 text-accent"></i>
-                                    </div>
-                                </div>
-                                <div class="ms-3">
-                                    <h5 class="mb-0">200+</h5>
-                                    <p class="text-muted small mb-0">Biens gérés</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="d-flex flex-wrap gap-3">
-                        <a href="{{ route('properties.index') }}" class="btn btn-accent btn-lg">
-                            <i class="ri-search-line me-2"></i>Découvrir nos biens
-                        </a>
-                        <a href="mailto:contact@sageimmo.com" class="btn btn-outline-primary btn-lg">
-                            <i class="ri-mail-line me-2"></i>Contactez-nous
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Nos valeurs -->
-            <div class="row g-4 mt-5">
-                <div class="col-12 text-center mb-4">
-                    <h3 class="fw-bold" style="color: #43542A;" data-aos="fade-up">Nos valeurs</h3>
-                </div>
-                <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="100">
-                    <div class="text-center p-4 h-100 border rounded-3 hover-shadow transition-all">
-                        <div class="mb-3">
-                            <i class="ri-shield-check-line fs-1 text-accent"></i>
-                        </div>
-                        <h5 class="fw-bold mb-2">Transparence</h5>
-                        <p class="text-muted small mb-0">Des informations claires et honnêtes à chaque étape</p>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="200">
-                    <div class="text-center p-4 h-100 border rounded-3 hover-shadow transition-all">
-                        <div class="mb-3">
-                            <i class="ri-customer-service-2-line fs-1 text-accent"></i>
-                        </div>
-                        <h5 class="fw-bold mb-2">Écoute</h5>
-                        <p class="text-muted small mb-0">Votre satisfaction est notre priorité absolue</p>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="300">
-                    <div class="text-center p-4 h-100 border rounded-3 hover-shadow transition-all">
-                        <div class="mb-3">
-                            <i class="ri-lightbulb-flash-line fs-1 text-accent"></i>
-                        </div>
-                        <h5 class="fw-bold mb-2">Expertise</h5>
-                        <p class="text-muted small mb-0">Une connaissance approfondie du marché immobilier</p>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="400">
-                    <div class="text-center p-4 h-100 border rounded-3 hover-shadow transition-all">
-                        <div class="mb-3">
-                            <i class="ri-medal-line fs-1 text-accent"></i>
-                        </div>
-                        <h5 class="fw-bold mb-2">Excellence</h5>
-                        <p class="text-muted small mb-0">Un service de qualité supérieure à chaque instant</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section> --}}
 
     <!-- Nos Services -->
     <section class="section-padding" style="background: linear-gradient(135deg, #43542A 0%, #2d3a1c 100%);">

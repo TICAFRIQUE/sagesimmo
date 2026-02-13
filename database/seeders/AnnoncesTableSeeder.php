@@ -90,7 +90,7 @@ class AnnoncesTableSeeder extends Seeder
         $this->command->info('Génération de 100 annonces avec images...');
         $bar = $this->command->getOutput()->createProgressBar(100);
 
-        for ($i = 1; $i <= 100; $i++) {
+        for ($i = 1; $i <= 30; $i++) {
             $typeBien = $typesBiens->random();
             $typeTransaction = rand(0, 1) ? 'location' : 'vente';
             $ville = $villes[array_rand($villes)];

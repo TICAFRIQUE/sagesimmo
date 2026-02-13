@@ -34,6 +34,6 @@ class DatabaseSeeder extends Seeder
         // $this->call(ModelHasRolesTableSeeder::class);
         $this->call(TypeBiensTableSeeder::class);
         $this->call(EquipementsTableSeeder::class);
-        // $this->call(AnnoncesTableSeeder::class);
+        $this->call(AnnoncesTableSeeder::class);
     }
 }

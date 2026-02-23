@@ -130,7 +130,7 @@
                     @endif
 
                     <!-- Étape 1: Envoi de la fiche -->
-                    {{-- <div
+                    <div
                         class="workflow-step {{ in_array($vente->statut, ['retour_prospect', 'fiche_envoyee', 'visite_planifiee', 'offre_acceptee', 'terminee']) ? 'completed' : ($vente->statut == 'demande_client' ? 'active' : '') }}">
                         <div class="d-flex justify-content-between align-items-start">
                             <div class="flex-grow-1">
@@ -151,10 +151,10 @@
                                 <i class="ri-checkbox-circle-fill text-success" style="font-size: 24px;"></i>
                             @endif
                         </div>
-                    </div> --}}
+                    </div>
 
                     <!-- Étape 2: Attente retour du prospect -->
-                    {{-- <div
+                    <div
                         class="workflow-step {{ in_array($vente->statut, ['fiche_envoyee', 'visite_planifiee', 'offre_acceptee', 'terminee']) ? 'completed' : ($vente->statut == 'retour_prospect' ? 'active' : '') }}">
                         <div class="d-flex justify-content-between align-items-start">
                             <div class="flex-grow-1">
@@ -182,24 +182,23 @@
                                 <i class="ri-checkbox-circle-fill text-success" style="font-size: 24px;"></i>
                             @endif
                         </div>
-                    </div> --}}
+                    </div>
 
                     <!-- Étape 3: Planification de la visite -->
                     <div
-                        class="workflow-step {{ in_array($vente->statut, ['visite_planifiee', 'offre_acceptee', 'terminee']) ? 'completed' : ($vente->statut == 'demande_client' ? 'active' : '') }}">
+                        class="workflow-step {{ in_array($vente->statut, ['visite_planifiee', 'offre_acceptee', 'terminee']) ? 'completed' : ($vente->statut == 'fiche_envoyee' ? 'active' : '') }}">
                         <div class="d-flex justify-content-between align-items-start">
                             <div class="flex-grow-1">
                                 <h6 class="mb-2">
                                     <i class="ri-calendar-check-line me-1"></i>
                                     3. Planification de la visite
                                 </h6>
-                                {{-- @if ($vente->statut == 'fiche_envoyee') --}}
-                                <button
-                                    class="btn btn-sm btn-primary {{ in_array($vente->statut, ['visite_planifiee', 'demande_client']) ? 'enabled' : 'disabled'}} "
-                                    data-bs-toggle="modal" data-bs-target="#planifierVisiteModal">
-                                    <i class="ri-calendar-event-line me-1"></i>Planifier la visite
-                                </button>
-                                @if ($vente->date_visite)
+                                @if ($vente->statut == 'fiche_envoyee')
+                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                                        data-bs-target="#planifierVisiteModal">
+                                        <i class="ri-calendar-event-line me-1"></i>Planifier la visite
+                                    </button>
+                                @elseif($vente->date_visite)
                                     <p class="mb-0">
                                         <i class="ri-time-line me-1"></i>
                                         <strong>Date:</strong>
@@ -234,7 +233,7 @@
 
                                     </div>
                                 @endif
-
+                               
                             </div>
                             @if (in_array($vente->statut, ['offre_acceptee', 'terminee']))
                                 <i class="ri-checkbox-circle-fill text-success" style="font-size: 24px;"></i>
@@ -555,36 +554,6 @@
                         <p class="mb-0"><strong>Prix:</strong> {{ number_format($vente->annonce->prix, 0, ',', ' ') }}
                             FCFA</p>
                     </div>
-                    <!--card pour le nom du proprietaire ou agence-->
-                    <div class="info-card mt-2">
-                        <div class="mb-3">
-                            <strong>Type de propriété:</strong>
-                            <div class="mt-1">
-                                @if ($vente->annonce->est_bien_agence)
-                                    <span class="badge bg-success">
-                                        <i class="ri-building-line me-1"></i>Bien de l'agence
-                                    </span>
-                                @else
-                                    <span class="badge bg-info">
-                                        <i class="ri-user-line me-1"></i>Bien d'un propriétaire externe
-                                    </span>
-                                @endif
-                            </div>
-                        </div>
-
-                        @if (!$vente->annonce->est_bien_agence && $vente->annonce->proprietaire)
-                            <div class="mb-3">
-                                <strong>Propriétaire du bien:</strong>
-                                <div class="mt-1">
-                                    <span class="badge bg-primary">{{ $vente->annonce->proprietaire->name }}</span>
-                                    <br>
-                                    <small class="text-muted">{{ $vente->annonce->proprietaire->email }}</small>
-                                </div>
-                            </div>
-                        @endif
-                    </div>
-
-
                     <a href="{{ route('backend.annonces.show', $vente->annonce) }}"
                         class="btn btn-sm btn-outline-primary mt-2">
                         <i class="ri-eye-line me-1"></i>Voir l'annonce
@@ -693,7 +662,7 @@
     <!-- MODALS -->
 
     <!-- Modal: Envoyer la fiche -->
-    {{-- <div class="modal fade" id="envoyerFicheModal" tabindex="-1">
+    <div class="modal fade" id="envoyerFicheModal" tabindex="-1">
         <div class="modal-dialog">
             <form action="{{ route('backend.ventes.envoyer-fiche', $vente) }}" method="POST"
                 enctype="multipart/form-data">
@@ -717,7 +686,11 @@
                             <textarea name="message_email" class="form-control" rows="3"
                                 placeholder="Message qui sera inclus dans l'email au client"></textarea>
                         </div>
-                       
+                        {{-- <div class="mb-3">
+                            <label class="form-label">Note interne (optionnelle)</label>
+                            <textarea name="note_admin" class="form-control" rows="2" 
+                                      placeholder="Note interne concernant l'envoi de la fiche"></textarea>
+                        </div> --}}
                         <div class="alert alert-info">
                             <i class="ri-information-line me-1"></i>
                             Un email sera envoyé au client avec la fiche à remplir et les documents joints.
@@ -732,10 +705,10 @@
                 </div>
             </form>
         </div>
-    </div> --}}
+    </div>
 
     <!-- Modal: Confirmer retour prospect - Intéressé -->
-    {{-- <div class="modal fade" id="confirmerRetourProspectModal" tabindex="-1">
+    <div class="modal fade" id="confirmerRetourProspectModal" tabindex="-1">
         <div class="modal-dialog">
             <form action="{{ route('backend.ventes.confirmer-retour-prospect', $vente) }}" method="POST">
                 @csrf
@@ -768,10 +741,10 @@
                 </div>
             </form>
         </div>
-    </div> --}}
+    </div>
 
     <!-- Modal: Refuser retour prospect - Non intéressé -->
-    {{-- <div class="modal fade" id="refuserRetourProspectModal" tabindex="-1">
+    <div class="modal fade" id="refuserRetourProspectModal" tabindex="-1">
         <div class="modal-dialog">
             <form action="{{ route('backend.ventes.confirmer-retour-prospect', $vente) }}" method="POST">
                 @csrf
@@ -801,7 +774,7 @@
                 </div>
             </form>
         </div>
-    </div> --}}
+    </div>
 
     <!-- Modal: Planifier la visite -->
     <div class="modal fade" id="planifierVisiteModal" tabindex="-1">

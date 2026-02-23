@@ -117,13 +117,16 @@ class Vente extends Model implements HasMedia
      */
     public function calculerCommission()
     {
+        // Si aucune commission n'est définie, retourner 0
         if (!$this->commission_agence) {
             return 0;
         }
+        // Calculer la commission en fonction du type
 
         if ($this->type_commission === 'pourcentage') {
             return ($this->prix_vente * $this->commission_agence) / 100;
         }
+        
 
         return $this->commission_agence;
     }

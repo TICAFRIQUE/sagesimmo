@@ -466,6 +466,11 @@ class LocationController extends Controller
         $echeance->save();
         $echeance->mettreAJourStatut();
 
+        // changer le role du client en locataire s'il ne l'est pas déjà
+        if (!$echeance->location->locataire->hasRole('locataire')) {
+            $echeance->location->locataire->syncRoles(['locataire']);
+        }
+
         $messageCommission = ($validated['commission_agence'] ?? 0) > 0 ? ' (Commission: ' . number_format($validated['commission_agence'], 0, ',', ' ') . ' FCFA)' : '';
         Alert::success('Succès', 'Paiement de loyer de ' . number_format($validated['montant'], 0, ',', ' ') . ' FCFA enregistré avec succès' . $messageCommission);
         return back();

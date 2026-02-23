@@ -95,7 +95,7 @@
                     @endif
 
                     <!-- Étape 1: Envoi de la fiche -->
-                    {{-- <div
+                    <div
                         class="workflow-step {{ in_array($location->statut, ['retour_prospect', 'fiche_envoyee', 'visite_planifiee', 'en_attente_paiement', 'actif', 'resilie']) ? 'completed' : (in_array($location->statut, ['demande_client', 'brouillon']) ? 'active' : '') }}">
                         <div class="d-flex justify-content-between align-items-start">
                             <div class="flex-grow-1">
@@ -140,10 +140,10 @@
                                 <i class="ri-checkbox-circle-fill text-success" style="font-size: 24px;"></i>
                             @endif
                         </div>
-                    </div> --}}
+                    </div>
 
                     <!-- Étape 2: Attente retour du prospect -->
-                    {{-- <div
+                    <div
                         class="workflow-step {{ in_array($location->statut, ['fiche_envoyee', 'visite_planifiee', 'en_attente_paiement', 'actif', 'resilie']) ? 'completed' : ($location->statut == 'retour_prospect' ? 'active' : '') }}">
                         <div class="d-flex justify-content-between align-items-start">
                             <div class="flex-grow-1">
@@ -174,23 +174,23 @@
                                 <i class="ri-checkbox-circle-fill text-success" style="font-size: 24px;"></i>
                             @endif
                         </div>
-                    </div> --}}
+                    </div>
 
                     <!-- Étape 3: Planification de la visite -->
                     <div
-                        class="workflow-step {{ in_array($location->statut, ['visite_planifiee', 'en_attente_paiement', 'actif', 'resilie']) ? 'completed' : ($location->statut == 'demande_client' ? 'active' : '') }}">
+                        class="workflow-step {{ in_array($location->statut, ['visite_planifiee', 'en_attente_paiement', 'actif', 'resilie']) ? 'completed' : ($location->statut == 'fiche_envoyee' ? 'active' : '') }}">
                         <div class="d-flex justify-content-between align-items-start">
                             <div class="flex-grow-1">
                                 <h6 class="mb-2">
                                     <i class="ri-calendar-check-line me-1"></i>
                                     3. Planification de la visite
                                 </h6>
-                                {{-- @if ($location->statut == 'demande_client') --}}
-                                    <button class="btn btn-sm btn-primary {{ in_array($location->statut, ['visite_planifiee', 'demande_client']) ? 'd-block' : 'd-none'}}" data-bs-toggle="modal"
+                                @if ($location->statut == 'fiche_envoyee')
+                                    <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
                                         data-bs-target="#planifierVisiteModal">
                                         <i class="ri-calendar-event-line me-1"></i>Planifier la visite
                                     </button>
-                                @if($location->date_visite)
+                                @elseif($location->date_visite)
                                     <p class="mb-0">
                                         <i class="ri-time-line me-1"></i>
                                         <strong>Date:</strong>
@@ -784,36 +784,6 @@
                         <i class="ri-eye-line me-1"></i>Voir l'annonce
                     </a>
                 </div>
-
-                <!--card pour le nom du proprietaire ou agence-->
-                    <div class="info-card mt-2">
-                        <div class="mb-3">
-                            <strong>Type de propriété:</strong>
-                            <div class="mt-1">
-                                @if ($location->annonce->est_bien_agence)
-                                    <span class="badge bg-success">
-                                        <i class="ri-building-line me-1"></i>Bien de l'agence
-                                    </span>
-                                @else
-                                    <span class="badge bg-info">
-                                        <i class="ri-user-line me-1"></i>Bien d'un propriétaire externe
-                                    </span>
-                                @endif
-                            </div>
-                        </div>
-
-                        @if (!$location->annonce->est_bien_agence && $location->annonce->proprietaire)
-                            <div class="mb-3">
-                                <strong>Propriétaire du bien:</strong>
-                                <div class="mt-1">
-                                    <span class="badge bg-primary">{{ $location->annonce->proprietaire->name }}</span>
-                                    <br>
-                                    <small class="text-muted">{{ $location->annonce->proprietaire->email }}</small>
-                                </div>
-                            </div>
-                        @endif
-                    </div>
-
             </div>
 
             <!-- Informations du client -->

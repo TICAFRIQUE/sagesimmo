@@ -35,12 +35,12 @@ class VenteController extends Controller
         }
 
         $ventes = $query->latest()->paginate(15)->withQueryString();
-        
+
         // Récupérer tous les clients qui ont au moins une vente
         $clients = User::whereHas('ventes')->orderBy('username')->get();
 
 
-         // Confirmation de suppression
+        // Confirmation de suppression
         $title = 'Suppression de vente';
         $text = "Êtes-vous sûr de vouloir supprimer cette vente ?";
         confirmDelete($title, $text);
@@ -128,7 +128,7 @@ class VenteController extends Controller
 
         // Réinitialiser le workflow à demande_client
         $validated['statut'] = 'demande_client';
-        
+
         $vente->update($validated);
 
         Alert::success('Succès', 'Vente modifiée avec succès. Le workflow a été réinitialisé à "Demande client".');
@@ -300,9 +300,10 @@ class VenteController extends Controller
             'note_admin' => $request->note_admin,
         ]);
 
-        // Convertir le client en acheteur
-        $vente->client->syncRoles(['acheteur']);
-
+    //    //changer le role du client en acheteur s'il ne l'est pas déjà
+    //     if (!$vente->client->hasRole('acheteur')) {
+    //         $vente->client->syncRoles(['acheteur']);
+    //     }
         $montantTotal = $request->prix_vente + ($request->montant_caution ?? 0) + ($request->montant_frais_agence ?? 0);
         Alert::success('Succès', 'Paiement configuré. Le client doit payer : ' . number_format($montantTotal, 0, ',', ' ') . ' FCFA. Les paiements peuvent être effectués en plusieurs fois.');
         return back();
@@ -333,8 +334,7 @@ class VenteController extends Controller
             'note_admin' => $request->note_admin,
         ]);
 
-        // Convertir le client en acheteur (si ce n'est pas déjà fait)
-        $vente->client->syncRoles(['acheteur']);
+
 
         // Marquer le bien comme vendu et le dépublier
         $vente->annonce->update([
@@ -346,6 +346,12 @@ class VenteController extends Controller
         $montantTotal = $vente->montantTotalPaye();
         $commissionTotale = $vente->totalCommissionsPercues();
         $nombrePaiements = $vente->paiements()->count();
+
+        // Convertir le client en acheteur (si ce n'est pas déjà fait)
+     //changer le role du client en acheteur s'il ne l'est pas déjà
+        if (!$vente->client->hasRole('acheteur')) {
+            $vente->client->syncRoles(['acheteur']);
+        }
 
         Alert::success(
             'Succès',
@@ -426,6 +432,10 @@ class VenteController extends Controller
         } else {
             $resteAPayer = $vente->resteAPayer();
             Alert::success('Succès', 'Paiement de ' . number_format($validated['montant'], 0, ',', ' ') . ' FCFA ajouté. Reste à payer : ' . number_format($resteAPayer, 0, ',', ' ') . ' FCFA');
+        }
+        //changer le role du client en acheteur s'il ne l'est pas déjà
+        if (!$vente->client->hasRole('acheteur')) {
+            $vente->client->syncRoles(['acheteur']);
         }
 
         return redirect()->route('backend.ventes.show', $vente);

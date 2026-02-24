@@ -156,6 +156,14 @@ class Annonce extends Model implements HasMedia
     }
 
     /**
+     * Relation avec les charges (maintenance, réparation, taxes, etc.)
+     */
+    public function charges()
+    {
+        return $this->hasMany(Charge::class, 'annonce_id');
+    }
+
+    /**
      * Scope pour filtrer par type de transaction
      */
     public function scopeVente($query)

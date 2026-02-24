@@ -267,5 +267,19 @@ Route::middleware(['admin'])->prefix('admin')->group(function () {
     Route::prefix('rapports')->group(function () {
         Route::get('commissions', [\App\Http\Controllers\RapportController::class, 'commissions'])->name('backend.rapports.commissions');
         Route::get('statistiques', [\App\Http\Controllers\RapportController::class, 'statistiques'])->name('backend.rapports.statistiques');
+        
+        // Rapports propriétaire et agence - ADMIN ONLY
+        Route::get('proprietaire', [\App\Http\Controllers\RapportController::class, 'rapportProprietaire'])->name('rapports.proprietaire');
+        Route::get('agence', [\App\Http\Controllers\RapportController::class, 'rapportAgence'])->name('rapports.agence');
+    });
+
+    // Gestion des charges - ADMIN ONLY
+    Route::prefix('charges')->group(function () {
+        Route::get('/', [\App\Http\Controllers\RapportController::class, 'chargesIndex'])->name('charges.index');
+        Route::get('create', [\App\Http\Controllers\RapportController::class, 'chargesCreate'])->name('charges.create');
+        Route::post('/', [\App\Http\Controllers\RapportController::class, 'chargesStore'])->name('charges.store');
+        Route::get('{charge}/edit', [\App\Http\Controllers\RapportController::class, 'chargesEdit'])->name('charges.edit');
+        Route::put('{charge}', [\App\Http\Controllers\RapportController::class, 'chargesUpdate'])->name('charges.update');
+        Route::delete('{charge}', [\App\Http\Controllers\RapportController::class, 'chargesDestroy'])->name('charges.destroy');
     });
 });

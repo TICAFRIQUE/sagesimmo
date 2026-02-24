@@ -5,10 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\Paiement;
 use App\Models\Location;
 use App\Models\Vente;
+use App\Models\User;
+use App\Models\Charge;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use App\Http\Controllers\Controller;
+use App\Services\RapportProprietaireService;
+use App\Services\RapportAgenceService;
 
 class RapportController extends Controller
 {
@@ -273,5 +278,229 @@ class RapportController extends Controller
             'dateDebut',
             'dateFin'
         ));
+    }
+
+    /**
+     * Rapport financier propriétaire - Affiche les revenus d'un propriétaire
+     */
+    public function rapportProprietaire(Request $request)
+    {
+        // Seul les administrateurs peuvent voir le rapport propriétaire
+        if (in_array(Auth::user()->role, ['client', 'proprietaire', 'acheteur', 'locataire'])) {
+            return redirect()->back()->with('error', 'Accès refusé');
+        }
+
+        $request->validate([
+            'date_debut' => 'nullable|date',
+            'date_fin' => 'nullable|date',
+            'proprietaire_id' => 'nullable|exists:users,id',
+        ]);
+
+        // Déterminer le propriétaire
+        $proprietaireId = $request->input('proprietaire_id');
+
+        // Si pas de propriétaire spécifié, afficher liste de sélection
+        if (!$proprietaireId) {
+            $proprietaires = User::where('role', 'proprietaire')->get();
+            return view('backend.pages.rapports.proprietaire-select', compact('proprietaires'));
+        }
+
+        $proprietaire = User::findOrFail($proprietaireId);
+
+        // Filtres de dates
+        $dateDebut = $request->input('date_debut') 
+            ? Carbon::createFromFormat('Y-m-d', $request->input('date_debut'))
+            : now()->startOfYear();
+        
+        $dateFin = $request->input('date_fin')
+            ? Carbon::createFromFormat('Y-m-d', $request->input('date_fin'))
+            : now()->endOfYear();
+
+        // Générer le rapport
+        $service = new RapportProprietaireService();
+        $rapport = $service->genererRapport($proprietaire, $dateDebut, $dateFin);
+
+        // Liste des propriétaires pour le filtre
+        $proprietaires = User::where('role', 'proprietaire')->get();
+
+        return view('backend.pages.rapports.proprietaire', compact(
+            'rapport',
+            'proprietaire',
+            'dateDebut',
+            'dateFin',
+            'proprietaires'
+        ));
+    }
+
+    /**
+     * Rapport financier agence - Affiche les revenus de l'agence
+     */
+    public function rapportAgence(Request $request)
+    {
+        // Seul les administrateurs peuvent voir le rapport agence
+        if (in_array(Auth::user()->role, ['client', 'proprietaire', 'acheteur', 'locataire'])) {
+            return redirect()->back()->with('error', 'Accès refusé');
+        }
+
+        $request->validate([
+            'date_debut' => 'nullable|date',
+            'date_fin' => 'nullable|date',
+        ]);
+
+        // Filtres de dates
+        $dateDebut = $request->input('date_debut')
+            ? Carbon::createFromFormat('Y-m-d', $request->input('date_debut'))
+            : now()->startOfYear();
+        
+        $dateFin = $request->input('date_fin')
+            ? Carbon::createFromFormat('Y-m-d', $request->input('date_fin'))
+            : now()->endOfYear();
+
+        // Générer le rapport
+        $service = new RapportAgenceService();
+        $rapport = $service->genererRapport($dateDebut, $dateFin);
+
+        return view('backend.pages.rapports.agence', compact(
+            'rapport',
+            'dateDebut',
+            'dateFin'
+        ));
+    }
+
+    /**
+     * Gestion des charges - Liste des charges
+     */
+    public function chargesIndex(Request $request)
+    {
+        // Seul les administrateurs peuvent voir les charges
+        if (in_array(Auth::user()->role, ['client', 'proprietaire', 'acheteur', 'locataire'])) {
+            return redirect()->back()->with('error', 'Accès refusé');
+        }
+
+        $query = Charge::with('annonce');
+
+        // Filtre par bien
+        if ($request->filled('annonce_id')) {
+            $query->where('annonce_id', $request->input('annonce_id'));
+        }
+
+        // Filtre par type
+        if ($request->filled('type_charge')) {
+            $query->where('type_charge', $request->input('type_charge'));
+        }
+
+        // Filtre par date
+        if ($request->filled('date_debut') && $request->filled('date_fin')) {
+            $query->whereBetween('date_charge', [
+                $request->input('date_debut'),
+                $request->input('date_fin')
+            ]);
+        }
+
+        $charges = $query->orderBy('date_charge', 'desc')->paginate(20);
+
+        // Liste des biens
+        $biens = \App\Models\Annonce::all();
+
+        return view('backend.pages.rapports.charges.index', compact(
+            'charges',
+            'biens'
+        ));
+    }
+
+    /**
+     * Gestion des charges - Créer une charge
+     */
+    public function chargesCreate(Request $request)
+    {
+        // Seul les administrateurs peuvent créer des charges
+        if (in_array(Auth::user()->role, ['client', 'proprietaire', 'acheteur', 'locataire'])) {
+            return redirect()->back()->with('error', 'Accès refusé');
+        }
+
+        $biens = \App\Models\Annonce::all();
+
+        return view('backend.pages.rapports.charges.create', compact('biens'));
+    }
+
+    /**
+     * Gestion des charges - Enregistrer une charge
+     */
+    public function chargesStore(Request $request)
+    {
+        // Seul les administrateurs peuvent créer des charges
+        if (in_array(Auth::user()->role, ['client', 'proprietaire', 'acheteur', 'locataire'])) {
+            return redirect()->back()->with('error', 'Accès refusé');
+        }
+
+        $request->validate([
+            'annonce_id' => 'required|exists:annonces,id',
+            'type_charge' => 'required|in:maintenance,reparation,taxe,autre',
+            'montant' => 'required|numeric|min:0',
+            'date_charge' => 'required|date',
+            'description' => 'nullable|string',
+            'reference' => 'nullable|string',
+        ]);
+
+        Charge::create($request->all());
+
+        return redirect()->route('charges.index')
+            ->with('success', 'Charge enregistrée avec succès');
+    }
+
+    /**
+     * Gestion des charges - Éditer une charge
+     */
+    public function chargesEdit(Charge $charge)
+    {
+        // Seul les administrateurs peuvent éditer les charges
+        if (in_array(Auth::user()->role, ['client', 'proprietaire', 'acheteur', 'locataire'])) {
+            return redirect()->back()->with('error', 'Accès refusé');
+        }
+
+        $biens = \App\Models\Annonce::all();
+
+        return view('backend.pages.rapports.charges.edit', compact('charge', 'biens'));
+    }
+
+    /**
+     * Gestion des charges - Mettre à jour une charge
+     */
+    public function chargesUpdate(Request $request, Charge $charge)
+    {
+        // Seul les administrateurs peuvent mettre à jour les charges
+        if (in_array(Auth::user()->role, ['client', 'proprietaire', 'acheteur', 'locataire'])) {
+            return redirect()->back()->with('error', 'Accès refusé');
+        }
+
+        $request->validate([
+            'annonce_id' => 'required|exists:annonces,id',
+            'type_charge' => 'required|in:maintenance,reparation,taxe,autre',
+            'montant' => 'required|numeric|min:0',
+            'date_charge' => 'required|date',
+            'description' => 'nullable|string',
+            'reference' => 'nullable|string',
+        ]);
+
+        $charge->update($request->all());
+
+        return redirect()->route('charges.index')
+            ->with('success', 'Charge mise à jour avec succès');
+    }
+
+    /**
+     * Gestion des charges - Supprimer une charge
+     */
+    public function chargesDestroy(Charge $charge)
+    {
+        // Seul les administrateurs peuvent supprimer les charges
+        if (in_array(Auth::user()->role, ['client', 'proprietaire', 'acheteur', 'locataire'])) {
+            return redirect()->back()->with('error', 'Accès refusé');
+        }
+
+        $charge->delete();
+
+        return redirect()->route('charges.index')
+            ->with('success', 'Charge supprimée avec succès');
     }
 }

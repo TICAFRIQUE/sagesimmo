@@ -159,7 +159,7 @@
                         aria-expanded="false" aria-controls="sidebarRapports">
                         <i class="ri-bar-chart-box-line me-2"></i> <span>Rapports & Statistiques</span>
                     </a>
-                    <div class="collapse menu-dropdown {{ Route::is('backend.rapports.*') ? 'show' : '' }}"
+                    <div class="collapse menu-dropdown {{ Route::is('backend.rapports.*') || Route::is('rapports.*') || Route::is('charges.*') ? 'show' : '' }}"
                         id="sidebarRapports">
                         <ul class="nav nav-sm flex-column">
                             <li class="nav-item">
@@ -172,6 +172,24 @@
                                 <a href="{{ route('backend.rapports.statistiques') }}"
                                     class="nav-link {{ Route::is('backend.rapports.statistiques') ? 'active' : '' }}">
                                     <i class="ri-line-chart-line me-2"></i> Statistiques
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('rapports.proprietaire') }}"
+                                    class="nav-link {{ Route::is('rapports.proprietaire') ? 'active' : '' }}">
+                                    <i class="ri-home-heart-line me-2"></i> Rapport Propriétaire
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('rapports.agence') }}"
+                                    class="nav-link {{ Route::is('rapports.agence') ? 'active' : '' }}">
+                                    <i class="ri-building-2-line me-2"></i> Rapport Agence
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('charges.index') }}"
+                                    class="nav-link {{ Route::is('charges.*') ? 'active' : '' }}">
+                                    <i class="ri-tools-line me-2"></i> Gestion des Charges
                                 </a>
                             </li>
                         </ul>

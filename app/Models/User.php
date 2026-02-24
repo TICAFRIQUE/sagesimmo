@@ -33,6 +33,7 @@ class User extends Authenticatable implements HasMedia
         'password',
         'avatar',
         'role',
+        'commercial_id', // Pour les propriétaires, le commercial qui les gère
         'created_at',
         'updated_at',
         'deleted_at',
@@ -48,11 +49,6 @@ class User extends Authenticatable implements HasMedia
             mt_rand()]);
         });
     }
-
-
-
-
-
 
 
 
@@ -121,11 +117,27 @@ class User extends Authenticatable implements HasMedia
     }
 
     /**
+     * Reelation pour recuperer le commercial qui gère ce propriétaire
+     */
+    public function commercial()
+    {
+        return $this->belongsTo(User::class, 'commercial_id');
+    }
+
+    /**
      * Scope pour récupérer uniquement les propriétaires
      */
     public function scopeProprietaires($query)
     {
         return $query->role('proprietaire');
+    }
+
+    /**
+     * Scope pour récupérer uniquement les commerciaux
+     */
+    public function scopeCommerciaux($query)
+    {
+        return $query->role('commerciale');
     }
 
     /**
@@ -135,4 +147,6 @@ class User extends Authenticatable implements HasMedia
     {
         return $this->username;
     }
+
+
 }

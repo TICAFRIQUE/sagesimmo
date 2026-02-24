@@ -12,33 +12,40 @@
             border: 3px solid #e2e8f0;
             display: none;
         }
+
         .role-card {
             cursor: pointer;
             transition: all 0.3s ease;
             border: 2px solid transparent;
         }
+
         .role-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
+
         .role-card.selected {
             border-color: #0d6efd;
             background-color: #e7f1ff;
         }
+
         .role-icon {
             font-size: 3rem;
             margin-bottom: 1rem;
         }
+
         .preview-container {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
             margin-top: 15px;
         }
+
         .preview-item {
             position: relative;
             display: inline-block;
         }
+
         .preview-image {
             width: 100px;
             height: 100px;
@@ -46,6 +53,7 @@
             border-radius: 8px;
             border: 2px solid #e2e8f0;
         }
+
         .preview-file {
             width: 100px;
             height: 100px;
@@ -56,6 +64,7 @@
             border-radius: 8px;
             border: 2px solid #e2e8f0;
         }
+
         .btn-remove-preview {
             position: absolute;
             top: -8px;
@@ -72,10 +81,12 @@
             cursor: pointer;
             box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
         }
+
         .btn-remove-preview:hover {
             background: #dc2626;
             transform: scale(1.1);
         }
+
         .preview-filename {
             max-width: 100px;
             font-size: 0.75rem;
@@ -99,8 +110,8 @@
 
     <div class="row">
         <div class="col-lg-12">
-            <form class="needs-validation" action="{{ route('backend.users.store') }}" method="POST" 
-                  enctype="multipart/form-data" novalidate>
+            <form class="needs-validation" action="{{ route('backend.users.store') }}" method="POST"
+                enctype="multipart/form-data" novalidate>
                 @csrf
 
                 <!-- Sélection du type d'utilisateur -->
@@ -110,23 +121,28 @@
                     </div>
                     <div class="card-body">
                         <div class="row g-3">
-                            @foreach($roles as $role)
+                            @foreach ($roles as $role)
                                 <div class="col-md-3">
-                                    <div class="card role-card text-center p-3 {{ old('role_id') == $role->id ? 'selected' : '' }}" data-role="{{ $role->id }}">
+                                    <div class="card role-card text-center p-3 {{ old('role_id') == $role->id ? 'selected' : '' }}"
+                                        data-role="{{ $role->id }}">
                                         <div class="card-body">
                                             @switch($role->name)
                                                 @case('locataire')
                                                     <i class="ri-home-heart-line role-icon text-info"></i>
-                                                    @break
+                                                @break
+
                                                 @case('proprietaire')
                                                     <i class="ri-building-line role-icon text-success"></i>
-                                                    @break
+                                                @break
+
                                                 @case('acheteur')
                                                     <i class="ri-shopping-cart-line role-icon text-primary"></i>
-                                                    @break
+                                                @break
+
                                                 @case('admin')
                                                     <i class="ri-admin-line role-icon text-danger"></i>
-                                                    @break
+                                                @break
+
                                                 @default
                                                     <i class="ri-user-line role-icon text-secondary"></i>
                                             @endswitch
@@ -152,9 +168,10 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="username" class="form-label">Nom complet <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control @error('username') is-invalid @enderror" 
-                                           id="username" name="username" value="{{ old('username') }}" required>
+                                    <label for="username" class="form-label">Nom complet <span
+                                            class="text-danger">*</span></label>
+                                    <input type="text" class="form-control @error('username') is-invalid @enderror"
+                                        id="username" name="username" value="{{ old('username') }}" required>
                                     @error('username')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -162,9 +179,10 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="phone" class="form-label">Téléphone <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control @error('phone') is-invalid @enderror" 
-                                           id="phone" name="phone" value="{{ old('phone') }}" required>
+                                    <label for="phone" class="form-label">Téléphone <span
+                                            class="text-danger">*</span></label>
+                                    <input type="text" class="form-control @error('phone') is-invalid @enderror"
+                                        id="phone" name="phone" value="{{ old('phone') }}" required>
                                     @error('phone')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -173,45 +191,91 @@
                         </div>
 
                         <div class="row">
-                            <div class="col-md-12">
+                            <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
-                                    <input type="email" class="form-control @error('email') is-invalid @enderror" 
-                                           id="email" name="email" value="{{ old('email') }}" required>
+                                    <label for="email" class="form-label">Email <span
+                                            class="text-danger">*</span></label>
+                                    <input type="email" class="form-control @error('email') is-invalid @enderror"
+                                        id="email" name="email" value="{{ old('email') }}" required>
                                     @error('email')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <!--attribuer un commerciale au proprietaire-->
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="commercial_id" class="form-label">Attribuer un Commercial (pour
+                                        propriétaires)</label>
+                                    <select class="form-select @error('commercial_id') is-invalid @enderror"
+                                        id="commercial_id" name="commercial_id">
+                                        <option value="">Aucun</option>
+                                        @foreach ($commerciaux as $commercial)
+                                            <option value="{{ $commercial->id }}"
+                                                {{ old('commercial_id') == $commercial->id ? 'selected' : '' }}>
+                                                {{ $commercial->username }} ({{ $commercial->email }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('commercial_id')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
                             </div>
                         </div>
 
+
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="password" class="form-label">Mot de passe <span class="text-danger">*</span></label>
-                                    <input type="password" class="form-control @error('password') is-invalid @enderror" 
-                                           id="password" name="password" required>
+                                    <label for="password" class="form-label">Mot de passe <span class="text-danger">*</span>
+                                    </label>
+
+                                    <!--check pour generer le mot de passe-->
+                                    <input type="checkbox" id="generate_password" name="generate_password" value="1">
+                                    <label for="generate_password">Generer un mot de passe</label>
+                                    <div class="position-relative">
+                                        <input type="password" class="form-control @error('password') is-invalid @enderror"
+                                            id="password" name="password" required>
+                                        <button type="button"
+                                            class="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted"
+                                            style="padding: 0.5rem 0.75rem;" onclick="togglePassword('password')">
+                                            <i class="ri-eye-off-line" id="password-icon"></i>
+                                        </button>
+                                    </div>
                                     @error('password')
-                                        <div class="invalid-feedback">{{ $message }}</div>
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
                                     @enderror
                                     <small class="text-muted">Minimum 6 caractères</small>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="password_confirmation" class="form-label">Confirmer le mot de passe <span class="text-danger">*</span></label>
-                                    <input type="password" class="form-control" 
-                                           id="password_confirmation" name="password_confirmation" required>
+                                    <label for="password_confirmation" class="form-label">Confirmer le mot de passe <span
+                                            class="text-danger">*</span>
+                                    </label>
+                                    <div class="position-relative">
+                                        <input type="password" class="form-control" id="password_confirmation"
+                                            name="password_confirmation" required>
+                                        <button type="button"
+                                            class="btn btn-link position-absolute end-0 top-0 text-decoration-none text-muted"
+                                            style="padding: 0.5rem 0.75rem;"
+                                            onclick="togglePassword('password_confirmation')">
+                                            <i class="ri-eye-off-line" id="password_confirmation-icon"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+
 
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="mb-3">
                                     <label for="avatar" class="form-label">Photo de profil</label>
-                                    <input type="file" class="form-control @error('avatar') is-invalid @enderror" 
-                                           id="avatar" name="avatar" accept="image/*">
+                                    <input type="file" class="form-control @error('avatar') is-invalid @enderror"
+                                        id="avatar" name="avatar" accept="image/*">
                                     @error('avatar')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -236,9 +300,9 @@
                                     <label for="piece_identite" class="form-label">
                                         <i class="ri-id-card-line me-1"></i>Pièce d'identité
                                     </label>
-                                    <input type="file" class="form-control @error('piece_identite.*') is-invalid @enderror" 
-                                           id="piece_identite" name="piece_identite[]" 
-                                           accept="image/*,.pdf" multiple>
+                                    <input type="file"
+                                        class="form-control @error('piece_identite.*') is-invalid @enderror"
+                                        id="piece_identite" name="piece_identite[]" accept="image/*,.pdf" multiple>
                                     @error('piece_identite.*')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -251,13 +315,13 @@
                                     <label for="documents" class="form-label">
                                         <i class="ri-file-text-line me-1"></i>Autres documents
                                     </label>
-                                    <input type="file" class="form-control @error('documents.*') is-invalid @enderror" 
-                                           id="documents" name="documents[]" 
-                                           accept="image/*,.pdf,.doc,.docx" multiple>
+                                    <input type="file" class="form-control @error('documents.*') is-invalid @enderror"
+                                        id="documents" name="documents[]" accept="image/*,.pdf,.doc,.docx" multiple>
                                     @error('documents.*')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
-                                    <small class="text-muted">Formats acceptés: JPG, PNG, PDF, DOC, DOCX (Max: 5MB chacun)</small>
+                                    <small class="text-muted">Formats acceptés: JPG, PNG, PDF, DOC, DOCX (Max: 5MB
+                                        chacun)</small>
                                     <div id="documents_preview" class="preview-container"></div>
                                 </div>
                             </div>
@@ -286,6 +350,7 @@
 @section('script')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+
             // Gestion de la sélection du type d'utilisateur
             const roleCards = document.querySelectorAll('.role-card');
             const roleInput = document.getElementById('role_id');
@@ -302,14 +367,39 @@
                 card.addEventListener('click', function() {
                     // Retirer la sélection de toutes les cartes
                     roleCards.forEach(c => c.classList.remove('selected'));
-                    
+
                     // Ajouter la sélection à la carte cliquée
                     this.classList.add('selected');
-                    
+
                     // Mettre à jour la valeur du champ caché
                     roleInput.value = this.dataset.role;
                 });
             });
+
+
+
+            // Gestion de la sélection du type d'utilisateur pour activer/désactiver le champ commercial
+            const commercialSelect = document.getElementById('commercial_id');
+            commercialSelect.disabled = true; // Désactiver par défaut
+
+            roleCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    if (this.dataset.role ===
+                        '{{ $proprietaireRoleId }}') { // ID du rôle propriétaire
+                        commercialSelect.disabled = false;
+                        // Réactiver le Select2
+                        $(commercialSelect).prop('disabled', false);
+                    } else {
+                        commercialSelect.disabled = true;
+
+                        // Vider et désactiver le Select2
+                        $(commercialSelect).val(null).trigger('change'); // Vider la sélection
+                        $(commercialSelect).prop('disabled', true); // Désactiver le Select2
+                    }
+                });
+            });
+
+
 
             // Prévisualisation de l'avatar
             const avatarInput = document.getElementById('avatar');
@@ -329,7 +419,7 @@
 
             // Prévisualisation des pièces d'identité
             handleFilePreview('piece_identite', 'piece_identite_preview');
-            
+
             // Prévisualisation des autres documents
             handleFilePreview('documents', 'documents_preview');
 
@@ -346,7 +436,7 @@
 
                 function updatePreview() {
                     previewContainer.innerHTML = '';
-                    
+
                     filesArray.forEach((file, index) => {
                         const previewItem = document.createElement('div');
                         previewItem.className = 'preview-item';
@@ -408,16 +498,56 @@
                     e.preventDefault();
                     e.stopPropagation();
                 }
-                
+
                 // Vérifier que le rôle est sélectionné
                 if (!roleInput.value) {
                     e.preventDefault();
                     alert('Veuillez sélectionner un type d\'utilisateur');
                     return false;
                 }
-                
+
                 form.classList.add('was-validated');
             }, false);
+
+
+        });
+
+
+        // Toggle password visibility
+        function togglePassword(fieldId) {
+            const field = document.getElementById(fieldId); // Récupère le champ de mot de passe
+            const icon = document.getElementById(fieldId + '-icon'); // Récupère l'icon
+
+            if (field.type === 'password') {
+                field.type = 'text';
+                icon.className = 'ri-eye-line';
+            } else {
+                field.type = 'password';
+                icon.className = 'ri-eye-off-line';
+            }
+        }
+
+        // Génération de mot de passe aléatoire
+        function generateRandomPassword(length = 12) {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+            let password = '';
+            for (let i = 0; i < length; i++) {
+                password += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return password;
+        }
+
+        document.getElementById('generate_password').addEventListener('change', function() {
+            if (this.checked) {
+                // const randomPassword = generateRandomPassword();
+
+                const defaultPassword = 'password'; // Mot de passe par défaut
+                document.getElementById('password').value = defaultPassword;
+                document.getElementById('password_confirmation').value = defaultPassword;
+            } else {
+                document.getElementById('password').value = '';
+                document.getElementById('password_confirmation').value = '';
+            }
         });
     </script>
 @endsection

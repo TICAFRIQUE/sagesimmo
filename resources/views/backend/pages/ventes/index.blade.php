@@ -47,13 +47,13 @@
                                     <select name="statut" class="form-select">
                                         <option value="">Tous les statuts</option>
                                         <option value="demande_client"
-                                            {{ request('statut') == 'demande_client' ? 'selected' : '' }}>Demande client
+                                            {{ request('statut') == 'demande_client' ? 'selected' : '' }}>Nouvelle demande
                                         </option>
-                                        <option value="brouillon" {{ request('statut') == 'brouillon' ? 'selected' : '' }}>
-                                            Brouillon</option>
-                                        <option value="fiche_envoyee"
+                                        {{-- <option value="brouillon" {{ request('statut') == 'brouillon' ? 'selected' : '' }}>
+                                            Brouillon</option> --}}
+                                        {{-- <option value="fiche_envoyee"
                                             {{ request('statut') == 'fiche_envoyee' ? 'selected' : '' }}>Fiche envoyée
-                                        </option>
+                                        </option> --}}
                                         <option value="visite_planifiee"
                                             {{ request('statut') == 'visite_planifiee' ? 'selected' : '' }}>Visite planifiée
                                         </option>
@@ -61,7 +61,7 @@
                                             {{ request('statut') == 'offre_acceptee' ? 'selected' : '' }}>Offre acceptée
                                         </option>
                                         <option value="terminee" {{ request('statut') == 'terminee' ? 'selected' : '' }}>
-                                            Terminée</option>
+                                            Terminée / Finalisée</option>
                                         <option value="annulee" {{ request('statut') == 'annulee' ? 'selected' : '' }}>
                                             Annulée</option>
                                     </select>
@@ -114,14 +114,14 @@
                                     <th>Montant payé</th>
                                     <th>Reste à payer</th>
                                     <th>Commission</th>
-                                    <th>Date vente</th>
+                                    <th>Date emission</th>
                                     <th>Statut</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($ventes as $key => $vente)
-                                    <tr id="row_{{$vente->id}}">
+                                    <tr id="row_{{$vente->id}}" class="{{ $vente->statut === 'demande_client' ? 'table-info' :($vente->statut === 'offre_acceptee' ? 'table-warning' : '') }}">
                                         <td>{{ ++$key }}</td>
                                         <td>
                                             <div class="d-flex align-items-center">

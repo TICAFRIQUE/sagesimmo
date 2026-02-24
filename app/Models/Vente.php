@@ -161,7 +161,7 @@ class Vente extends Model implements HasMedia
             'fiche_envoyee' => '<span class="badge bg-info">Fiche envoyée</span>',
             'retour_prospect' => '<span class="badge bg-secondary">En attente retour</span>',
             'visite_planifiee' => '<span class="badge bg-cyan">Visite planifiée</span>',
-            'offre_acceptee' => '<span class="badge bg-warning">Offre acceptée</span>',
+            'offre_acceptee' => '<span class="badge bg-warning">Offre acceptée/ En attente paiement</span>',
             'terminee' => '<span class="badge bg-success">Finalisé</span>',
             'annulee' => '<span class="badge bg-danger">Annulé</span>',
         ];

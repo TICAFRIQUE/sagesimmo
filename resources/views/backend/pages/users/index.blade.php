@@ -89,11 +89,12 @@
                             <thead class="table-light">
                                 <tr>
                                     <th>#</th>
-                                    <th>Avatar</th>
+                                    {{-- <th>Avatar</th> --}}
                                     <th>Nom</th>
                                     <th>Email</th>
                                     <th>Téléphone</th>
                                     <th>Type</th>
+                                    <th>Suivi par</th>
                                     <th>Date création</th>
                                     <th>Actions</th>
                                 </tr>
@@ -102,7 +103,7 @@
                                 @foreach ($users as $key => $user)
                                     <tr>
                                         <td>{{ ++$key }}</td>
-                                        <td class="text-center">
+                                        {{-- <td class="text-center">
                                             @if ($user->hasMedia('avatar'))
                                                 <img src="{{ $user->getFirstMediaUrl('avatar') }}"
                                                     alt="{{ $user->username }}" class="user-avatar">
@@ -112,7 +113,7 @@
                                                     <span class="fw-bold">{{ substr($user->username, 0, 1) }}</span>
                                                 </div>
                                             @endif
-                                        </td>
+                                        </td> --}}
                                         <td><strong>{{ $user->username }}</strong></td>
                                         <td>{{ $user->email }}</td>
                                         <td>{{ $user->phone }}</td>
@@ -155,6 +156,11 @@
                                                 <span class="badge bg-secondary badge-role">Aucun rôle</span>
                                             @endif
                                         </td>
+                                        <td>
+                                            <a href="#" class="text-capitalize" data-bs-toggle="modal" data-bs-target="#commercialModal{{ $user->id }}">
+                                                {{ $user->commercial ? $user->commercial->username : '-' }}
+                                            </a>
+                                        </td>
                                         <td>{{ $user->created_at->format('d/m/Y H:i') }}</td>
                                         <td>
                                             <div class="dropdown">
@@ -191,6 +197,9 @@
                                             </div>
                                         </td>
                                     </tr>
+
+                                    <!-- Modal Commercial -->
+                                    @include('backend.pages.users.partials.commercialModal')
                                 @endforeach
                                 @if ($users->isEmpty())
                                     <tr>

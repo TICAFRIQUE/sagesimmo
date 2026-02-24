@@ -130,6 +130,10 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="password" class="form-label">Mot de passe <span class="text-danger">*</span></label>
+                                    <!--check pour generer le mot de passe-->
+                                        <input type="checkbox" id="generate_password" name="generate_password"
+                                            value="1">
+                                        <label for="generate_password">Generer un mot de passe</label>
                                     <div class="position-relative">
                                         <input type="password" class="form-control @error('password') is-invalid @enderror" 
                                                id="password" name="password" required>
@@ -252,9 +256,10 @@
             }, false);
         });
 
+        // Fonction pour basculer la visibilité du mot de passe
         function togglePassword(fieldId) {
-            const field = document.getElementById(fieldId);
-            const icon = document.getElementById(fieldId + '-icon');
+            const field = document.getElementById(fieldId); // Récupère le champ de mot de passe
+            const icon = document.getElementById(fieldId + '-icon'); // Récupère l'icon
             
             if (field.type === 'password') {
                 field.type = 'text';
@@ -264,6 +269,21 @@
                 icon.className = 'ri-eye-off-line';
             }
         }
+
+// Génération de mot de passe par defaut
+         document.getElementById('generate_password').addEventListener('change', function() {
+            if (this.checked) {
+                // const randomPassword = generateRandomPassword();
+
+                const defaultPassword = 'password'; // Mot de passe par défaut
+                document.getElementById('password').value = defaultPassword;
+                document.getElementById('password_confirmation').value = defaultPassword;
+            }else {
+                document.getElementById('password').value = '';
+                document.getElementById('password_confirmation').value = '';
+            }
+        });
+
     </script>
 @endsection
 

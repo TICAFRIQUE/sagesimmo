@@ -112,6 +112,7 @@ class AdminController extends Controller
                 'email' => $validated['email'],
                 'phone' => $validated['phone'],
                 'password' => Hash::make($validated['password']),
+                'role' => $validated['role'], // Stocker le nom du rôle pour une référence rapide
             ]);
 
             // Assigner le rôle
@@ -182,6 +183,7 @@ class AdminController extends Controller
                 'username' => $validated['username'],
                 'email' => $validated['email'],
                 'phone' => $validated['phone'],
+                'role' => $validated['role'], // Mettre à jour le nom du rôle pour une référence rapide
             ];
 
             // Mise à jour du mot de passe si fourni

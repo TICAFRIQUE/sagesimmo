@@ -191,7 +191,7 @@
                             <div class="flex-grow-1">
                                 <h6 class="mb-2">
                                     <i class="ri-calendar-check-line me-1"></i>
-                                    3. Planification de la visite
+                                    1. Planification de la visite
                                 </h6>
                                 {{-- @if ($vente->statut == 'fiche_envoyee') --}}
                                 <button
@@ -220,7 +220,7 @@
                             <div class="flex-grow-1">
                                 <h6 class="mb-2">
                                     <i class="ri-home-smile-line me-1"></i>
-                                    4. Visite effectuée
+                                    2. Visite effectuée
                                 </h6>
                                 @if ($vente->statut == 'visite_planifiee')
                                     <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
@@ -249,7 +249,7 @@
                             <div class="flex-grow-1">
                                 <h6 class="mb-2">
                                     <i class="ri-money-dollar-circle-line me-1"></i>
-                                    5. Configuration du paiement
+                                    3. Configuration du paiement
                                 </h6>
                                 @if (in_array($vente->statut, ['offre_acceptee', 'terminee']))
                                     <div class="info-card mt-2">

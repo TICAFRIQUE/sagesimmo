@@ -17,8 +17,8 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
-        $query = User::with('roles')->whereHas('roles', function ($q) {
-            $q->whereIn('name', ['locataire', 'proprietaire', 'acheteur' , 'prospect']);
+        $query = User::with(['roles', 'commercial'])->whereHas('roles', function ($q) {
+            $q->whereIn('name', ['locataire', 'proprietaire', 'acheteur', 'prospect']);
         }); // Exclure l'administrateur principal
 
         // Filtre par type d'utilisateur (rôle Spatie)
@@ -54,8 +54,17 @@ class UserController extends Controller
     public function create()
     {
         // Récupérer uniquement les rôles [proprietaire, acheteur, locataire]
-        $roles = Role::whereIn('name', ['proprietaire', 'acheteur', 'locataire' , 'prospect'])->get();
-        return view('backend.pages.users.create', compact('roles'));
+        $roles = Role::whereIn('name', ['proprietaire', 'acheteur', 'locataire', 'prospect'])->get();
+
+        //recuperer les user qui ont le role de commerciale
+        $commerciaux = User::whereHas('roles', function ($q) {
+            $q->where('name', 'commercial');
+        })->get();
+
+        //recuperer l'id du role proprietaire
+        $proprietaireRoleId = Role::where('name', 'proprietaire')->first()->id;
+        // dd($commerciaux->toArray());
+        return view('backend.pages.users.create', compact('roles', 'commerciaux', 'proprietaireRoleId'));
     }
 
     /**
@@ -71,7 +80,8 @@ class UserController extends Controller
             'role_id' => 'required|exists:roles,id',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'piece_identite.*' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:5120',
-            'documents.*' => 'nullable|file|mimes:jpeg,png,jpg,pdf,doc,docx|max:5120'
+            'documents.*' => 'nullable|file|mimes:jpeg,png,jpg,pdf,doc,docx|max:5120',
+            'commercial_id' => 'nullable|exists:users,id',
         ]);
 
         $data = $request->except(['password', 'password_confirmation', 'role_id', 'avatar', 'piece_identite', 'documents']);
@@ -82,6 +92,10 @@ class UserController extends Controller
         // Assigner le rôle Spatie
         $role = Role::findById($request->role_id);
         $user->assignRole($role);
+
+        // Stocker le nom du rôle dans la colonne 'role' pour une référence rapide
+        $user->role = $role->name;
+        $user->save();
 
         // Gestion de l'avatar avec Spatie Media
         if ($request->hasFile('avatar')) {
@@ -115,7 +129,7 @@ class UserController extends Controller
     public function show(User $user)
     {
         $user->load([
-            'roles', 
+            'roles',
             'media',
             'ventes.annonce.media',
             'ventes.paiements',
@@ -136,23 +150,23 @@ class UserController extends Controller
         if ($user->hasRole('proprietaire') && $user->annonces->count() > 0) {
             $statsFinancieres = [
                 // Revenus locatifs
-                'revenus_locatifs_total' => $user->annonces->flatMap(function($annonce) {
+                'revenus_locatifs_total' => $user->annonces->flatMap(function ($annonce) {
                     return $annonce->locations->flatMap->paiements;
                 })->sum('montant'),
-                
-                'revenus_locatifs_attendus' => $user->annonces->flatMap(function($annonce) {
+
+                'revenus_locatifs_attendus' => $user->annonces->flatMap(function ($annonce) {
                     return $annonce->locations->flatMap->echeances->where('statut', 'en_attente');
                 })->sum('montant'),
-                
+
                 'nombre_locations_actives' => $user->annonces->flatMap->locations->where('statut', 'en_cours')->count(),
-                
+
                 // Revenus de ventes
-                'revenus_ventes_total' => $user->annonces->flatMap(function($annonce) {
+                'revenus_ventes_total' => $user->annonces->flatMap(function ($annonce) {
                     return $annonce->ventes->flatMap->paiements;
                 })->sum('montant'),
-                
+
                 'nombre_ventes' => $user->annonces->flatMap->ventes->count(),
-                
+
                 // Nombre de biens
                 'biens_disponibles' => $user->annonces->where('statut', 'disponible')->count(),
                 'biens_loues' => $user->annonces->where('statut', 'loue')->count(),
@@ -168,9 +182,23 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
-        $roles = Role::whereIn('name', ['proprietaire', 'acheteur', 'locataire' , 'prospect'])->get();
-        $user->load('roles', 'media');
-        return view('backend.pages.users.edit', compact('user', 'roles'));
+        $roles = Role::whereIn('name', ['proprietaire', 'acheteur', 'locataire', 'prospect'])->get();
+        $user->load('roles', 'media'); // Charger les rôles et les médias associés
+
+        //recuperer les user qui ont le role de commerciale
+        $commerciaux = User::whereHas('roles', function ($q) {
+            $q->where('name', 'commercial');
+        })->get();
+        //recuperer l'id du role proprietaire
+        $proprietaireRoleId = Role::where('name', 'proprietaire')->first()->id;
+
+        //recuperer le ID du role du user a editer
+        $userRoleEdit = $user->roles->first()->id;
+        //verifier si le role du user a editer est proprietaire pour activer le select commercial sinon le desactiver
+        $enableSelect = ($proprietaireRoleId == $userRoleEdit) ? true : false;
+
+
+        return view('backend.pages.users.edit', compact('user', 'roles', 'commerciaux', 'proprietaireRoleId' , 'userRoleEdit', 'enableSelect'));
     }
 
     /**
@@ -186,7 +214,8 @@ class UserController extends Controller
             'role_id' => 'required|exists:roles,id',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'piece_identite.*' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:5120',
-            'documents.*' => 'nullable|file|mimes:jpeg,png,jpg,pdf,doc,docx|max:5120'
+            'documents.*' => 'nullable|file|mimes:jpeg,png,jpg,pdf,doc,docx|max:5120',
+            'commercial_id' => 'nullable|exists:users,id',
         ]);
 
         $data = $request->except(['password', 'password_confirmation', 'role_id', 'avatar', 'piece_identite', 'documents']);
@@ -201,6 +230,10 @@ class UserController extends Controller
         // Mettre à jour le rôle Spatie
         $role = Role::findById($request->role_id);
         $user->syncRoles([$role]);
+
+        // Mettre à jour le nom du rôle dans la colonne 'role' pour une référence rapide
+        $user->role = $role->name;
+        $user->save();
 
         // Gestion de l'avatar avec Spatie Media
         if ($request->hasFile('avatar')) {
@@ -242,7 +275,7 @@ class UserController extends Controller
         $user->delete();
 
         //utiliser toast
-toast('Utilisateur supprimé avec succès','success');
+        toast('Utilisateur supprimé avec succès', 'success');
 
 
         // return redirect()->route('backend.users.index')->with('success', 'Utilisateur supprimé avec succès');

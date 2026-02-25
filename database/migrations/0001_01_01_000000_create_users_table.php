@@ -20,6 +20,10 @@ return new class extends Migration
             $table->string('password')->nullable();
             $table->text('avatar')->nullable();
             $table->string('role')->nullable();
+
+            //FOREIGN KEY
+            $table->foreignId('commercial_id')->nullable()->constrained('users')->onDelete('cascade'); // Ajout de la colonne commercial_id();
+
             $table->rememberToken();
             $table->timestamps();
             $table->softDeletes();

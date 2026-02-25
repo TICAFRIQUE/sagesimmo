@@ -423,6 +423,8 @@ class VenteController extends Controller
             'methode_paiement' => $validated['methode_paiement'],
             'reference' => $validated['reference'] ?? null,
             'notes' => $validated['notes'] ?? null,
+            'commission_agence' => $validated['commission_agence'] ?? null,
+            'type_commission' => $validated['type_commission'] ?? null,
             'statut' => 'paye',
         ]);
 

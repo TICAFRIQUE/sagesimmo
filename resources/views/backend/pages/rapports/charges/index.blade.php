@@ -14,7 +14,7 @@
             </h1>
         </div>
         <div class="col-md-4 text-end">
-            <a href="{{ route('charges.create') }}" class="btn btn-primary">
+            <a href="{{ route('backend.charges.create') }}" class="btn btn-primary">
                 <i class="fas fa-plus"></i> Ajouter une charge
             </a>
         </div>
@@ -42,7 +42,7 @@
     <!-- Filtres -->
     <div class="card mb-4">
         <div class="card-body">
-            <form method="GET" action="{{ route('charges.index') }}" class="row g-3">
+            <form method="GET" action="{{ route('backend.charges.index') }}" class="row g-3">
                 <div class="col-md-3">
                     <label for="annonce_id" class="form-label">Bien</label>
                     <select name="annonce_id" id="annonce_id" class="form-select">
@@ -82,7 +82,7 @@
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-search"></i> Filtrer
                     </button>
-                    <a href="{{ route('charges.index') }}" class="btn btn-secondary">
+                    <a href="{{ route('backend.charges.index') }}" class="btn btn-secondary">
                         <i class="fas fa-redo"></i> Réinitialiser
                     </a>
                 </div>
@@ -166,11 +166,11 @@
                             </td>
                             <td class="text-center">
                                 <div class="btn-group btn-group-sm" role="group">
-                                    <a href="{{ route('charges.edit', $charge) }}" class="btn btn-outline-primary"
+                                    <a href="{{ route('backend.charges.edit', $charge) }}" class="btn btn-outline-primary"
                                         title="Éditer">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <form action="{{ route('charges.destroy', $charge) }}" method="POST"
+                                    <form action="{{ route('backend.charges.destroy', $charge) }}" method="POST"
                                         style="display: inline;">
                                         @csrf
                                         @method('DELETE')

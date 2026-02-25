@@ -377,30 +377,6 @@
             });
 
 
-
-            // Gestion de la sélection du type d'utilisateur pour activer/désactiver le champ commercial
-            const commercialSelect = document.getElementById('commercial_id');
-            commercialSelect.disabled = true; // Désactiver par défaut
-
-            roleCards.forEach(card => {
-                card.addEventListener('click', function() {
-                    if (this.dataset.role ===
-                        '{{ $proprietaireRoleId }}') { // ID du rôle propriétaire
-                        commercialSelect.disabled = false;
-                        // Réactiver le Select2
-                        $(commercialSelect).prop('disabled', false);
-                    } else {
-                        commercialSelect.disabled = true;
-
-                        // Vider et désactiver le Select2
-                        $(commercialSelect).val(null).trigger('change'); // Vider la sélection
-                        $(commercialSelect).prop('disabled', true); // Désactiver le Select2
-                    }
-                });
-            });
-
-
-
             // Prévisualisation de l'avatar
             const avatarInput = document.getElementById('avatar');
             const avatarPreview = document.getElementById('avatar-preview');

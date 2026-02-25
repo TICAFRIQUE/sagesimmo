@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('annonces', function (Blueprint $table) {
             $table->id();
-            $table->string('titre');
+            $table->string('titre')->nullable();
             $table->string('slug')->nullable();
-            $table->text('description');
+            $table->text('description')->nullable();
             $table->enum('type_transaction', ['vente', 'location'])->default('vente');
             $table->foreignId('type_bien_id')->constrained('type_biens')->onDelete('cascade');
             $table->unsignedBigInteger('prix');
@@ -26,8 +26,8 @@ return new class extends Migration
             $table->integer('nombre_salles_bain')->nullable();
             $table->integer('nombre_pieces')->nullable();
             $table->integer('etage')->nullable();
-            $table->string('adresse');
-            $table->string('ville');
+            $table->string('adresse')->nullable();
+            $table->string('ville')->nullable();
             $table->string('commune')->nullable();
             $table->string('quartier')->nullable();
             $table->string('code_postal')->nullable();
@@ -39,8 +39,12 @@ return new class extends Migration
             $table->integer('annee_construction')->nullable();
             $table->text('caracteristiques_supplementaires')->nullable();
             $table->string('reference')->unique();
-            $table->foreignId('proprietaire_id')->nullable()->constrained('users')->onDelete('set null')->comment('Le propriétaire du bien');
-            $table->foreignId('created_by_id')->nullable()->constrained('users')->onDelete('set null')->comment('L\'utilisateur qui a créé l\'annonce');
+            $table->foreignId('proprietaire_id')->nullable()->constrained('users')->onDelete('cascade')->comment('Le propriétaire du bien');
+            // Ajouter un champ pour indiquer si le bien appartient à l'agence
+            $table->boolean('est_bien_agence')->default(false)
+                ->comment('Indique si le bien appartient à l\'agence ou à un propriétaire externe');
+
+            $table->foreignId('created_by_id')->nullable()->constrained('users')->onDelete('cascade')->comment('L\'utilisateur qui a créé l\'annonce');
             $table->integer('nombre_vues')->default(0);
             $table->timestamps();
             $table->softDeletes();

@@ -14,7 +14,7 @@
             </h1>
         </div>
         <div class="col-md-4 text-end">
-            <a href="{{ route('rapports.agence') }}" class="btn btn-secondary btn-sm">
+            <a href="{{ route('backend.rapports.agence') }}" class="btn btn-secondary btn-sm">
                 <i class="fas fa-refresh"></i> Réinitialiser
             </a>
             <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">
@@ -26,7 +26,7 @@
     <!-- Filtres -->
     <div class="card mb-4">
         <div class="card-body">
-            <form method="GET" action="{{ route('rapports.agence') }}" class="row g-3">
+            <form method="GET" action="{{ route('backend.rapports.agence') }}" class="row g-3">
                 <div class="col-md-5">
                     <label for="date_debut" class="form-label">Date début</label>
                     <input type="date" name="date_debut" id="date_debut" class="form-control"

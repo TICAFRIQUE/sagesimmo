@@ -301,8 +301,72 @@ class RapportController extends Controller
 
         // Si pas de propriétaire spécifié, afficher liste de sélection
         if (!$proprietaireId) {
-            $proprietaires = User::where('role', 'proprietaire')->get();
-            return view('backend.pages.rapports.proprietaire-select', compact('proprietaires'));
+            // Récupérer les filtres
+            $proprietaireFiltre = $request->input('proprietaire_filtre');
+            $statutFiltre = $request->input('statut_filtre'); // Nouveau filtre de statut
+            $dateDebut = $request->input('date_debut') 
+                ? Carbon::createFromFormat('Y-m-d', $request->input('date_debut'))
+                : now()->startOfMonth();
+            $dateFin = $request->input('date_fin')
+                ? Carbon::createFromFormat('Y-m-d', $request->input('date_fin'))
+                : now()->endOfMonth();
+            
+            // Récupérer tous les propriétaires pour le select
+            $allProprietaires = User::where('role', 'proprietaire')->get();
+            
+            // Filtrer les propriétaires à afficher
+            $proprietaires = $allProprietaires;
+            if ($proprietaireFiltre) {
+                $proprietaires = $allProprietaires->where('id', $proprietaireFiltre);
+            }
+            
+            // Générer un aperçu du rapport pour chaque propriétaire selon les dates
+            $service = new RapportProprietaireService();
+            $aperçus = $proprietaires->map(function ($proprietaire) use ($service, $dateDebut, $dateFin) {
+                return $service->genererRapport($proprietaire, $dateDebut, $dateFin);
+            });
+            
+            // Filtrer par statut si demandé
+            if ($statutFiltre) {
+                $proprietaires = $proprietaires->filter(function ($proprietaire, $key) use ($aperçus, $statutFiltre) {
+                    $rapport = $aperçus[$key] ?? null;
+                    if (!$rapport) return false;
+                    
+                    $badge = $rapport['statut_versement']['badge'] ?? 'secondary';
+                    
+                    // Mapper les badges aux statuts
+                    $badgeToStatut = [
+                        'warning' => 'en_attente',
+                        'info' => 'partiel',
+                        'success' => 'effectue',
+                        'secondary' => 'aucun'
+                    ];
+                    
+                    return ($badgeToStatut[$badge] ?? 'aucun') === $statutFiltre;
+                });
+                
+                // Réindexer les aperçus selon les propriétaires filtrés
+                $aperçus = $proprietaires->map(function ($proprietaire) use ($service, $dateDebut, $dateFin) {
+                    return $service->genererRapport($proprietaire, $dateDebut, $dateFin);
+                });
+            }
+
+            // Calculer les KPI globaux
+            $kpiGlobal = [
+                'versements_disponibles' => $aperçus->sum('reste_a_verser') ?? 0, // À verser
+                'versements_partiels' => $aperçus->sum('total_versements_partiels') ?? 0, // Montant partiel
+                'versements_effectues' => $aperçus->sum('montant_total_verse') ?? 0, // Total versé
+                'total_commission' => $aperçus->sum('total_commission_agence') ?? 0, // Commission totale perçue
+            ];
+            
+            return view('backend.pages.rapports.proprietaire-select', compact(
+                'proprietaires',
+                'allProprietaires',
+                'aperçus',
+                'dateDebut',
+                'dateFin',
+                'kpiGlobal'
+            ));
         }
 
         $proprietaire = User::findOrFail($proprietaireId);
@@ -310,11 +374,11 @@ class RapportController extends Controller
         // Filtres de dates
         $dateDebut = $request->input('date_debut') 
             ? Carbon::createFromFormat('Y-m-d', $request->input('date_debut'))
-            : now()->startOfYear();
+            : now()->startOfMonth();
         
         $dateFin = $request->input('date_fin')
             ? Carbon::createFromFormat('Y-m-d', $request->input('date_fin'))
-            : now()->endOfYear();
+            : now()->endOfMonth();
 
         // Générer le rapport
         $service = new RapportProprietaireService();
@@ -444,7 +508,7 @@ class RapportController extends Controller
 
         Charge::create($request->all());
 
-        return redirect()->route('charges.index')
+        return redirect()->route('backend.charges.index')
             ->with('success', 'Charge enregistrée avec succès');
     }
 
@@ -484,7 +548,7 @@ class RapportController extends Controller
 
         $charge->update($request->all());
 
-        return redirect()->route('charges.index')
+        return redirect()->route('backend.charges.index')
             ->with('success', 'Charge mise à jour avec succès');
     }
 
@@ -500,7 +564,7 @@ class RapportController extends Controller
 
         $charge->delete();
 
-        return redirect()->route('charges.index')
+        return redirect()->route('backend.charges.index')
             ->with('success', 'Charge supprimée avec succès');
     }
 }

@@ -125,6 +125,14 @@ class User extends Authenticatable implements HasMedia
     }
 
     /**
+     * Relation avec les versements (en tant que propriétaire)
+     */
+    public function versements()
+    {
+        return $this->hasMany(Versement::class, 'proprietaire_id');
+    }
+
+    /**
      * Scope pour récupérer uniquement les propriétaires
      */
     public function scopeProprietaires($query)

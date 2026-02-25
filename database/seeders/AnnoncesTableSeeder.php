@@ -24,7 +24,7 @@ class AnnoncesTableSeeder extends Seeder
         
         // Récupérer les utilisateurs avec rôles, sinon tous les utilisateurs
         $users = User::whereHas('roles', function($q) {
-            $q->whereIn('name', ['proprietaire', 'admin']);
+            $q->where('name', 'proprietaire');
         })->get();
         
         // Si aucun utilisateur avec rôles, prendre tous les utilisateurs
@@ -87,10 +87,10 @@ class AnnoncesTableSeeder extends Seeder
             'https://images.unsplash.com/photo-1600573472550-8090b5e0745e?w=800',
         ];
 
-        $this->command->info('Génération de 100 annonces avec images...');
-        $bar = $this->command->getOutput()->createProgressBar(100);
+        $this->command->info('Génération de 10 annonces avec images...');
+        $bar = $this->command->getOutput()->createProgressBar(10);
 
-        for ($i = 1; $i <= 30; $i++) {
+        for ($i = 1; $i <= 10; $i++) {
             $typeBien = $typesBiens->random();
             $typeTransaction = rand(0, 1) ? 'location' : 'vente';
             $ville = $villes[array_rand($villes)];
@@ -163,7 +163,7 @@ class AnnoncesTableSeeder extends Seeder
                 'ville' => $ville['nom'],
                 'quartier' => $quartier,
                 'code_postal' => '00225',
-                'statut' => $i <= 80 ? 'disponible' : ['en_attente', 'loue', 'vendu'][array_rand(['en_attente', 'loue', 'vendu'])],
+                'statut' => 'disponible',
                 'en_vedette' => rand(0, 100) < 20, // 20% en vedette
                 'date_disponibilite' => now()->addDays(rand(-30, 60)),
                 'annee_construction' => rand(2010, 2025),
@@ -176,6 +176,7 @@ class AnnoncesTableSeeder extends Seeder
                 'proprietaire_id' => $users->random()->id, // Le propriétaire du bien
                 'created_by_id' => $users->random()->id,   // Celui qui a créé l'annonce
                 'nombre_vues' => rand(0, 500),
+                'est_bien_agence' => rand(0, 1) ? true : false,
             ]);
 
             // Ajouter des équipements (entre 3 et 8)

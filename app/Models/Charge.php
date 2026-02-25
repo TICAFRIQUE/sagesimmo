@@ -20,7 +20,7 @@ class Charge extends Model
     ];
 
     protected $casts = [
-        'montant' => 'decimal:2',
+        // 'montant' => 'decimal:2',
         'date_charge' => 'date',
     ];
 

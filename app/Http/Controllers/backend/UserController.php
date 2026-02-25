@@ -62,9 +62,9 @@ class UserController extends Controller
         })->get();
 
         //recuperer l'id du role proprietaire
-        $proprietaireRoleId = Role::where('name', 'proprietaire')->first()->id;
+        // $proprietaireRoleId = Role::where('name', 'proprietaire')->first()->id;
         // dd($commerciaux->toArray());
-        return view('backend.pages.users.create', compact('roles', 'commerciaux', 'proprietaireRoleId'));
+        return view('backend.pages.users.create', compact('roles', 'commerciaux'));
     }
 
     /**
@@ -189,16 +189,16 @@ class UserController extends Controller
         $commerciaux = User::whereHas('roles', function ($q) {
             $q->where('name', 'commercial');
         })->get();
-        //recuperer l'id du role proprietaire
-        $proprietaireRoleId = Role::where('name', 'proprietaire')->first()->id;
+        // //recuperer l'id du role proprietaire
+        // $proprietaireRoleId = Role::where('name', 'proprietaire')->first()->id;
 
-        //recuperer le ID du role du user a editer
-        $userRoleEdit = $user->roles->first()->id;
-        //verifier si le role du user a editer est proprietaire pour activer le select commercial sinon le desactiver
-        $enableSelect = ($proprietaireRoleId == $userRoleEdit) ? true : false;
+        // //recuperer le ID du role du user a editer
+        // $userRoleEdit = $user->roles->first()->id;
+        // //verifier si le role du user a editer est proprietaire pour activer le select commercial sinon le desactiver
+        // $enableSelect = ($proprietaireRoleId == $userRoleEdit) ? true : false;
 
 
-        return view('backend.pages.users.edit', compact('user', 'roles', 'commerciaux', 'proprietaireRoleId' , 'userRoleEdit', 'enableSelect'));
+        return view('backend.pages.users.edit', compact('user', 'roles', 'commerciaux'));
     }
 
     /**

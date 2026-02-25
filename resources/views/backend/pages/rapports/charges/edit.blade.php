@@ -30,7 +30,7 @@
     <!-- Formulaire -->
     <div class="card">
         <div class="card-body">
-            <form action="{{ route('charges.update', $charge) }}" method="POST">
+            <form action="{{ route('backend.charges.update', $charge) }}" method="POST">
                 @csrf
                 @method('PUT')
 
@@ -149,7 +149,7 @@
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save"></i> Mettre à jour
                     </button>
-                    <a href="{{ route('charges.index') }}" class="btn btn-secondary">
+                    <a href="{{ route('backend.charges.index') }}" class="btn btn-secondary">
                         <i class="fas fa-times"></i> Annuler
                     </a>
                 </div>

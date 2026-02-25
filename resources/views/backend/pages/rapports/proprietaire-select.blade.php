@@ -15,55 +15,189 @@
         </div>
     </div>
 
+    <!-- Filtres -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ route('backend.rapports.proprietaire') }}" class="row g-3">
+                <div class="col-md-5">
+                    <label for="proprietaire_filtre" class="form-label">Propriétaire</label>
+                    <select name="proprietaire_filtre" id="proprietaire_filtre" class="form-select">
+                        <option value="">-- Tous les propriétaires --</option>
+                        @foreach($allProprietaires as $prop)
+                            <option value="{{ $prop->id }}" @selected(request('proprietaire_filtre') == $prop->id)>
+                                {{ $prop->username }} ({{ $prop->email }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label for="statut_filtre" class="form-label">Statut Versement</label>
+                    <select name="statut_filtre" id="statut_filtre" class="form-select">
+                        <option value="">-- Tous --</option>
+                        <option value="en_attente" @selected(request('statut_filtre') == 'en_attente')>Versement disponible</option>
+                        <option value="partiel" @selected(request('statut_filtre') == 'partiel')>Partiel</option>
+                        <option value="effectue" @selected(request('statut_filtre') == 'effectue')>Effectué</option>
+                        <option value="aucun" @selected(request('statut_filtre') == 'aucun')>Aucun disponible</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-2">
+                    <label for="date_debut" class="form-label">Date début</label>
+                    <input type="date" name="date_debut" id="date_debut" class="form-control"
+                        value="{{ isset($dateDebut) ? $dateDebut->format('Y-m-d') : now()->startOfMonth()->format('Y-m-d') }}">
+                </div>
+                
+                <div class="col-md-2">
+                    <label for="date_fin" class="form-label">Date fin</label>
+                    <input type="date" name="date_fin" id="date_fin" class="form-control"
+                        value="{{ isset($dateFin) ? $dateFin->format('Y-m-d') : now()->endOfMonth()->format('Y-m-d') }}">
+                </div>
+                
+                <div class="col-12 text-center">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Filtrer
+                    </button>
+                    <a href="{{ route('backend.rapports.proprietaire') }}" class="btn btn-secondary">
+                        <i class="fas fa-refresh"></i> Réinitialiser
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- KPI Global -->
+    @if(isset($kpiGlobal))
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body py-3 px-3">
+                    <small class="text-muted d-block mb-1" style="font-size: 11px;">Versements Disponibles</small>
+                    <h5 class="mb-0" style="color: #ffc107; font-size: 14px;">{{ number_format($kpiGlobal['versements_disponibles'], 0, ',', ' ') }} F</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body py-3 px-3">
+                    <small class="text-muted d-block mb-1" style="font-size: 11px;">Versements Partiels</small>
+                    <h5 class="mb-0" style="color: #17a2b8; font-size: 14px;">{{ number_format($kpiGlobal['versements_partiels'], 0, ',', ' ') }} F</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body py-3 px-3">
+                    <small class="text-muted d-block mb-1" style="font-size: 11px;">Versements Effectués</small>
+                    <h5 class="mb-0" style="color: #28a745; font-size: 14px;">{{ number_format($kpiGlobal['versements_effectues'], 0, ',', ' ') }} F</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body py-3 px-3">
+                    <small class="text-muted d-block mb-1" style="font-size: 11px;">Commission Perçue</small>
+                    <h5 class="mb-0" style="color: #0d6efd; font-size: 14px;">{{ number_format($kpiGlobal['total_commission'], 0, ',', ' ') }} F</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <!-- Liste des propriétaires -->
     <div class="card">
         <div class="card-header">
             <h5 class="mb-0">
                 Propriétaires disponibles ({{ $proprietaires->count() }} au total)
+                @if(isset($dateDebut) && isset($dateFin))
+                    - Période: <small>{{ $dateDebut->format('d/m/Y') }} au {{ $dateFin->format('d/m/Y') }}</small>
+                @endif
             </h5>
         </div>
         <div class="card-body">
             @if($proprietaires->count() > 0)
                 <div class="row">
-                    @foreach($proprietaires as $proprietaire)
-                    <div class="col-md-6 col-lg-4 mb-4">
-                        <div class="card h-100 border-0 shadow-sm">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center mb-3">
-                                    @if($proprietaire->getFirstMediaUrl('avatar'))
-                                        <img src="{{ $proprietaire->getFirstMediaUrl('avatar') }}" 
-                                            alt="{{ $proprietaire->username }}" 
-                                            class="rounded-circle me-3" width="50" height="50">
-                                    @else
-                                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-3" 
-                                            style="width: 50px; height: 50px;">
-                                            <i class="fas fa-user"></i>
+                    @php
+                        // Grouper et trier par statut
+                        $statusOrder = ['en_attente' => 1, 'partiel' => 2, 'effectue' => 3, 'secondary' => 4];
+                        $proprsByStatus = [];
+                        
+                        foreach($proprietaires as $index => $proprietaire) {
+                            $rapport = $aperçus[$index] ?? null;
+                            $badge = $rapport['statut_versement']['badge'] ?? 'secondary';
+                            $order = $statusOrder[$badge] ?? 4;
+                            
+                            if (!isset($proprsByStatus[$order])) {
+                                $proprsByStatus[$order] = [];
+                            }
+                            $proprsByStatus[$order][] = ['proprietaire' => $proprietaire, 'rapport' => $rapport, 'index' => $index];
+                        }
+                        
+                        ksort($proprsByStatus);
+                    @endphp
+                    
+                    @foreach($proprsByStatus as $group)
+                        @foreach($group as $item)
+                            @php
+                                $proprietaire = $item['proprietaire'];
+                                $rapport = $item['rapport'];
+                                $index = $item['index'];
+                                $nombreBiens = $proprietaire->annonces()->count();
+                            @endphp
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <!-- Header propriétaire -->
+                                        <div class="d-flex align-items-center mb-2">
+                                            @if($proprietaire->hasMedia('avatar'))
+                                                <img src="{{ $proprietaire->getFirstMediaUrl('avatar') }}" 
+                                                    alt="{{ $proprietaire->username }}" 
+                                                    class="rounded-circle me-2" width="40" height="40">
+                                            @else
+                                                <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" 
+                                                    style="width: 40px; height: 40px; font-size: 0.8rem;">
+                                                    <i class="fas fa-user"></i>
+                                                </div>
+                                            @endif
+                                            <div>
+                                                <h6 class="card-title mb-0" style="font-size: 14px;">{{ $proprietaire->username }}</h6>
+                                                <small class="text-muted" style="font-size: 11px;">{{ $proprietaire->email }}</small>
+                                            </div>
                                         </div>
-                                    @endif
-                                    <div>
-                                        <h5 class="card-title mb-0">{{ $proprietaire->username }}</h5>
-                                        <small class="text-muted">{{ $proprietaire->email }}</small>
+
+                                        <!-- Statut badge -->
+                                        @if($rapport)
+                                        <div class="mb-2">
+                                            <span class="badge bg-{{ $rapport['statut_versement']['badge'] }}" style="font-size: 11px;">
+                                                {{ $rapport['statut_versement']['label'] }}
+                                            </span>
+                                        </div>
+                                        @endif
+
+                                        <!-- Aperçu financier simple -->
+                                        @if($rapport)
+                                        <div class="mb-3 p-2 bg-light rounded" style="font-size: 12px;">
+                                            <div class="row g-2">
+                                                <div class="col-6">
+                                                    <strong class="text-success d-block">{{ number_format($rapport['revenue_net'], 0, ',', ' ') }} F</strong>
+                                                    <small class="text-muted">À Verser</small>
+                                                </div>
+                                                <div class="col-6">
+                                                    <strong class="text-info d-block">{{ number_format($rapport['montant_total_verse'], 0, ',', ' ') }} F</strong>
+                                                    <small class="text-muted">Versé</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @endif
+
+                                        <a href="{{ route('backend.rapports.proprietaire', ['proprietaire_id' => $proprietaire->id]) }}" 
+                                            class="btn btn-primary btn-sm w-100" style="font-size: 12px;">
+                                            <i class="fas fa-chart-line me-1"></i> Détails
+                                        </a>
                                     </div>
                                 </div>
-
-                                @php
-                                    $nombreBiens = $proprietaire->annonces()->count();
-                                @endphp
-
-                                <div class="mb-3">
-                                    <small class="text-muted">
-                                        <i class="fas fa-home me-1"></i>
-                                        {{ $nombreBiens }} bien{{ $nombreBiens > 1 ? 's' : '' }} enregistré{{ $nombreBiens > 1 ? 's' : '' }}
-                                    </small>
-                                </div>
-
-                                <a href="{{ route('rapports.proprietaire', ['proprietaire_id' => $proprietaire->id]) }}" 
-                                    class="btn btn-primary btn-sm w-100">
-                                    <i class="fas fa-chart-line me-1"></i> Voir le Rapport
-                                </a>
                             </div>
-                        </div>
-                    </div>
+                        @endforeach
                     @endforeach
                 </div>
             @else

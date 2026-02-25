@@ -113,7 +113,7 @@
                     <a class="nav-link menu-link" href="#sidebarSuivi" data-bs-toggle="collapse" role="button"
                         aria-expanded="false" aria-controls="sidebarSuivi">
                         <i class="ri-line-chart-line me-2"></i> 
-                        <span>Suivi Location/Vente</span>
+                        <span>Demandes Location/Vente</span>
                         @php
                             $nouvellesDemandes = \App\Models\Vente::where('statut', 'demande_client')->count() + 
                                                  \App\Models\Location::where('statut', 'demande_client')->count();
@@ -157,9 +157,9 @@
                 <li class="nav-item">
                     <a class="nav-link menu-link" href="#sidebarRapports" data-bs-toggle="collapse" role="button"
                         aria-expanded="false" aria-controls="sidebarRapports">
-                        <i class="ri-bar-chart-box-line me-2"></i> <span>Rapports & Statistiques</span>
+                        <i class="ri-bar-chart-box-line me-2"></i> <span>Rapports & Historiques</span>
                     </a>
-                    <div class="collapse menu-dropdown {{ Route::is('backend.rapports.*') || Route::is('rapports.*') || Route::is('charges.*') ? 'show' : '' }}"
+                    <div class="collapse menu-dropdown {{ Route::is('backend.versements.*') ||Route::is('backend.rapports.*') || Route::is('rapports.*') || Route::is('backend.charges.*') ? 'show' : '' }}"
                         id="sidebarRapports">
                         <ul class="nav nav-sm flex-column">
                             <li class="nav-item">
@@ -168,28 +168,34 @@
                                     <i class="ri-percent-line me-2"></i> Commissions
                                 </a>
                             </li>
-                            <li class="nav-item">
+                            {{-- <li class="nav-item">
                                 <a href="{{ route('backend.rapports.statistiques') }}"
                                     class="nav-link {{ Route::is('backend.rapports.statistiques') ? 'active' : '' }}">
                                     <i class="ri-line-chart-line me-2"></i> Statistiques
                                 </a>
-                            </li>
+                            </li> --}}
                             <li class="nav-item">
-                                <a href="{{ route('rapports.proprietaire') }}"
-                                    class="nav-link {{ Route::is('rapports.proprietaire') ? 'active' : '' }}">
+                                <a href="{{ route('backend.rapports.proprietaire') }}"
+                                    class="nav-link {{ Route::is('backend.rapports.proprietaire') ? 'active' : '' }}">
                                     <i class="ri-home-heart-line me-2"></i> Rapport Propriétaire
                                 </a>
                             </li>
-                            <li class="nav-item">
-                                <a href="{{ route('rapports.agence') }}"
-                                    class="nav-link {{ Route::is('rapports.agence') ? 'active' : '' }}">
+                            {{-- <li class="nav-item">
+                                <a href="{{ route('backend.rapports.agence') }}"
+                                    class="nav-link {{ Route::is('backend.rapports.agence') ? 'active' : '' }}">
                                     <i class="ri-building-2-line me-2"></i> Rapport Agence
+                                </a>
+                            </li> --}}
+                            <li class="nav-item">
+                                <a href="{{ route('backend.charges.index') }}"
+                                    class="nav-link {{ Route::is('backend.charges.*') ? 'active' : '' }}">
+                                    <i class="ri-tools-line me-2"></i> Gestion des Charges
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a href="{{ route('charges.index') }}"
-                                    class="nav-link {{ Route::is('charges.*') ? 'active' : '' }}">
-                                    <i class="ri-tools-line me-2"></i> Gestion des Charges
+                                <a href="{{ route('backend.versements.index') }}"
+                                    class="nav-link {{ Route::is('backend.versements.*') ? 'active' : '' }}">
+                                    <i class="ri-money-dollar-circle-line me-2"></i> Gestion des Versements
                                 </a>
                             </li>
                         </ul>

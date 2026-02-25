@@ -269,17 +269,28 @@ Route::middleware(['admin'])->prefix('admin')->group(function () {
         Route::get('statistiques', [\App\Http\Controllers\RapportController::class, 'statistiques'])->name('backend.rapports.statistiques');
         
         // Rapports propriétaire et agence - ADMIN ONLY
-        Route::get('proprietaire', [\App\Http\Controllers\RapportController::class, 'rapportProprietaire'])->name('rapports.proprietaire');
-        Route::get('agence', [\App\Http\Controllers\RapportController::class, 'rapportAgence'])->name('rapports.agence');
+        Route::get('proprietaire', [\App\Http\Controllers\RapportController::class, 'rapportProprietaire'])->name('backend.rapports.proprietaire');
+        Route::get('agence', [\App\Http\Controllers\RapportController::class, 'rapportAgence'])->name('backend.rapports.agence');
     });
 
     // Gestion des charges - ADMIN ONLY
-    Route::prefix('charges')->group(function () {
-        Route::get('/', [\App\Http\Controllers\RapportController::class, 'chargesIndex'])->name('charges.index');
-        Route::get('create', [\App\Http\Controllers\RapportController::class, 'chargesCreate'])->name('charges.create');
-        Route::post('/', [\App\Http\Controllers\RapportController::class, 'chargesStore'])->name('charges.store');
-        Route::get('{charge}/edit', [\App\Http\Controllers\RapportController::class, 'chargesEdit'])->name('charges.edit');
-        Route::put('{charge}', [\App\Http\Controllers\RapportController::class, 'chargesUpdate'])->name('charges.update');
-        Route::delete('{charge}', [\App\Http\Controllers\RapportController::class, 'chargesDestroy'])->name('charges.destroy');
+    Route::prefix('charges')->name('backend.charges.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\RapportController::class, 'chargesIndex'])->name('index');
+        Route::get('create', [\App\Http\Controllers\RapportController::class, 'chargesCreate'])->name('create');
+        Route::post('/', [\App\Http\Controllers\RapportController::class, 'chargesStore'])->name('store');
+        Route::get('{charge}/edit', [\App\Http\Controllers\RapportController::class, 'chargesEdit'])->name('edit');
+        Route::put('{charge}', [\App\Http\Controllers\RapportController::class, 'chargesUpdate'])->name('update');
+        Route::delete('{charge}', [\App\Http\Controllers\RapportController::class, 'chargesDestroy'])->name('destroy');
+    });
+
+    // Gestion des versements - ADMIN ONLY
+    Route::prefix('versements')->name('backend.versements.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\VersementController::class, 'index'])->name('index');
+        Route::get('create', [\App\Http\Controllers\VersementController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\VersementController::class, 'store'])->name('store');
+        Route::get('{versement}/edit', [\App\Http\Controllers\VersementController::class, 'edit'])->name('edit');
+        Route::put('{versement}', [\App\Http\Controllers\VersementController::class, 'update'])->name('update');
+        Route::patch('{versement}/cancel', [\App\Http\Controllers\VersementController::class, 'cancel'])->name('cancel');
+        Route::delete('{versement}', [\App\Http\Controllers\VersementController::class, 'destroy'])->name('destroy');
     });
 });

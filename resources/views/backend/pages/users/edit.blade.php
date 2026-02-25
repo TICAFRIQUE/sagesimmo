@@ -241,7 +241,7 @@
                             <!--attribuer un commerciale au proprietaire-->
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="commercial_id" class="form-label">Commercial</label>
+                                    <label for="commercial_id" class="form-label">Attribuer un Commercial </label>
                                     <select class="form-control @error('commercial_id') is-invalid @enderror"
                                         id="commercial_id" name="commercial_id">
                                         <option value="">Sélectionner un commercial</option>
@@ -446,36 +446,6 @@
 
 
 
-
-            const commercialSelect = document.getElementById('commercial_id');
-            ////recuperer par defaut le role selectionné et activer ou désactiver le champ commercial en conséquence
-            const enableSelect = '{{ $enableSelect }}'; // ID du rôle sélectionné par défaut
-            console.log(enableSelect);
-
-            if (enableSelect) {
-                // commercialSelect.disabled = false; // Activer le champ si le rôle est propriétaire
-                $(commercialSelect).prop('disabled', false); // Réactiver le Select2
-            }
-
-
-            // commercialSelect.disabled = true; // Désactiver par défaut
-
-            roleCards.forEach(card => {
-                card.addEventListener('click', function() {
-                    if (this.dataset.role ===
-                        '{{ $proprietaireRoleId }}') { // ID du rôle propriétaire
-                        commercialSelect.disabled = false;
-                        // Réactiver le Select2
-                        $(commercialSelect).prop('disabled', false);
-                    } else {
-                        commercialSelect.disabled = true;
-
-                        // Vider et désactiver le Select2
-                        $(commercialSelect).val(null).trigger('change'); // Vider la sélection
-                        $(commercialSelect).prop('disabled', true); // Désactiver le Select2
-                    }
-                });
-            });
 
 
             // Prévisualisation de l'avatar

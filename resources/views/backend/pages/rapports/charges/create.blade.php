@@ -30,7 +30,7 @@
     <!-- Formulaire -->
     <div class="card">
         <div class="card-body">
-            <form action="{{ route('charges.store') }}" method="POST">
+            <form action="{{ route('backend.charges.store') }}" method="POST">
                 @csrf
 
                 <div class="row">
@@ -148,7 +148,7 @@
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save"></i> Enregistrer la charge
                     </button>
-                    <a href="{{ route('charges.index') }}" class="btn btn-secondary">
+                    <a href="{{ route('backend.charges.index') }}" class="btn btn-secondary">
                         <i class="fas fa-times"></i> Annuler
                     </a>
                 </div>

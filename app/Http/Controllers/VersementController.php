@@ -184,6 +184,11 @@ class VersementController extends Controller
         }
 
         $versement->update(['statut' => 'annule']);
+        // une fois annulé, le versement ne doit plus être pris en compte dans les rapports et analyses, mais il est important de le conserver dans la base de données pour l'historique et les audits.
+
+
+
+
 
         // Si c'est une requête AJAX, retourner JSON
         if (request()->wantsJson() || request()->header('X-Requested-With') === 'XMLHttpRequest') {
@@ -205,7 +210,7 @@ class VersementController extends Controller
 
         $versement->delete();
 
-        return redirect()->route('backend.versements.index')
-            ->with('success', 'Versement supprimé avec succès');
+        return back()->with('success', 'Versement supprimé avec succès');
+            
     }
 }

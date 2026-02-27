@@ -39,11 +39,40 @@ class UsersTableSeeder extends Seeder
                 'updated_at' => '2025-04-24 14:55:19',
                 'deleted_at' => NULL,
             ),
+            1 => 
+            array (
+                'id' => 13029781152,
+                'username' => 'proprietaire',
+                'phone' => '0142855584',
+                'email' => 'agence@gmail.com',
+                'email_verified_at' => NULL,
+                'password' => '$2y$12$xVJkKjsoY/E5ZjJL.jbu7ufYS5gFtxkXEo.Ue2cjONLTQlgo7Vc22',
+                'avatar' => NULL,
+                'role' => 'proprietaire',
+                'type_proprietaire' => 'agence',
+                'remember_token' => NULL,
+                'created_at' => '2025-04-22 11:16:21',
+                'updated_at' => '2025-04-24 14:55:19',
+                'deleted_at' => NULL,
+            ),
+
+
         ));
 
         // Assigner le rôle développeur
         $developer = User::where('email', 'developpeur@gmail.com')->first();
         $developer->assignRole('developpeur');
+
+
+        //creer utilisateur proprietaire type agence
+      
+
+
+
+
+
+
+
         
         // Générer 20 utilisateurs clients avec rôles
         // $this->command->info('Génération de 20 utilisateurs clients...');

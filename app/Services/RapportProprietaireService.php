@@ -307,7 +307,7 @@ class RapportProprietaireService
         // Versement partiel (reçu mais moins que le montant dû)
         if ($montantTotalVerse > 0 && $montantTotalVerse < $revenueNet) {
             return [
-                'label' => 'Partiel',
+                'label' => 'Versement partiel',
                 'badge' => 'info',
             ];
         }
@@ -315,7 +315,7 @@ class RapportProprietaireService
         // Versement effectué complètement
         if ($montantTotalVerse >= $revenueNet) {
             return [
-                'label' => 'Effectué',
+                'label' => 'Versement totalité effectué',
                 'badge' => 'success',
             ];
         }

@@ -33,6 +33,7 @@ class User extends Authenticatable implements HasMedia
         'password',
         'avatar',
         'role',
+        'type_proprietaire',
         'commercial_id', // Pour les propriétaires, le commercial qui les gère
         'created_at',
         'updated_at',
@@ -72,6 +73,7 @@ class User extends Authenticatable implements HasMedia
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'type_proprietaire' => 'string',
         ];
     }
 

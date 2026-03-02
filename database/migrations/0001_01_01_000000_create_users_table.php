@@ -20,6 +20,8 @@ return new class extends Migration
             $table->string('password')->nullable();
             $table->text('avatar')->nullable();
             $table->string('role')->nullable();
+            $table->enum('type_proprietaire', ['agence', 'externe'])->comment('agence, externe')->nullable();  
+            $table->enum('statut', ['actif', 'inactif', 'suspendu'])->default('actif')->comment('actif, inactif, suspendu')->nullable();
 
             //FOREIGN KEY
             $table->foreignId('commercial_id')->nullable()->constrained('users')->onDelete('cascade'); // Ajout de la colonne commercial_id();

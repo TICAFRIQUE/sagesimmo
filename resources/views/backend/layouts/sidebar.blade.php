@@ -77,7 +77,6 @@
                     </div>
                 </li>
 
-
                 <!-- Annonces -->
                 {{-- @can('voir-annonce') --}}
                     <li class="nav-item">
@@ -153,21 +152,21 @@
                     </div>
                 </li>
 
-                <!-- Rapports & Statistiques -->
+                <!-- Rapports & Gestions -->
                 <li class="nav-item">
                     <a class="nav-link menu-link" href="#sidebarRapports" data-bs-toggle="collapse" role="button"
                         aria-expanded="false" aria-controls="sidebarRapports">
-                        <i class="ri-bar-chart-box-line me-2"></i> <span>Rapports & Historiques</span>
+                        <i class="ri-bar-chart-box-line me-2"></i> <span>Rapports & Gestions</span>
                     </a>
                     <div class="collapse menu-dropdown {{ Route::is('backend.versements.*') ||Route::is('backend.rapports.*') || Route::is('rapports.*') || Route::is('backend.charges.*') ? 'show' : '' }}"
                         id="sidebarRapports">
                         <ul class="nav nav-sm flex-column">
-                            <li class="nav-item">
+                            {{-- <li class="nav-item">
                                 <a href="{{ route('backend.rapports.commissions') }}"
                                     class="nav-link {{ Route::is('backend.rapports.commissions') ? 'active' : '' }}">
                                     <i class="ri-percent-line me-2"></i> Commissions
                                 </a>
-                            </li>
+                            </li> --}}
                             {{-- <li class="nav-item">
                                 <a href="{{ route('backend.rapports.statistiques') }}"
                                     class="nav-link {{ Route::is('backend.rapports.statistiques') ? 'active' : '' }}">
@@ -178,6 +177,18 @@
                                 <a href="{{ route('backend.rapports.proprietaire') }}"
                                     class="nav-link {{ Route::is('backend.rapports.proprietaire') ? 'active' : '' }}">
                                     <i class="ri-home-heart-line me-2"></i> Rapport Propriétaire
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('backend.rapports.locataire') }}"
+                                    class="nav-link {{ Route::is('backend.rapports.locataire') ? 'active' : '' }}">
+                                    <i class="ri-user-location-line me-2"></i> Rapport Locataire
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('backend.rapports.acheteur') }}"
+                                    class="nav-link {{ Route::is('backend.rapports.acheteur') ? 'active' : '' }}">
+                                    <i class="ri-shopping-bag-line me-2"></i> Rapport Acheteur
                                 </a>
                             </li>
                             {{-- <li class="nav-item">

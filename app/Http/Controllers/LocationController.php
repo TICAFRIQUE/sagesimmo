@@ -388,6 +388,11 @@ class LocationController extends Controller
        
         // Convertir le client en locataire en lui attribuant le rôle "locataire"
         $location->locataire->syncRoles(['locataire']);
+
+        //faire une mise à jour dans la table users pour mettre à jour le role du user en locataire
+        $location->locataire->update([
+            'role' => 'locataire'
+        ]);
         Alert::success('Succès', 'Premier paiement de ' . number_format($montantTotal, 0, ',', ' ') . ' FCFA enregistré avec succès.');
         return back();
     }
@@ -420,6 +425,10 @@ class LocationController extends Controller
 
         // Convertir le client en locataire en lui attribuant le rôle "locataire"
         $location->locataire->syncRoles(['locataire']);
+        //faire une mise à jour dans la table users pour mettre à jour le role du user en locataire
+        $location->locataire->update([
+            'role' => 'locataire'
+        ]);
 
         Alert::success('Succès', 'Premier paiement validé ! Location activée et échéances générées. Les ' . $location->avance_sur_loyer . ' premières échéances sont marquées comme payées.');
         return back();
@@ -469,6 +478,10 @@ class LocationController extends Controller
         // changer le role du client en locataire s'il ne l'est pas déjà
         if (!$echeance->location->locataire->hasRole('locataire')) {
             $echeance->location->locataire->syncRoles(['locataire']);
+            //faire une mise à jour dans la table users pour mettre à jour le role du user en locataire
+            $echeance->location->locataire->update([
+                'role' => 'locataire'
+            ]);
         }
 
         $messageCommission = ($validated['commission_agence'] ?? 0) > 0 ? ' (Commission: ' . number_format($validated['commission_agence'], 0, ',', ' ') . ' FCFA)' : '';
@@ -483,14 +496,25 @@ class LocationController extends Controller
     {
         $request->validate([
             'note_admin' => 'required|string',
+            'date_fin' => 'required|date',
         ]);
 
         $location->update([
             'statut' => 'resilie',
+            'date_fin' => $request->date_fin,
+            'date_finalisation' => now(),
             'note_admin' => $request->note_admin,
         ]);
 
-        Alert::success('Succès', 'Location résiliée');
+        // Remettre le bien en disponible si la location était active (bien marqué comme loué)
+        if ($location->annonce) {
+            $location->annonce->update([
+                'statut' => 'disponible',
+                'statut_publication' => 1,
+            ]);
+        }
+
+        Alert::success('Succès', 'Location résiliée. Le bien a été remis en disponible.');
         return back();
     }
 

@@ -269,8 +269,20 @@ Route::middleware(['admin'])->prefix('admin')->group(function () {
         Route::get('statistiques', [\App\Http\Controllers\RapportController::class, 'statistiques'])->name('backend.rapports.statistiques');
         
         // Rapports propriétaire et agence - ADMIN ONLY
+        Route::get('proprietaire/pdf', [\App\Http\Controllers\RapportController::class, 'telechargerRapportProprietaire'])->name('backend.rapports.proprietaire.pdf');
+        Route::get('proprietaire/pdf-global', [\App\Http\Controllers\RapportController::class, 'telechargerRapportGlobal'])->name('backend.rapports.proprietaire.pdf.global');
         Route::get('proprietaire', [\App\Http\Controllers\RapportController::class, 'rapportProprietaire'])->name('backend.rapports.proprietaire');
         Route::get('agence', [\App\Http\Controllers\RapportController::class, 'rapportAgence'])->name('backend.rapports.agence');
+
+        // Rapports locataires - ADMIN ONLY
+        Route::get('locataire/pdf', [\App\Http\Controllers\RapportController::class, 'telechargerRapportLocataire'])->name('backend.rapports.locataire.pdf');
+        Route::get('locataire/pdf-global', [\App\Http\Controllers\RapportController::class, 'telechargerRapportLocataireGlobal'])->name('backend.rapports.locataire.pdf.global');
+        Route::get('locataire', [\App\Http\Controllers\RapportController::class, 'rapportLocataire'])->name('backend.rapports.locataire');
+
+        // Rapports acheteurs - ADMIN ONLY
+        Route::get('acheteur/pdf', [\App\Http\Controllers\RapportController::class, 'telechargerRapportAcheteur'])->name('backend.rapports.acheteur.pdf');
+        Route::get('acheteur/pdf-global', [\App\Http\Controllers\RapportController::class, 'telechargerRapportAcheteurGlobal'])->name('backend.rapports.acheteur.pdf.global');
+        Route::get('acheteur', [\App\Http\Controllers\RapportController::class, 'rapportAcheteur'])->name('backend.rapports.acheteur');
     });
 
     // Gestion des charges - ADMIN ONLY

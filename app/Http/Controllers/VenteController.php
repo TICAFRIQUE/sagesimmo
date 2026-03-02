@@ -351,6 +351,11 @@ class VenteController extends Controller
      //changer le role du client en acheteur s'il ne l'est pas déjà
         if (!$vente->client->hasRole('acheteur')) {
             $vente->client->syncRoles(['acheteur']);
+
+            //faire une mise à jour dans la table users pour mettre à jour le role du user en acheteur
+            $vente->client->update([
+                'role' => 'acheteur'
+            ]);
         }
 
         Alert::success(
@@ -438,6 +443,10 @@ class VenteController extends Controller
         //changer le role du client en acheteur s'il ne l'est pas déjà
         if (!$vente->client->hasRole('acheteur')) {
             $vente->client->syncRoles(['acheteur']);
+            //faire une mise à jour dans la table users pour mettre à jour le role du user en acheteur
+            $vente->client->update([
+                'role' => 'acheteur'
+            ]);
         }
 
         return redirect()->route('backend.ventes.show', $vente);

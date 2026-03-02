@@ -34,28 +34,14 @@ class UsersTableSeeder extends Seeder
                 'password' => '$2y$12$xVJkKjsoY/E5ZjJL.jbu7ufYS5gFtxkXEo.Ue2cjONLTQlgo7Vc22',
                 'avatar' => NULL,
                 'role' => 'developpeur',
+                'type_proprietaire' => NULL,
+                'statut' => 'actif',
                 'remember_token' => NULL,
                 'created_at' => '2025-04-22 11:16:21',
                 'updated_at' => '2025-04-24 14:55:19',
                 'deleted_at' => NULL,
             ),
-            1 => 
-            array (
-                'id' => 13029781152,
-                'username' => 'proprietaire',
-                'phone' => '0142855584',
-                'email' => 'agence@gmail.com',
-                'email_verified_at' => NULL,
-                'password' => '$2y$12$xVJkKjsoY/E5ZjJL.jbu7ufYS5gFtxkXEo.Ue2cjONLTQlgo7Vc22',
-                'avatar' => NULL,
-                'role' => 'proprietaire',
-                'type_proprietaire' => 'agence',
-                'remember_token' => NULL,
-                'created_at' => '2025-04-22 11:16:21',
-                'updated_at' => '2025-04-24 14:55:19',
-                'deleted_at' => NULL,
-            ),
-
+           
 
         ));
 
@@ -64,8 +50,31 @@ class UsersTableSeeder extends Seeder
         $developer->assignRole('developpeur');
 
 
-        //creer utilisateur proprietaire type agence
-      
+        //creer utilisateur proprietaire type agence par defaut [seeder DefaultProprietaireSeeder]
+         $email = 'agence@local.com';
+
+        // Ne pas créer si déjà présent
+        if (User::where('email', $email)->exists()) {
+            return;
+        }
+
+        $user = User::create([
+            'username' => 'agence',
+            'email' => $email,
+            'phone' => '0000000000',
+            'password' => Hash::make('password'),
+            'role' => 'proprietaire',
+            'type_proprietaire' => 'agence',
+        ]);
+
+        // Assigner le rôle spatie si la méthode est disponible
+        if (method_exists($user, 'assignRole')) {
+            try {
+                $user->assignRole('proprietaire');
+            } catch (\Throwable $e) {
+                // ignore si rôle non trouvé
+            }
+        }
 
 
 
@@ -95,6 +104,8 @@ class UsersTableSeeder extends Seeder
                 'email' => $email,
                 'phone' => $phone,
                 'role' => $roleName,
+                'type_proprietaire' => $roleName === 'proprietaire' ? 'externe' : null,
+                'statut' => 'actif',
                 'password' => Hash::make('password'),
                 'email_verified_at' => now(),
             ]);

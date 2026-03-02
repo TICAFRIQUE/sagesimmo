@@ -18,7 +18,7 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $query = User::with(['roles', 'commercial'])->whereHas('roles', function ($q) {
-            $q->whereIn('name', ['locataire', 'proprietaire', 'acheteur', 'prospect']);
+            $q->whereIn('name', ['locataire', 'proprietaire', 'acheteur', 'prospect' ,'commercial']);
         }); // Exclure l'administrateur principal
 
         // Filtre par type d'utilisateur (rôle Spatie)
@@ -54,7 +54,7 @@ class UserController extends Controller
     public function create()
     {
         // Récupérer uniquement les rôles [proprietaire, acheteur, locataire]
-        $roles = Role::whereIn('name', ['proprietaire', 'acheteur', 'locataire', 'prospect'])->get();
+        $roles = Role::whereIn('name', ['proprietaire', 'acheteur', 'locataire', 'prospect' ,'commercial'])->get();
 
         //recuperer les user qui ont le role de commerciale
         $commerciaux = User::whereHas('roles', function ($q) {
@@ -95,6 +95,8 @@ class UserController extends Controller
 
         // Stocker le nom du rôle dans la colonne 'role' pour une référence rapide
         $user->role = $role->name;
+        // Déterminer le type de propriétaire en fonction du rôle sélectionné
+        $user->type_proprietaire = ($role->name === 'proprietaire') ? 'externe' : null;
         $user->save();
 
         // Gestion de l'avatar avec Spatie Media
@@ -182,7 +184,7 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
-        $roles = Role::whereIn('name', ['proprietaire', 'acheteur', 'locataire', 'prospect'])->get();
+        $roles = Role::whereIn('name', ['proprietaire', 'acheteur', 'locataire', 'prospect' , 'commercial'])->get();
         $user->load('roles', 'media'); // Charger les rôles et les médias associés
 
         //recuperer les user qui ont le role de commerciale
@@ -233,6 +235,8 @@ class UserController extends Controller
 
         // Mettre à jour le nom du rôle dans la colonne 'role' pour une référence rapide
         $user->role = $role->name;
+        // Déterminer le type de propriétaire en fonction du rôle sélectionné
+        $user->type_proprietaire = ($role->name === 'proprietaire') ? 'externe' : null;
         $user->save();
 
         // Gestion de l'avatar avec Spatie Media
@@ -275,12 +279,12 @@ class UserController extends Controller
         $user->delete();
 
         //utiliser toast
-        toast('Utilisateur supprimé avec succès', 'success');
+        // toast('Utilisateur supprimé avec succès', 'success');
 
 
         // return redirect()->route('backend.users.index')->with('success', 'Utilisateur supprimé avec succès');
 
-        // return response()->json(['status' => 200, 'message' => 'Utilisateur supprimé avec succès'], 200);
+        return response()->json(['status' => 200, 'message' => 'Utilisateur supprimé avec succès'], 200);
 
         // Alert::success('Utilisateur supprimé avec succès', 'Succès');
         // return redirect()->route('backend.users.index');

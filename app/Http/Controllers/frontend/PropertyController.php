@@ -157,11 +157,14 @@ class PropertyController extends Controller
 
             // Assigner le rôle prospect
             $user->assignRole('prospect');
+            //mettre à jour le role du user dans la table users
+            $user->update(['role' => 'prospect']);
         } else {
             // Mettre à jour les infos si nécessaire
             $user->update([
                 'username' => $user->username ?: $request->username,
                 'phone' => $user->phone ?: $request->phone,
+                'role' => 'prospect'
             ]);
         }
 

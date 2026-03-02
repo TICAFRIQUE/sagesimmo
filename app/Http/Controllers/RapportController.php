@@ -14,6 +14,9 @@ use Carbon\Carbon;
 use App\Http\Controllers\Controller;
 use App\Services\RapportProprietaireService;
 use App\Services\RapportAgenceService;
+use App\Services\RapportLocataireService;
+use App\Services\RapportAcheteurService;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class RapportController extends Controller
 {
@@ -305,10 +308,10 @@ class RapportController extends Controller
             $proprietaireFiltre = $request->input('proprietaire_filtre');
             $statutFiltre = $request->input('statut_filtre'); // Nouveau filtre de statut
             $dateDebut = $request->input('date_debut') 
-                ? Carbon::createFromFormat('Y-m-d', $request->input('date_debut'))
+                ? Carbon::parse($request->input('date_debut'))->startOfDay()
                 : now()->startOfMonth();
             $dateFin = $request->input('date_fin')
-                ? Carbon::createFromFormat('Y-m-d', $request->input('date_fin'))
+                ? Carbon::parse($request->input('date_fin'))->endOfDay()
                 : now()->endOfMonth();
             
             // Récupérer tous les propriétaires pour le select
@@ -321,15 +324,16 @@ class RapportController extends Controller
             }
             
             // Générer un aperçu du rapport pour chaque propriétaire selon les dates
+            // On indexe par l'ID du propriétaire pour éviter les problèmes d'index
             $service = new RapportProprietaireService();
-            $aperçus = $proprietaires->map(function ($proprietaire) use ($service, $dateDebut, $dateFin) {
+            $aperçus = $proprietaires->keyBy('id')->map(function ($proprietaire) use ($service, $dateDebut, $dateFin) {
                 return $service->genererRapport($proprietaire, $dateDebut, $dateFin);
             });
             
             // Filtrer par statut si demandé
             if ($statutFiltre) {
-                $proprietaires = $proprietaires->filter(function ($proprietaire, $key) use ($aperçus, $statutFiltre) {
-                    $rapport = $aperçus[$key] ?? null;
+                $proprietaires = $proprietaires->filter(function ($proprietaire) use ($aperçus, $statutFiltre) {
+                    $rapport = $aperçus[$proprietaire->id] ?? null;
                     if (!$rapport) return false;
                     
                     $badge = $rapport['statut_versement']['badge'] ?? 'secondary';
@@ -345,10 +349,8 @@ class RapportController extends Controller
                     return ($badgeToStatut[$badge] ?? 'aucun') === $statutFiltre;
                 });
                 
-                // Réindexer les aperçus selon les propriétaires filtrés
-                $aperçus = $proprietaires->map(function ($proprietaire) use ($service, $dateDebut, $dateFin) {
-                    return $service->genererRapport($proprietaire, $dateDebut, $dateFin);
-                });
+                // Filtrer les aperçus pour ne garder que ceux des propriétaires restants
+                $aperçus = $aperçus->only($proprietaires->pluck('id'));
             }
 
             // Calculer les KPI globaux
@@ -373,11 +375,11 @@ class RapportController extends Controller
 
         // Filtres de dates
         $dateDebut = $request->input('date_debut') 
-            ? Carbon::createFromFormat('Y-m-d', $request->input('date_debut'))
+            ? Carbon::parse($request->input('date_debut'))->startOfDay()
             : now()->startOfMonth();
         
         $dateFin = $request->input('date_fin')
-            ? Carbon::createFromFormat('Y-m-d', $request->input('date_fin'))
+            ? Carbon::parse($request->input('date_fin'))->endOfDay()
             : now()->endOfMonth();
 
         // Générer le rapport
@@ -397,6 +399,80 @@ class RapportController extends Controller
     }
 
     /**
+     * Télécharger le rapport propriétaire en PDF
+     */
+    public function telechargerRapportProprietaire(Request $request)
+    {
+        if (in_array(Auth::user()->role, ['client', 'proprietaire', 'acheteur', 'locataire'])) {
+            return redirect()->back()->with('error', 'Accès refusé');
+        }
+
+        $proprietaireId = $request->input('proprietaire_id');
+        if (!$proprietaireId) {
+            return redirect()->back()->with('error', 'Propriétaire non spécifié');
+        }
+
+        $proprietaire = User::findOrFail($proprietaireId);
+
+        $dateDebut = $request->input('date_debut')
+            ? Carbon::parse($request->input('date_debut'))->startOfDay()
+            : now()->startOfMonth();
+        $dateFin = $request->input('date_fin')
+            ? Carbon::parse($request->input('date_fin'))->endOfDay()
+            : now()->endOfMonth();
+
+        $service = new RapportProprietaireService();
+        $rapport = $service->genererRapport($proprietaire, $dateDebut, $dateFin);
+
+        $pdf = Pdf::loadView('backend.pages.rapports.pdf.proprietaire-rapport', compact(
+            'rapport', 'proprietaire', 'dateDebut', 'dateFin'
+        ))->setPaper('a4', 'portrait');
+
+        $nomFichier = 'rapport_' . str_replace(' ', '_', $proprietaire->username) . '_' . $dateDebut->format('Ymd') . '_' . $dateFin->format('Ymd') . '.pdf';
+
+        return $pdf->download($nomFichier);
+    }
+
+    /**
+     * Télécharger le rapport global propriétaires en PDF
+     */
+    public function telechargerRapportGlobal(Request $request)
+    {
+        if (in_array(Auth::user()->role, ['client', 'proprietaire', 'acheteur', 'locataire'])) {
+            return redirect()->back()->with('error', 'Accès refusé');
+        }
+
+        $dateDebut = $request->input('date_debut')
+            ? Carbon::parse($request->input('date_debut'))->startOfDay()
+            : now()->startOfMonth();
+        $dateFin = $request->input('date_fin')
+            ? Carbon::parse($request->input('date_fin'))->endOfDay()
+            : now()->endOfMonth();
+
+        $proprietaires = User::where('role', 'proprietaire')->get();
+
+        $service = new RapportProprietaireService();
+        $aperçus = $proprietaires->keyBy('id')->map(function ($proprietaire) use ($service, $dateDebut, $dateFin) {
+            return $service->genererRapport($proprietaire, $dateDebut, $dateFin);
+        });
+
+        $kpiGlobal = [
+            'versements_disponibles' => $aperçus->sum('reste_a_verser') ?? 0,
+            'versements_partiels' => $aperçus->sum('total_versements_partiels') ?? 0,
+            'versements_effectues' => $aperçus->sum('montant_total_verse') ?? 0,
+            'total_commission' => $aperçus->sum('total_commission_agence') ?? 0,
+        ];
+
+        $pdf = Pdf::loadView('backend.pages.rapports.pdf.proprietaire-select-rapport', compact(
+            'proprietaires', 'aperçus', 'dateDebut', 'dateFin', 'kpiGlobal'
+        ))->setPaper('a4', 'landscape');
+
+        $nomFichier = 'rapport_global_proprietaires_' . $dateDebut->format('Ymd') . '_' . $dateFin->format('Ymd') . '.pdf';
+
+        return $pdf->download($nomFichier);
+    }
+
+    /**
      * Rapport financier agence - Affiche les revenus de l'agence
      */
     public function rapportAgence(Request $request)
@@ -413,11 +489,11 @@ class RapportController extends Controller
 
         // Filtres de dates
         $dateDebut = $request->input('date_debut')
-            ? Carbon::createFromFormat('Y-m-d', $request->input('date_debut'))
+            ? Carbon::parse($request->input('date_debut'))->startOfDay()
             : now()->startOfYear();
         
         $dateFin = $request->input('date_fin')
-            ? Carbon::createFromFormat('Y-m-d', $request->input('date_fin'))
+            ? Carbon::parse($request->input('date_fin'))->endOfDay()
             : now()->endOfYear();
 
         // Générer le rapport
@@ -566,5 +642,334 @@ class RapportController extends Controller
 
         return redirect()->route('backend.charges.index')
             ->with('success', 'Charge supprimée avec succès');
+    }
+
+    // =====================================================
+    // RAPPORT LOCATAIRES
+    // =====================================================
+
+    /**
+     * Rapport locataires - Liste ou détail
+     */
+    public function rapportLocataire(Request $request)
+    {
+        if (in_array(Auth::user()->role, ['client', 'proprietaire', 'acheteur', 'locataire'])) {
+            return redirect()->back()->with('error', 'Accès refusé');
+        }
+
+        $request->validate([
+            'date_debut' => 'nullable|date',
+            'date_fin' => 'nullable|date',
+            'locataire_id' => 'nullable|exists:users,id',
+        ]);
+
+        $locataireId = $request->input('locataire_id');
+        $service = new RapportLocataireService();
+
+        if (!$locataireId) {
+            // Liste de tous les locataires
+            $locataireFiltre = $request->input('locataire_filtre');
+            $statutFiltre = $request->input('statut_filtre');
+            $dateDebut = $request->input('date_debut')
+                ? Carbon::parse($request->input('date_debut'))->startOfDay()
+                : null;
+            $dateFin = $request->input('date_fin')
+                ? Carbon::parse($request->input('date_fin'))->endOfDay()
+                : null;
+
+            $allLocataires = User::where('role', 'locataire')->get();
+
+            $locataires = $allLocataires;
+            if ($locataireFiltre) {
+                $locataires = $allLocataires->where('id', $locataireFiltre);
+            }
+
+            $aperçus = $locataires->keyBy('id')->map(function ($locataire) use ($service, $dateDebut, $dateFin) {
+                return $service->genererApercu($locataire, $dateDebut, $dateFin);
+            });
+
+            // Filtrer par statut
+            if ($statutFiltre) {
+                $locataires = $locataires->filter(function ($locataire) use ($aperçus, $statutFiltre) {
+                    $apercu = $aperçus[$locataire->id] ?? null;
+                    if (!$apercu) return false;
+                    return ($apercu['statut_global']['code'] ?? 'aucun') === $statutFiltre;
+                });
+                $aperçus = $aperçus->only($locataires->pluck('id'));
+            }
+
+            // KPI globaux
+            $kpiGlobal = [
+                'total_du' => $aperçus->sum('total_du'),
+                'total_paye' => $aperçus->sum('total_paye'),
+                'total_restant' => $aperçus->sum('total_restant'),
+                'total_en_retard' => $aperçus->sum('montant_retard'),
+                'nb_en_retard' => $aperçus->sum('nb_en_retard'),
+                'nb_impayees' => $aperçus->sum('nb_impayees'),
+            ];
+
+            return view('backend.pages.rapports.locataire-select', compact(
+                'locataires', 'allLocataires', 'aperçus', 'dateDebut', 'dateFin', 'kpiGlobal'
+            ));
+        }
+
+        // Détail d'un locataire
+        $locataire = User::findOrFail($locataireId);
+        $dateDebut = $request->input('date_debut')
+            ? Carbon::parse($request->input('date_debut'))->startOfDay()
+            : null;
+        $dateFin = $request->input('date_fin')
+            ? Carbon::parse($request->input('date_fin'))->endOfDay()
+            : null;
+
+        $rapport = $service->genererRapport($locataire, $dateDebut, $dateFin);
+        $locataires = User::where('role', 'locataire')->get();
+
+        return view('backend.pages.rapports.locataire', compact(
+            'rapport', 'locataire', 'dateDebut', 'dateFin', 'locataires'
+        ));
+    }
+
+    /**
+     * Télécharger rapport locataire en PDF
+     */
+    public function telechargerRapportLocataire(Request $request)
+    {
+        if (in_array(Auth::user()->role, ['client', 'proprietaire', 'acheteur', 'locataire'])) {
+            return redirect()->back()->with('error', 'Accès refusé');
+        }
+
+        $locataireId = $request->input('locataire_id');
+        if (!$locataireId) {
+            return redirect()->back()->with('error', 'Locataire non spécifié');
+        }
+
+        $locataire = User::findOrFail($locataireId);
+        $dateDebut = $request->input('date_debut')
+            ? Carbon::parse($request->input('date_debut'))->startOfDay()
+            : null;
+        $dateFin = $request->input('date_fin')
+            ? Carbon::parse($request->input('date_fin'))->endOfDay()
+            : null;
+
+        $service = new RapportLocataireService();
+        $rapport = $service->genererRapport($locataire, $dateDebut, $dateFin);
+
+        $pdf = Pdf::loadView('backend.pages.rapports.pdf.locataire-rapport', compact(
+            'rapport', 'locataire', 'dateDebut', 'dateFin'
+        ))->setPaper('a4', 'portrait');
+
+        $nomFichier = 'rapport_locataire_' . str_replace(' ', '_', $locataire->username)
+            . ($dateDebut ? '_' . $dateDebut->format('Ymd') : '')
+            . ($dateFin ? '_' . $dateFin->format('Ymd') : '')
+            . '.pdf';
+        return $pdf->download($nomFichier);
+    }
+
+    /**
+     * Télécharger rapport global locataires en PDF
+     */
+    public function telechargerRapportLocataireGlobal(Request $request)
+    {
+        if (in_array(Auth::user()->role, ['client', 'proprietaire', 'acheteur', 'locataire'])) {
+            return redirect()->back()->with('error', 'Accès refusé');
+        }
+
+        $dateDebut = $request->input('date_debut')
+            ? Carbon::parse($request->input('date_debut'))->startOfDay()
+            : null;
+        $dateFin = $request->input('date_fin')
+            ? Carbon::parse($request->input('date_fin'))->endOfDay()
+            : null;
+
+        $locataires = User::where('role', 'locataire')
+            ->whereHas('locations', function ($q) {
+                $q->whereIn('statut', ['actif', 'resilie', 'en_attente_paiement']);
+            })->get();
+
+        $service = new RapportLocataireService();
+        $aperçus = $locataires->keyBy('id')->map(function ($locataire) use ($service, $dateDebut, $dateFin) {
+            return $service->genererApercu($locataire, $dateDebut, $dateFin);
+        });
+
+        $kpiGlobal = [
+            'total_du' => $aperçus->sum('total_du'),
+            'total_paye' => $aperçus->sum('total_paye'),
+            'total_restant' => $aperçus->sum('total_restant'),
+            'total_en_retard' => $aperçus->sum('montant_retard'),
+            'nb_en_retard' => $aperçus->sum('nb_en_retard'),
+            'nb_impayees' => $aperçus->sum('nb_impayees'),
+        ];
+
+        $pdf = Pdf::loadView('backend.pages.rapports.pdf.locataire-select-rapport', compact(
+            'locataires', 'aperçus', 'dateDebut', 'dateFin', 'kpiGlobal'
+        ))->setPaper('a4', 'landscape');
+
+        $nomFichier = 'rapport_global_locataires'
+            . ($dateDebut ? '_' . $dateDebut->format('Ymd') : '')
+            . ($dateFin ? '_' . $dateFin->format('Ymd') : '')
+            . '.pdf';
+        return $pdf->download($nomFichier);
+    }
+
+    // =====================================================
+    // RAPPORT ACHETEURS
+    // =====================================================
+
+    /**
+     * Rapport acheteurs - Liste ou détail
+     */
+    public function rapportAcheteur(Request $request)
+    {
+        if (in_array(Auth::user()->role, ['client', 'proprietaire', 'acheteur', 'locataire'])) {
+            return redirect()->back()->with('error', 'Accès refusé');
+        }
+
+        $request->validate([
+            'date_debut' => 'nullable|date',
+            'date_fin' => 'nullable|date',
+            'acheteur_id' => 'nullable|exists:users,id',
+        ]);
+
+        $acheteurId = $request->input('acheteur_id');
+        $service = new RapportAcheteurService();
+
+        if (!$acheteurId) {
+            // Liste de tous les acheteurs
+            $acheteurFiltre = $request->input('acheteur_filtre');
+            $statutFiltre = $request->input('statut_filtre');
+            $dateDebut = $request->input('date_debut')
+                ? Carbon::parse($request->input('date_debut'))->startOfDay()
+                : now()->startOfMonth();
+            $dateFin = $request->input('date_fin')
+                ? Carbon::parse($request->input('date_fin'))->endOfDay()
+                : now()->endOfMonth();
+
+            $allAcheteurs = User::where('role', 'acheteur')
+                ->whereHas('ventes', function ($q) {
+                    $q->whereIn('statut', ['offre_acceptee', 'terminee']);
+                })->get();
+
+            $acheteurs = $allAcheteurs;
+            if ($acheteurFiltre) {
+                $acheteurs = $allAcheteurs->where('id', $acheteurFiltre);
+            }
+
+            $aperçus = $acheteurs->keyBy('id')->map(function ($acheteur) use ($service, $dateDebut, $dateFin) {
+                return $service->genererApercu($acheteur, $dateDebut, $dateFin);
+            });
+
+            // Filtrer par statut
+            if ($statutFiltre) {
+                $acheteurs = $acheteurs->filter(function ($acheteur) use ($aperçus, $statutFiltre) {
+                    $apercu = $aperçus[$acheteur->id] ?? null;
+                    if (!$apercu) return false;
+                    return ($apercu['statut_global']['code'] ?? 'aucun') === $statutFiltre;
+                });
+                $aperçus = $aperçus->only($acheteurs->pluck('id'));
+            }
+
+            // KPI globaux
+            $kpiGlobal = [
+                'total_a_payer' => $aperçus->sum('total_a_payer'),
+                'total_paye' => $aperçus->sum('total_paye'),
+                'total_restant' => $aperçus->sum('total_restant'),
+                'total_paye_periode' => $aperçus->sum('total_paye_periode'),
+            ];
+
+            return view('backend.pages.rapports.acheteur-select', compact(
+                'acheteurs', 'allAcheteurs', 'aperçus', 'dateDebut', 'dateFin', 'kpiGlobal'
+            ));
+        }
+
+        // Détail d'un acheteur
+        $acheteur = User::findOrFail($acheteurId);
+        $dateDebut = $request->input('date_debut')
+            ? Carbon::parse($request->input('date_debut'))->startOfDay()
+            : now()->startOfMonth();
+        $dateFin = $request->input('date_fin')
+            ? Carbon::parse($request->input('date_fin'))->endOfDay()
+            : now()->endOfMonth();
+
+        $rapport = $service->genererRapport($acheteur, $dateDebut, $dateFin);
+        $acheteurs = User::where('role', 'acheteur')->get();
+
+        return view('backend.pages.rapports.acheteur', compact(
+            'rapport', 'acheteur', 'dateDebut', 'dateFin', 'acheteurs'
+        ));
+    }
+
+    /**
+     * Télécharger rapport acheteur en PDF
+     */
+    public function telechargerRapportAcheteur(Request $request)
+    {
+        if (in_array(Auth::user()->role, ['client', 'proprietaire', 'acheteur', 'locataire'])) {
+            return redirect()->back()->with('error', 'Accès refusé');
+        }
+
+        $acheteurId = $request->input('acheteur_id');
+        if (!$acheteurId) {
+            return redirect()->back()->with('error', 'Acheteur non spécifié');
+        }
+
+        $acheteur = User::findOrFail($acheteurId);
+        $dateDebut = $request->input('date_debut')
+            ? Carbon::parse($request->input('date_debut'))->startOfDay()
+            : now()->startOfMonth();
+        $dateFin = $request->input('date_fin')
+            ? Carbon::parse($request->input('date_fin'))->endOfDay()
+            : now()->endOfMonth();
+
+        $service = new RapportAcheteurService();
+        $rapport = $service->genererRapport($acheteur, $dateDebut, $dateFin);
+
+        $pdf = Pdf::loadView('backend.pages.rapports.pdf.acheteur-rapport', compact(
+            'rapport', 'acheteur', 'dateDebut', 'dateFin'
+        ))->setPaper('a4', 'portrait');
+
+        $nomFichier = 'rapport_acheteur_' . str_replace(' ', '_', $acheteur->username) . '_' . $dateDebut->format('Ymd') . '_' . $dateFin->format('Ymd') . '.pdf';
+        return $pdf->download($nomFichier);
+    }
+
+    /**
+     * Télécharger rapport global acheteurs en PDF
+     */
+    public function telechargerRapportAcheteurGlobal(Request $request)
+    {
+        if (in_array(Auth::user()->role, ['client', 'proprietaire', 'acheteur', 'locataire'])) {
+            return redirect()->back()->with('error', 'Accès refusé');
+        }
+
+        $dateDebut = $request->input('date_debut')
+            ? Carbon::parse($request->input('date_debut'))->startOfDay()
+            : now()->startOfMonth();
+        $dateFin = $request->input('date_fin')
+            ? Carbon::parse($request->input('date_fin'))->endOfDay()
+            : now()->endOfMonth();
+
+        $acheteurs = User::where('role', 'acheteur')
+            ->whereHas('ventes', function ($q) {
+                $q->whereIn('statut', ['offre_acceptee', 'terminee']);
+            })->get();
+
+        $service = new RapportAcheteurService();
+        $aperçus = $acheteurs->keyBy('id')->map(function ($acheteur) use ($service, $dateDebut, $dateFin) {
+            return $service->genererApercu($acheteur, $dateDebut, $dateFin);
+        });
+
+        $kpiGlobal = [
+            'total_a_payer' => $aperçus->sum('total_a_payer'),
+            'total_paye' => $aperçus->sum('total_paye'),
+            'total_restant' => $aperçus->sum('total_restant'),
+            'total_paye_periode' => $aperçus->sum('total_paye_periode'),
+        ];
+
+        $pdf = Pdf::loadView('backend.pages.rapports.pdf.acheteur-select-rapport', compact(
+            'acheteurs', 'aperçus', 'dateDebut', 'dateFin', 'kpiGlobal'
+        ))->setPaper('a4', 'landscape');
+
+        $nomFichier = 'rapport_global_acheteurs_' . $dateDebut->format('Ymd') . '_' . $dateFin->format('Ymd') . '.pdf';
+        return $pdf->download($nomFichier);
     }
 }

@@ -1,378 +1,287 @@
 @extends('backend.layouts.master')
 
 @section('title')
-    Rapport Propriétaire - {{ $proprietaire->username }}
+    Rapport Propriétaire
 @endsection
 
 @section('content')
     <div class="container-fluid">
-        <!-- En-tête pour l'impression uniquement -->
-        <div class="d-none" id="print-header" style="display: none;">
-            <div style="text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 3px solid #0d6efd;">
-                <h1 style="font-size: 28px; margin-bottom: 10px; color: #000;">RAPPORT FINANCIER PROPRIÉTAIRE</h1>
-                <p style="font-size: 16px; margin: 5px 0; color: #333;">
-                    <strong>{{ $proprietaire->username }}</strong>
-                    @if($proprietaire->type_proprietaire === 'agence')
-                        <span style="border: 1px solid #000; padding: 2px 8px; margin-left: 10px;">AGENCE</span>
-                    @endif
-                </p>
-                <p style="font-size: 14px; margin: 5px 0; color: #666;">
-                    Période : {{ $dateDebut->format('d/m/Y') }} au {{ $dateFin->format('d/m/Y') }}
-                </p>
-                <p style="font-size: 12px; margin: 5px 0; color: #999;">
-                    Document généré le {{ now()->format('d/m/Y à H:i') }}
-                </p>
-            </div>
-        </div>
-
-        <!-- Header amélioré -->
-        <div class="row mb-3 align-items-center">
+        <!-- Header -->
+        <div class="row mb-4">
             <div class="col-md-8">
-                <h1 class="h3 mb-1 text-gray-800">
-                    <i class="fas fa-file-invoice-dollar"></i> Rapport Financier
+                <h1 class="h3 mb-0 text-gray-800">
+                    <i class="fas fa-file-invoice-dollar"></i> Rapport Propriétaire - {{ $proprietaire->username }}
                 </h1>
-                <h5 class="text-muted mb-0">
-                    <i class="fas fa-user-circle me-1"></i> {{ $proprietaire->username }}
-                    @if($proprietaire->type_proprietaire === 'agence')
-                        <span class="badge bg-primary ms-2">AGENCE</span>
-                    @endif
-                </h5>
-                <small class="text-muted">
-                    <i class="fas fa-calendar-alt me-1"></i> 
-                    {{ $dateDebut->format('d/m/Y') }} au {{ $dateFin->format('d/m/Y') }}
-                </small>
             </div>
             <div class="col-md-4 text-end">
-                <a href="{{ route('backend.rapports.proprietaire') }}" class="btn btn-outline-secondary btn-sm me-2 no-print">
-                    <i class="fas fa-arrow-left"></i> Retour
+                <a href="{{ route('backend.rapports.proprietaire') }}" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-arrow-left"></i> Retour à la Liste des Propriétaires
                 </a>
-                <a href="{{ route('backend.rapports.proprietaire.pdf', ['proprietaire_id' => $proprietaire->id, 'date_debut' => $dateDebut->format('Y-m-d'), 'date_fin' => $dateFin->format('Y-m-d')]) }}" class="btn btn-success btn-sm me-2 no-print" title="Télécharger en PDF">
-                    <i class="fas fa-file-pdf"></i> Télécharger PDF
-                </a>
-                <button type="button" class="btn btn-primary btn-sm no-print" onclick="window.print()" title="Imprimer le rapport financier">
+                <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">
                     <i class="fas fa-print"></i> Imprimer
                 </button>
             </div>
         </div>
 
-        <!-- Filtres compacts -->
-        <div class="card mb-3 no-print">
-            <div class="card-body py-2">
-                <form method="GET" action="{{ route('backend.rapports.proprietaire') }}" class="row g-2 align-items-end">
+        <!-- Filtres -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="GET" action="{{ route('backend.rapports.proprietaire') }}" class="row g-3 text-center">
+                    <!-- Hidden input pour passer le proprietaire_id -->
                     <input type="hidden" name="proprietaire_id" value="{{ $proprietaire->id }}">
 
+                    {{-- <div class="col-md-4">
+                    <label for="proprietaire_id" class="form-label">Propriétaire</label>
+                    <select name="proprietaire_id" id="proprietaire_id" class="form-select">
+                        <option value="">-- Sélectionner --</option>
+                        @foreach ($proprietaires as $prop)
+                            <option value="{{ $prop->id }}" @selected($prop->id == $proprietaire->id)>
+                                {{ $prop->username }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div> --}}
+
                     <div class="col-md-3">
-                        <label for="date_debut" class="form-label mb-1 small">Date début</label>
-                        <input type="date" name="date_debut" id="date_debut" class="form-control form-control-sm"
+                        <label for="date_debut" class="form-label">Date début</label>
+                        <input type="date" name="date_debut" id="date_debut" class="form-control"
                             value="{{ $dateDebut->format('Y-m-d') }}">
                     </div>
 
                     <div class="col-md-3">
-                        <label for="date_fin" class="form-label mb-1 small">Date fin</label>
-                        <input type="date" name="date_fin" id="date_fin" class="form-control form-control-sm"
+                        <label for="date_fin" class="form-label">Date fin</label>
+                        <input type="date" name="date_fin" id="date_fin" class="form-control"
                             value="{{ $dateFin->format('Y-m-d') }}">
                     </div>
 
-                    <div class="col-md-3 d-flex gap-2">
-                        <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
+                    <div class="col-6 text-center py-4">
+                        <button type="submit" class="btn btn-primary w-75 mx-auto">
                             <i class="fas fa-search"></i> Filtrer
                         </button>
-                        <a href="{{ route('backend.rapports.proprietaire', ['proprietaire_id' => $proprietaire->id]) }}" 
-                           class="btn btn-outline-secondary btn-sm" title="Réinitialiser">
-                            <i class="fas fa-redo"></i>
-                        </a>
+                        <a href="{{ route('backend.rapports.proprietaire' , ['proprietaire_id' => request('proprietaire_id')]) }}" class="btn btn-secondary">
+                        <i class="fas fa-redo"></i> Réinitialiser
+                    </a>
                     </div>
                 </form>
             </div>
         </div>
 
-        <!-- KPI améliorés -->
-        <div class="row mb-3">
-            <div class="col-md-3 mb-2">
-                <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #0d6efd !important;">
-                    <div class="card-body py-3 d-flex align-items-center">
-                        <div class="me-3 text-primary" style="font-size: 2rem; opacity: 0.6;">
-                            <i class="fas fa-coins"></i>
-                        </div>
-                        <div>
-                            <small class="text-muted d-block mb-1" style="font-size: 11px;">Total Encaissé</small>
-                            <h5 class="mb-0 fw-bold text-primary">{{ number_format($rapport['total_brut_encaisse'], 0, ',', ' ') }} F</h5>
+        <!-- Résumé général -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card border-left-primary">
+                    <div class="card-body">
+                        <div class="text-primary font-weight-bold text-uppercase mb-1">Total Encaissé</div>
+                        <div class="h3 mb-0">
+                            {{ number_format($rapport['total_brut_encaisse'], 0, ',', ' ') }} F
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-3 mb-2">
-                <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #dc3545 !important;">
-                    <div class="card-body py-3 d-flex align-items-center">
-                        <div class="me-3 text-danger" style="font-size: 2rem; opacity: 0.6;">
-                            <i class="fas fa-percentage"></i>
-                        </div>
-                        <div>
-                            <small class="text-muted d-block mb-1" style="font-size: 11px;">Commission Agence</small>
-                            <h5 class="mb-0 fw-bold text-danger">{{ number_format($rapport['total_commission_agence'], 0, ',', ' ') }} F</h5>
+            <div class="col-md-3">
+                <div class="card border-left-danger">
+                    <div class="card-body">
+                        <div class="text-danger font-weight-bold text-uppercase mb-1">Commission Agence</div>
+                        <div class="h3 mb-0">
+                            {{ number_format($rapport['total_commission_agence'], 0, ',', ' ') }} F
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-3 mb-2">
-                <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #ffc107 !important;">
-                    <div class="card-body py-3 d-flex align-items-center">
-                        <div class="me-3 text-warning" style="font-size: 2rem; opacity: 0.6;">
-                            <i class="fas fa-tools"></i>
-                        </div>
-                        <div>
-                            <small class="text-muted d-block mb-1" style="font-size: 11px;">Charges</small>
-                            <h5 class="mb-0 fw-bold text-warning">{{ number_format($rapport['total_charges'], 0, ',', ' ') }} F</h5>
+            <div class="col-md-3">
+                <div class="card border-left-warning">
+                    <div class="card-body">
+                        <div class="text-warning font-weight-bold text-uppercase mb-1">Charges</div>
+                        <div class="h3 mb-0">
+                            {{ number_format($rapport['total_charges'], 0, ',', ' ') }} F
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-3 mb-2">
-                <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #28a745 !important;">
-                    <div class="card-body py-3 d-flex align-items-center">
-                        <div class="me-3 text-success" style="font-size: 2rem; opacity: 0.6;">
-                            <i class="fas fa-hand-holding-usd"></i>
-                        </div>
-                        <div>
-                            <small class="text-muted d-block mb-1" style="font-size: 11px;">Revenu Net</small>
-                            <h5 class="mb-0 fw-bold text-success">{{ number_format($rapport['revenue_net'], 0, ',', ' ') }} F</h5>
+            <div class="col-md-3">
+                <div class="card border-left-success">
+                    <div class="card-body">
+                        <div class="text-success font-weight-bold text-uppercase mb-1">Revenu Net</div>
+                        <div class="h3 mb-0">
+                            {{ number_format($rapport['revenue_net'], 0, ',', ' ') }} F
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        @php
-            // Séparer les biens en location et en vente
-            $biensLocation = collect($rapport['biens'])->filter(fn($b) => $b['type_transaction'] === 'location' || $b['encaissement_loyers']['total'] > 0);
-            $biensVente = collect($rapport['biens'])->filter(fn($b) => $b['type_transaction'] === 'vente' || $b['encaissement_ventes']['total'] > 0);
-        @endphp
-
-        <!-- Section Biens en Location -->
-        @if($biensLocation->count() > 0)
-            <div class="card mb-4">
-                <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        <i class="fas fa-home me-2"></i> Biens en Location
-                    </h5>
-                    <span class="badge bg-white text-info">{{ $biensLocation->count() }} bien(s)</span>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover table-striped mb-0">
-                            <thead class="table-light">
+        <!-- Détail par bien -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-home"></i> Détail par Bien ({{ $rapport['nombre_biens'] }} biens)
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr class="table-light">
+                                <th>Bien</th>
+                                <th class="text-end">Loyers Encaissés</th>
+                                <th class="text-end">Ventes Encaissées</th>
+                                <th class="text-end">Total Brut</th>
+                                <th class="text-end">Commission</th>
+                                <th class="text-end">Charges</th>
+                                <th class="text-end">Revenu Net</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($rapport['biens'] as $bien)
                                 <tr>
-                                    <th>Bien</th>
-                                    <th class="text-end">Loyers Encaissés</th>
-                                    <th class="text-end">Commission</th>
-                                    <th class="text-end">Charges</th>
-                                    <th class="text-end">Revenu Net</th>
-                                    <th class="text-center">Actions</th>
+                                    <td>
+                                        @php
+                                            $paiements_loyers = $bien['encaissement_loyers']['paiements'] ?? collect();
+                                            $paiements_ventes = $bien['encaissement_ventes']['paiements'] ?? collect();
+                                            $paiements_combined = $paiements_loyers
+                                                ->merge($paiements_ventes)
+                                                ->map(function ($p) {
+                                                    $clientName = null;
+                                                    if (!empty($p->payable)) {
+                                                        // Location -> locataire, Vente -> client
+                                                        $clientName =
+                                                            $p->payable->locataire->name ??
+                                                            ($p->payable->client->name ?? null);
+                                                    }
+
+                                                    return [
+                                                        'id' => $p->id ?? null,
+                                                        'date' =>
+                                                            optional($p->date_paiement)->format('d/m/Y') ??
+                                                            ($p->date_paiement ?? null),
+                                                        'montant' => $p->montant ?? 0,
+                                                        'methode' =>
+                                                            $p->methode_paiement ?? ($p->methode_paiement ?? '-'),
+                                                        'reference' => $p->reference ?? '-',
+                                                        'type' => $p->type_paiement ?? ($p->type ?? '-'),
+                                                        'client' => $clientName ?? '-',
+                                                    ];
+                                                })
+                                                ->values();
+                                        @endphp
+
+                                        <a href="{{ route('backend.annonces.show', $bien['bien']) }}"
+                                            class="text-dark text-decoration-none" title="Voir le détail du bien">
+                                            <strong>{{ $bien['bien']->titre ?? 'N/A' }}</strong>
+                                        </a>
+
+                                        <small class="text-muted">{{ $bien['type_bien'] }}</small>
+                                        <span class="badge bg-primary">{{ $bien['type_transaction'] }}</span>
+                                    </td>
+                                    
+                                    <td class="text-end">
+                                        {{ number_format($bien['encaissement_loyers']['total'], 0, ',', ' ') }} F
+                                    </td>
+                                    <td class="text-end">
+                                        {{ number_format($bien['encaissement_ventes']['total'], 0, ',', ' ') }} F
+                                    </td>
+                                    <td class="text-end font-weight-bold">
+                                        {{ number_format($bien['total_brut_encaisse'], 0, ',', ' ') }} F
+                                    </td>
+                                    <td class="text-end text-danger">
+                                        {{ number_format($bien['total_commission_agence'], 0, ',', ' ') }} F
+                                    </td>
+                                    <td class="text-end text-warning">
+                                        {{ number_format($bien['total_charges'], 0, ',', ' ') }} F
+                                    </td>
+                                    <td class="text-end text-success font-weight-bold">
+                                        {{ number_format($bien['revenue_net'], 0, ',', ' ') }} F
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-outline-info mt-1 btnVoirPaiements"
+                                            data-paiements='@json($paiements_combined)'
+                                            data-bien-titre="{{ $bien['bien']->titre ?? '' }}">
+                                            <i class="fas fa-eye"></i> Voir paiements
+                                        </button>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($biensLocation as $bien)
-                                    @php
-                                        $paiements_loyers = $bien['encaissement_loyers']['paiements'] ?? collect();
-                                        $paiements_combined = $paiements_loyers->map(function ($p) {
-                                            $clientName = null;
-                                            if (!empty($p->payable)) {
-                                                $clientName = $p->payable->locataire->name ?? null;
-                                            }
-                                            return [
-                                                'id' => $p->id ?? null,
-                                                'date' => optional($p->date_paiement)->format('d/m/Y') ?? ($p->date_paiement ?? null),
-                                                'montant' => $p->montant ?? 0,
-                                                'methode' => $p->methode_paiement ?? '-',
-                                                'reference' => $p->reference ?? '-',
-                                                'type' => $p->type_paiement ?? '-',
-                                                'client' => $clientName ?? '-',
-                                            ];
-                                        })->values();
-                                    @endphp
-                                    <tr>
-                                        <td>
-                                            <a href="{{ route('backend.annonces.show', $bien['bien']) }}"
-                                                class="text-dark text-decoration-none" title="Voir le détail du bien">
-                                                <strong>{{ $bien['bien']->titre ?? 'N/A' }}</strong>
-                                            </a>
-                                            <br>
-                                            <small class="text-muted">{{ $bien['type_bien'] }}</small>
-                                            <span class="badge bg-info">{{ $bien['adresse'] }}</span>
-                                        </td>
-                                        <td class="text-end">
-                                            <strong class="text-info">{{ number_format($bien['encaissement_loyers']['total'], 0, ',', ' ') }} F</strong>
-                                            <br>
-                                            <small class="text-muted">{{ $bien['encaissement_loyers']['nombre'] }} paiement(s)</small>
-                                        </td>
-                                        <td class="text-end text-danger">
-                                            {{ number_format($bien['total_commission_agence'], 0, ',', ' ') }} F
-                                        </td>
-                                        <td class="text-end text-warning">
-                                            {{ number_format($bien['total_charges'], 0, ',', ' ') }} F
-                                        </td>
-                                        <td class="text-end">
-                                            <strong class="text-success">{{ number_format($bien['revenue_net'], 0, ',', ' ') }} F</strong>
-                                        </td>
-                                        <td class="text-center">
-                                            <button type="button" class="btn btn-sm btn-outline-info btnVoirPaiements"
-                                                data-paiements='@json($paiements_combined)'
-                                                data-bien-titre="{{ $bien['bien']->titre ?? '' }}">
-                                                <i class="fas fa-eye"></i> Détails
-                                            </button>
+                                @if ($bien['charges']->isNotEmpty())
+                                    <tr class="table-light">
+                                        <td colspan="8">
+                                            <small class="text-muted">
+                                                <strong>Charges détail :</strong>
+                                                @foreach ($bien['charges'] as $charge)
+                                                    <br>
+                                                    • {{ $charge->type_charge_libelle }}:
+                                                    {{ number_format($charge->montant, 0, ',', ' ') }} F
+                                                    @if ($charge->description)
+                                                        ({{ $charge->description }})
+                                                    @endif
+                                                @endforeach
+                                            </small>
                                         </td>
                                     </tr>
-                                    @if ($bien['charges']->isNotEmpty())
-                                        <tr class="table-light">
-                                            <td colspan="6" class="py-2">
-                                                <small class="text-muted">
-                                                    <strong><i class="fas fa-tools me-1"></i> Charges :</strong>
-                                                    @foreach ($bien['charges'] as $charge)
-                                                        <span class="badge bg-warning text-dark me-1">
-                                                            {{ $charge->type_charge_libelle }}: {{ number_format($charge->montant, 0, ',', ' ') }} F
-                                                        </span>
-                                                    @endforeach
-                                                </small>
-                                            </td>
-                                        </tr>
-                                    @endif
-                                @endforeach
-                            </tbody>
-                            <tfoot class="table-info">
+                                @endif
+                            @empty
                                 <tr>
-                                    <td><strong>TOTAL LOCATIONS</strong></td>
-                                    <td class="text-end"><strong>{{ number_format($biensLocation->sum('encaissement_loyers.total'), 0, ',', ' ') }} F</strong></td>
-                                    <td class="text-end"><strong>{{ number_format($biensLocation->sum('total_commission_agence'), 0, ',', ' ') }} F</strong></td>
-                                    <td class="text-end"><strong>{{ number_format($biensLocation->sum('total_charges'), 0, ',', ' ') }} F</strong></td>
-                                    <td class="text-end"><strong>{{ number_format($biensLocation->sum('revenue_net'), 0, ',', ' ') }} F</strong></td>
-                                    <td></td>
+                                    <td colspan="8" class="text-center text-muted py-4">
+                                        Aucun bien trouvé pour cette période
+                                    </td>
                                 </tr>
-                            </tfoot>
-                        </table>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Résumé des charges -->
+        {{-- @if ($rapport['detail_charges']['nombre_charges'] > 0)
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tools"></i> Résumé des Charges
+                        ({{ $rapport['detail_charges']['nombre_charges'] }} charges)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        @foreach ($rapport['detail_charges']['par_type'] as $type => $montant)
+                            <div class="col-md-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="text-muted text-uppercase mb-1">
+                                            @switch($type)
+                                                @case('maintenance')
+                                                    <i class="fas fa-wrench"></i> Maintenance
+                                                @break
+
+                                                @case('reparation')
+                                                    <i class="fas fa-hammer"></i> Réparation
+                                                @break
+
+                                                @case('taxe')
+                                                    <i class="fas fa-percent"></i> Taxe
+                                                @break
+
+                                                @default
+                                                    <i class="fas fa-ellipsis-h"></i> Autre
+                                            @endswitch
+                                        </div>
+                                        <div class="h4 mb-0">
+                                            {{ number_format($montant, 0, ',', ' ') }} F
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
                 </div>
             </div>
-        @endif
-
-        <!-- Section Biens en Vente -->
-        @if($biensVente->count() > 0)
-            <div class="card mb-4">
-                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        <i class="fas fa-tags me-2"></i> Biens en Vente
-                    </h5>
-                    <span class="badge bg-white text-success">{{ $biensVente->count() }} bien(s)</span>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover table-striped mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Bien</th>
-                                    <th class="text-end">Prix de Vente</th>
-                                    <th class="text-end">Commission</th>
-                                    <th class="text-end">Charges</th>
-                                    <th class="text-end">Revenu Net</th>
-                                    <th class="text-center">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($biensVente as $bien)
-                                    @php
-                                        $paiements_ventes = $bien['encaissement_ventes']['paiements'] ?? collect();
-                                        $paiements_combined = $paiements_ventes->map(function ($p) {
-                                            $clientName = null;
-                                            if (!empty($p->payable)) {
-                                                $clientName = $p->payable->client->name ?? null;
-                                            }
-                                            return [
-                                                'id' => $p->id ?? null,
-                                                'date' => optional($p->date_paiement)->format('d/m/Y') ?? ($p->date_paiement ?? null),
-                                                'montant' => $p->montant ?? 0,
-                                                'methode' => $p->methode_paiement ?? '-',
-                                                'reference' => $p->reference ?? '-',
-                                                'type' => $p->type_paiement ?? '-',
-                                                'client' => $clientName ?? '-',
-                                            ];
-                                        })->values();
-                                    @endphp
-                                    <tr>
-                                        <td>
-                                            <a href="{{ route('backend.annonces.show', $bien['bien']) }}"
-                                                class="text-dark text-decoration-none" title="Voir le détail du bien">
-                                                <strong>{{ $bien['bien']->titre ?? 'N/A' }}</strong>
-                                            </a>
-                                            <br>
-                                            <small class="text-muted">{{ $bien['type_bien'] }}</small>
-                                            <span class="badge bg-success">{{ $bien['adresse'] }}</span>
-                                        </td>
-                                        <td class="text-end">
-                                            <strong class="text-success">{{ number_format($bien['encaissement_ventes']['total'], 0, ',', ' ') }} F</strong>
-                                            <br>
-                                            <small class="text-muted">{{ $bien['encaissement_ventes']['nombre'] }} paiement(s)</small>
-                                        </td>
-                                        <td class="text-end text-danger">
-                                            {{ number_format($bien['total_commission_agence'], 0, ',', ' ') }} F
-                                        </td>
-                                        <td class="text-end text-warning">
-                                            {{ number_format($bien['total_charges'], 0, ',', ' ') }} F
-                                        </td>
-                                        <td class="text-end">
-                                            <strong class="text-success">{{ number_format($bien['revenue_net'], 0, ',', ' ') }} F</strong>
-                                        </td>
-                                        <td class="text-center">
-                                            <button type="button" class="btn btn-sm btn-outline-success btnVoirPaiements"
-                                                data-paiements='@json($paiements_combined)'
-                                                data-bien-titre="{{ $bien['bien']->titre ?? '' }}">
-                                                <i class="fas fa-eye"></i> Détails
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    @if ($bien['charges']->isNotEmpty())
-                                        <tr class="table-light">
-                                            <td colspan="6" class="py-2">
-                                                <small class="text-muted">
-                                                    <strong><i class="fas fa-tools me-1"></i> Charges :</strong>
-                                                    @foreach ($bien['charges'] as $charge)
-                                                        <span class="badge bg-warning text-dark me-1">
-                                                            {{ $charge->type_charge_libelle }}: {{ number_format($charge->montant, 0, ',', ' ') }} F
-                                                        </span>
-                                                    @endforeach
-                                                </small>
-                                            </td>
-                                        </tr>
-                                    @endif
-                                @endforeach
-                            </tbody>
-                            <tfoot class="table-success">
-                                <tr>
-                                    <td><strong>TOTAL VENTES</strong></td>
-                                    <td class="text-end"><strong>{{ number_format($biensVente->sum('encaissement_ventes.total'), 0, ',', ' ') }} F</strong></td>
-                                    <td class="text-end"><strong>{{ number_format($biensVente->sum('total_commission_agence'), 0, ',', ' ') }} F</strong></td>
-                                    <td class="text-end"><strong>{{ number_format($biensVente->sum('total_charges'), 0, ',', ' ') }} F</strong></td>
-                                    <td class="text-end"><strong>{{ number_format($biensVente->sum('revenue_net'), 0, ',', ' ') }} F</strong></td>
-                                    <td></td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        @endif
-
-        @if($biensLocation->count() === 0 && $biensVente->count() === 0)
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle me-2"></i>
-                Aucun bien trouvé pour cette période.
-            </div>
-        @endif
+        @endif --}}
 
         <!-- Section de calcul -->
-        <div class="card mb-4">
-            <div class="card-header bg-light">
+        <div class="card">
+            <div class="card-header">
                 <h5 class="mb-0">
                     <i class="fas fa-calculator"></i> Calcul du Revenu Net
                 </h5>
@@ -756,265 +665,16 @@
     </div>
 
     <style>
-        /* Cacher l'en-tête d'impression sur l'écran */
-        #print-header {
-            display: none !important;
-        }
-
         @media print {
-            /* Afficher l'en-tête d'impression */
-            #print-header {
-                display: block !important;
-            }
 
-            /* Cacher les éléments interactifs */
             .btn,
-            .btn-group,
             form,
-            .modal,
-            .no-print {
+            .card-header .d-inline {
                 display: none !important;
             }
 
-            /* Optimisation de la page */
-            @page {
-                size: A4;
-                margin: 1.5cm 1cm;
-            }
-
-            body {
-                print-color-adjust: exact;
-                -webkit-print-color-adjust: exact;
-            }
-
-            /* En-tête du document */
-            .container-fluid {
-                width: 100%;
-                max-width: 100%;
-                padding: 0;
-            }
-
-            /* Header amélioré pour l'impression */
-            .row.mb-3.align-items-center {
-                border-bottom: 3px solid #0d6efd;
-                padding-bottom: 15px;
-                margin-bottom: 20px !important;
-            }
-
-            .row.mb-3.align-items-center .col-md-4 {
-                display: none !important;
-            }
-
-            .row.mb-3.align-items-center .col-md-8 {
-                width: 100% !important;
-                text-align: center;
-            }
-
-            .row.mb-3.align-items-center h1.h3 {
-                font-size: 24px !important;
-                color: #000;
-                margin-bottom: 10px !important;
-            }
-
-            .row.mb-3.align-items-center h5 {
-                font-size: 18px !important;
-                color: #333;
-            }
-
-            .row.mb-3.align-items-center small {
-                font-size: 14px !important;
-                color: #666;
-            }
-
-            /* Badges */
-            .badge {
-                border: 1px solid #000;
-                background-color: white !important;
-                color: #000 !important;
-                padding: 3px 8px;
-            }
-
-            /* KPI Cards */
             .card {
                 page-break-inside: avoid;
-                margin-bottom: 15px;
-                border: 1px solid #ddd !important;
-                box-shadow: none !important;
-            }
-
-            .card-body {
-                padding: 10px !important;
-            }
-
-            .card-header {
-                background-color: #f8f9fa !important;
-                color: #000 !important;
-                border-bottom: 2px solid #000 !important;
-                padding: 10px 15px !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-
-            .card-header h5 {
-                font-size: 16px !important;
-                font-weight: bold;
-                margin: 0 !important;
-            }
-
-            .card-header.bg-info,
-            .card-header.bg-success {
-                background-color: #e9ecef !important;
-            }
-
-            /* Tableaux */
-            .table {
-                font-size: 11px !important;
-                border-collapse: collapse !important;
-            }
-
-            .table th,
-            .table td {
-                padding: 6px 8px !important;
-                border: 1px solid #ddd !important;
-            }
-
-            .table thead {
-                background-color: #e9ecef !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-
-            .table thead th {
-                font-weight: bold !important;
-                border-bottom: 2px solid #000 !important;
-            }
-
-            .table-hover tbody tr:hover {
-                background-color: transparent !important;
-            }
-
-            .table tfoot {
-                background-color: #f0f0f0 !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-                border-top: 2px solid #000 !important;
-            }
-
-            .table tfoot td,
-            .table tfoot th {
-                font-weight: bold !important;
-            }
-
-            /* Couleurs de texte pour l'impression */
-            .text-primary,
-            .text-info {
-                color: #000 !important;
-            }
-
-            .text-danger {
-                color: #333 !important;
-            }
-
-            .text-warning {
-                color: #555 !important;
-            }
-
-            .text-success {
-                color: #000 !important;
-                font-weight: bold !important;
-            }
-
-            /* Lignes de charges */
-            .table-light {
-                background-color: #f8f9fa !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-
-            /* Section de calcul */
-            .table-success {
-                background-color: #e8f5e9 !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-
-            /* Alert */
-            .alert {
-                border: 1px solid #ddd !important;
-                background-color: #f8f9fa !important;
-                color: #000 !important;
-                padding: 10px !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-
-            /* Liens */
-            a {
-                color: #000 !important;
-                text-decoration: none !important;
-            }
-
-            /* Éviter les coupures dans les sections importantes */
-            .card,
-            .row.mb-4,
-            .table {
-                page-break-inside: avoid;
-            }
-
-            /* Section des versements - toujours afficher */
-            .card.mt-4 {
-                margin-top: 20px !important;
-                page-break-before: auto;
-            }
-
-            /* Ajout d'un pied de page avec la date d'impression */
-            .container-fluid::after {
-                content: "Document imprimé le {{ now()->format('d/m/Y à H:i') }}";
-                display: block;
-                text-align: center;
-                font-size: 10px;
-                color: #666;
-                margin-top: 30px;
-                padding-top: 10px;
-                border-top: 1px solid #ddd;
-            }
-
-            /* Masquer les colonnes "Actions" */
-            .table th:last-child,
-            .table td:last-child {
-                display: none !important;
-            }
-
-            /* Forcer l'affichage de toutes les sections */
-            .row,
-            .col-md-3,
-            .col-md-4,
-            .col-md-8 {
-                display: block !important;
-                width: 100% !important;
-            }
-
-            /* Grid pour KPIs en impression - 2 colonnes */
-            .row.mb-3 .col-md-3 {
-                width: 49% !important;
-                display: inline-block !important;
-                margin-right: 1%;
-                vertical-align: top;
-            }
-
-            .row.mb-3 .col-md-3:nth-child(2n) {
-                margin-right: 0;
-            }
-
-            /* Icônes en impression */
-            .fas,
-            .far {
-                font-weight: normal;
-            }
-
-            /* Optimisation des bordures colorées des KPI */
-            .card[style*="border-left"] {
-                border-left: 4px solid #000 !important;
             }
         }
     </style>

@@ -35,6 +35,7 @@ class User extends Authenticatable implements HasMedia
         'role',
         'type_proprietaire',
         'commercial_id', // Pour les propriétaires, le commercial qui les gère
+        'statut', // statut de l'utilisateur (actif, inactif, suspendu)
         'created_at',
         'updated_at',
         'deleted_at',

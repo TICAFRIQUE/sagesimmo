@@ -26,7 +26,7 @@ class AnnonceController extends Controller
                 $query->where('est_bien_agence', true);
             } elseif ($request->type_proprietaire === 'externe') {
                 $query->where('est_bien_agence', false);
-                
+
                 // Filtre par propriétaire spécifique (uniquement pour les biens externes)
                 if ($request->filled('proprietaire_id')) {
                     $query->where('proprietaire_id', $request->proprietaire_id);
@@ -43,7 +43,7 @@ class AnnonceController extends Controller
         }
 
         $annonces = $query->orderBy('created_at', 'desc')->get();
-        
+
         // Récupérer la liste des propriétaires pour le filtre
         $proprietaires = User::proprietaires()->orderBy('username')->get();
 
@@ -58,9 +58,10 @@ class AnnonceController extends Controller
         $typeBiens = TypeBien::actif()->ordered()->get();
         $equipements = Equipement::actif()->ordered()->get();
         $villes = config('ville-commune');
-        
+
         // Récupérer uniquement les utilisateurs ayant le rôle de propriétaire
-        $proprietaires = User::proprietaires()->orderBy('username')->get();
+        $proprietaires = User::proprietaires()->orderBy('username')->where('type_proprietaire', '=', 'externe')->get();
+
 
         return view('backend.pages.annonces.create', compact('typeBiens', 'equipements', 'villes', 'proprietaires'));
     }
@@ -131,10 +132,10 @@ class AnnonceController extends Controller
         $data['reference'] = Annonce::genererReference();
         $data['en_vedette'] = $request->has('en_vedette');
         $data['est_bien_agence'] = $request->has('est_bien_agence') && $request->est_bien_agence;
-        
-        // Si c'est un bien de l'agence et qu'aucun propriétaire n'est spécifié, on met null
+
+        // Si c'est un bien de l'agence , on recupere ID du proprietaire avec le type_proprietaire "agence
         if ($data['est_bien_agence'] && empty($data['proprietaire_id'])) {
-            $data['proprietaire_id'] = null;
+            $data['proprietaire_id'] = User::where('type_proprietaire', 'agence')->first()->id ?? null;
         }
 
         $annonce = Annonce::create($data);
@@ -176,10 +177,10 @@ class AnnonceController extends Controller
     public function show(Annonce $annonce)
     {
         $annonce->load([
-            'proprietaire', 
-            'createdBy', 
-            'media', 
-            'typeBien', 
+            'proprietaire',
+            'createdBy',
+            'media',
+            'typeBien',
             'equipements',
             'locations.locataire',
             'locations.echeances',
@@ -199,9 +200,9 @@ class AnnonceController extends Controller
         $equipements = Equipement::actif()->ordered()->get();
         $villes = config('ville-commune');
         $annonce->load(['typeBien', 'equipements']);
-        
+
         // Récupérer uniquement les utilisateurs ayant le rôle de propriétaire
-        $proprietaires = User::proprietaires()->orderBy('username')->get();
+        $proprietaires = User::proprietaires()->orderBy('username')->where('type_proprietaire', '=', 'externe')->get();
 
         return view('backend.pages.annonces.edit', compact('annonce', 'typeBiens', 'equipements', 'villes', 'proprietaires'));
     }
@@ -257,10 +258,10 @@ class AnnonceController extends Controller
         $data = $request->except(['image_principale', 'images', 'documents', 'equipements', 'commission', 'type_commission']);
         $data['en_vedette'] = $request->has('en_vedette');
         $data['est_bien_agence'] = $request->has('est_bien_agence') && $request->est_bien_agence;
-        
-        // Si c'est un bien de l'agence et qu'aucun propriétaire n'est spécifié, on met null
+
+        // Si c'est un bien de l'agence et que le propriétaire n'est pas défini, on recupere ID du proprietaire avec le type_proprietaire "agence
         if ($data['est_bien_agence'] && empty($data['proprietaire_id'])) {
-            $data['proprietaire_id'] = null;
+            $data['proprietaire_id'] = User::where('type_proprietaire', 'agence')->first()->id ?? null;
         }
 
         $annonce->update($data);
@@ -342,6 +343,6 @@ class AnnonceController extends Controller
 
         return response()->json([
             'status' => 200,
-        ] , 200);
+        ], 200);
     }
 }

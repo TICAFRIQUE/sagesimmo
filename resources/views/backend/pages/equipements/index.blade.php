@@ -47,7 +47,7 @@
                             <tbody>
 
                                 @foreach ($equipements as $equipement)
-                                    <tr>
+                                    <tr id="row_{{ $equipement->id }}">
                                         <td>{{ $loop->iteration }}</td>
                                         <td><strong>{{ $equipement->nom }}</strong></td>
                                         <td>

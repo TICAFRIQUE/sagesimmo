@@ -64,6 +64,8 @@
                                                 Acheteur</option>
                                             <option value="prospect" {{ request('role') == 'prospect' ? 'selected' : '' }}>
                                                 Prospect</option>
+                                            <option value="commercial"
+                                                {{ request('role') == 'commercial' ? 'selected' : '' }}>Commercial</option>
                                             {{-- <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>Administrateur</option> --}}
                                         </select>
                                     </div>
@@ -101,7 +103,7 @@
                             </thead>
                             <tbody>
                                 @foreach ($users as $key => $user)
-                                    <tr>
+                                    <tr id="row_{{ $user->id }}" {{$user->type_proprietaire === 'agence' ? 'class=table-info' : ''}}>
                                         <td>{{ ++$key }}</td>
                                         {{-- <td class="text-center">
                                             @if ($user->hasMedia('avatar'))
@@ -133,6 +135,12 @@
                                                         <span class="badge bg-success badge-role">
                                                             <i class="ri-building-line me-1"></i>Propriétaire
                                                         </span>
+                                                        <!-- Ajouter une icône pour différencier les propriétaires externes et agences -->
+                                                        @if ($user->type_proprietaire === 'agence')
+                                                            <i class="ri-building-2-line ms-1" title="Agence"></i>
+                                                        @else   
+                                                            <i class="ri-user-3-line ms-1" title="Propriétaire Externe"></i>
+                                                        @endif
                                                     @break
 
                                                     @case('acheteur')
@@ -157,7 +165,8 @@
                                             @endif
                                         </td>
                                         <td>
-                                            <a href="#" class="text-capitalize" data-bs-toggle="modal" data-bs-target="#commercialModal{{ $user->id }}">
+                                            <a href="#" class="text-capitalize" data-bs-toggle="modal"
+                                                data-bs-target="#commercialModal{{ $user->id }}">
                                                 {{ $user->commercial ? $user->commercial->username : '-' }}
                                             </a>
                                         </td>
@@ -182,15 +191,14 @@
                                                             Modifier
                                                         </a>
                                                     </li>
-                                                    <li class="dropdown-divider"></li>
 
-                                                    <li>
+                                                    <li class="{{$user->type_proprietaire === 'agence' ? 'd-none' : ''}}">
                                                         <a href="#" class="dropdown-item remove-item-btn delete"
                                                             data-id="{{ $user->id }}">
                                                             <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i>
                                                             Supprimer
                                                         </a>
-                                                       
+
                                                     </li>
 
                                                 </ul>

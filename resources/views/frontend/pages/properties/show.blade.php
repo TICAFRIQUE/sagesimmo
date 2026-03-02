@@ -376,157 +376,158 @@
         .similar-carousel .property-carousel .carousel-indicators button:hover {
             background-color: rgba(255, 255, 255, 0.8);
         }
-    
-    /* Format horizontal compact pour biens similaires */
-    .similar-property-compact {
-        background: white;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        transition: all 0.3s;
-        display: flex;
-        height: 180px;
-        margin-bottom: 1.5rem;
-    }
-    
-    .similar-property-compact:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-    }
-    
-    .similar-property-image {
-        width: 250px;
-        min-width: 250px;
-        height: 100%;
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .similar-property-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.3s;
-    }
-    
-    .similar-property-compact:hover .similar-property-image img {
-        transform: scale(1.1);
-    }
-    
-    .similar-property-badge {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        background: var(--primary-color);
-        color: white;
-        padding: 0.25rem 0.75rem;
-        border-radius: 15px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        z-index: 1;
-    }
-    
-    .similar-property-badge.badge-vente {
-        background: var(--accent-color);
-    }
-    
-    .similar-property-content {
-        flex: 1;
-        padding: 1.25rem;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-    }
-    
-    .similar-property-title {
-        font-size: 1.1rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-        color: var(--text-dark);
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-    
-    .similar-property-title:hover {
-        color: var(--accent-color);
-    }
-    
-    .similar-property-location {
-        color: var(--text-light);
-        font-size: 0.9rem;
-        margin-bottom: 0.75rem;
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-    }
-    
-    .similar-property-features {
-        display: flex;
-        gap: 1rem;
-        margin-bottom: 0.75rem;
-        flex-wrap: wrap;
-    }
-    
-    .similar-feature-item {
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-        font-size: 0.85rem;
-        color: var(--text-light);
-    }
-    
-    .similar-feature-item i {
-        color: var(--primary-color);
-        font-size: 1rem;
-    }
-    
-    .similar-property-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    
-    .similar-property-price {
-        font-size: 1.3rem;
-        font-weight: 700;
-        color: var(--accent-color);
-    }
-    
-    .similar-property-price small {
-        font-size: 0.8rem;
-        font-weight: 500;
-    }
-    
-    .similar-property-type {
-        background: var(--bg-light);
-        color: var(--primary-color);
-        padding: 0.25rem 0.75rem;
-        border-radius: 15px;
-        font-size: 0.85rem;
-        font-weight: 600;
-    }
-    
-    @media (max-width: 768px) {
+
+        /* Format horizontal compact pour biens similaires */
         .similar-property-compact {
-            flex-direction: column;
-            height: auto;
-        }
-        
-        .similar-property-image {
-            width: 100%;
-            height: 200px;
-        }
-    }
-            width: 50px;
-            height: 50px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: var(--primary-color);
-            border-radius: 50%;
-            opacity: 0.9;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
             transition: all 0.3s;
+            display: flex;
+            height: 180px;
+            margin-bottom: 1.5rem;
+        }
+
+        .similar-property-compact:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .similar-property-image {
+            width: 250px;
+            min-width: 250px;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .similar-property-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+
+        .similar-property-compact:hover .similar-property-image img {
+            transform: scale(1.1);
+        }
+
+        .similar-property-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: var(--primary-color);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            z-index: 1;
+        }
+
+        .similar-property-badge.badge-vente {
+            background: var(--accent-color);
+        }
+
+        .similar-property-content {
+            flex: 1;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .similar-property-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .similar-property-title:hover {
+            color: var(--accent-color);
+        }
+
+        .similar-property-location {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .similar-property-features {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .similar-feature-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .similar-feature-item i {
+            color: var(--primary-color);
+            font-size: 1rem;
+        }
+
+        .similar-property-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .similar-property-price {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+
+        .similar-property-price small {
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .similar-property-type {
+            background: var(--bg-light);
+            color: var(--primary-color);
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .similar-property-compact {
+                flex-direction: column;
+                height: auto;
+            }
+
+            .similar-property-image {
+                width: 100%;
+                height: 200px;
+            }
+        }
+
+        width: 50px;
+        height: 50px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: var(--primary-color);
+        border-radius: 50%;
+        opacity: 0.9;
+        transition: all 0.3s;
         }
 
         .similar-carousel .carousel-control-prev:hover,
@@ -775,7 +776,8 @@
                         @endif
 
                         <div class="alert alert-info">
-                            <i class="ri-information-line"></i> Cliquez sur le bouton "Je suis intéressé" dans la barre latérale pour devenir prospect et envoyer votre demande.
+                            <i class="ri-information-line"></i> Cliquez sur le bouton "Je suis intéressé" dans la barre
+                            latérale pour devenir prospect et envoyer votre demande.
                         </div>
                     </div>
                 </div>
@@ -826,7 +828,8 @@
                             {{-- <a href="tel:+33123456789" class="btn btn-outline-primary w-100 mb-2">
                                 <i class="ri-phone-line"></i> Appeler
                             </a> --}}
-                            <button type="button" class="btn btn-accent w-100 d-none d-md-block" data-bs-toggle="modal" data-bs-target="#interestModal">
+                            <button type="button" class="btn btn-accent w-100 d-none d-md-block" data-bs-toggle="modal"
+                                data-bs-target="#interestModal">
                                 <i class="ri-message-3-line"></i> Je suis intéressé
                             </button>
                         </div>
@@ -851,53 +854,57 @@
                         <div class="col-12" data-aos="fade-up" data-aos-delay="{{ $loop->iteration * 100 }}">
                             <div class="similar-property-compact">
                                 <div class="similar-property-image">
-                                    @if($similaire->hasMedia('images'))
-                                        <img src="{{ $similaire->getFirstMediaUrl('images') }}" alt="{{ $similaire->titre }}">
+                                    @if ($similaire->hasMedia('images'))
+                                        <img src="{{ $similaire->getFirstMediaUrl('images') }}"
+                                            alt="{{ $similaire->titre }}">
                                     @else
-                                        <img src="https://via.placeholder.com/250x180?text=Aucune+image" alt="Aucune image">
+                                        <img src="https://via.placeholder.com/250x180?text=Aucune+image"
+                                            alt="Aucune image">
                                     @endif
-                                    
-                                    <span class="similar-property-badge {{ $similaire->type_transaction == 'vente' ? 'badge-vente' : '' }}">
+
+                                    <span
+                                        class="similar-property-badge {{ $similaire->type_transaction == 'vente' ? 'badge-vente' : '' }}">
                                         {{ ucfirst($similaire->type_transaction) }}
                                     </span>
                                 </div>
-                                
+
                                 <div class="similar-property-content">
                                     <div>
                                         <h3 class="similar-property-title">
-                                            <a href="{{ route('properties.show', $similaire->slug) }}" class="text-decoration-none text-dark">
+                                            <a href="{{ route('properties.show', $similaire->slug) }}"
+                                                class="text-decoration-none text-dark">
                                                 {{ $similaire->titre }}
                                             </a>
                                         </h3>
-                                        
+
                                         <div class="similar-property-location">
                                             <i class="ri-map-pin-line"></i>
                                             <span>{{ $similaire->ville }}, {{ $similaire->quartier }}</span>
                                         </div>
-                                        
+
                                         <div class="similar-property-features">
-                                            @if($similaire->typeBien)
+                                            @if ($similaire->typeBien)
                                                 <div class="similar-feature-item">
                                                     <i class="ri-building-line"></i>
                                                     <span>{{ $similaire->typeBien->nom }}</span>
                                                 </div>
                                             @endif
-                                            
-                                            @if($similaire->nombre_chambres)
+
+                                            @if ($similaire->nombre_chambres)
                                                 <div class="similar-feature-item">
                                                     <i class="ri-hotel-bed-line"></i>
                                                     <span>{{ $similaire->nombre_chambres }} Ch.</span>
                                                 </div>
                                             @endif
-                                            
-                                            @if($similaire->nombre_salles_bain)
+
+                                            @if ($similaire->nombre_salles_bain)
                                                 <div class="similar-feature-item">
                                                     <i class="ri-drop-line"></i>
                                                     <span>{{ $similaire->nombre_salles_bain }} SDB</span>
                                                 </div>
                                             @endif
-                                            
-                                            @if($similaire->surface)
+
+                                            @if ($similaire->surface)
                                                 <div class="similar-feature-item">
                                                     <i class="ri-ruler-line"></i>
                                                     <span>{{ $similaire->surface }} m²</span>
@@ -905,16 +912,17 @@
                                             @endif
                                         </div>
                                     </div>
-                                    
+
                                     <div class="similar-property-footer">
                                         <div class="similar-property-price">
                                             {{ number_format($similaire->prix, 0, ',', ' ') }} FCFA
-                                            @if($similaire->type_transaction == 'location')
+                                            @if ($similaire->type_transaction == 'location')
                                                 <small>/mois</small>
                                             @endif
                                         </div>
-                                        
-                                        <a href="{{ route('properties.show', $similaire->slug) }}" class="btn btn-sm btn-primary">
+
+                                        <a href="{{ route('properties.show', $similaire->slug) }}"
+                                            class="btn btn-sm btn-primary">
                                             <i class="ri-eye-line"></i> Voir détails
                                         </a>
                                     </div>
@@ -927,94 +935,94 @@
         </section>
     @endif
 
-<!-- Modal: Formulaire d'intérêt (Prospect) -->
-<div class="modal fade" id="interestModal" tabindex="-1" aria-labelledby="interestModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <form action="{{ route('properties.contact', $bien->slug) }}" method="POST">
-                @csrf
-                <div class="modal-header">
-                    <h5 class="modal-title" id="interestModalLabel">
-                        <i class="ri-message-3-line"></i> Je suis intéressé(e) par ce bien
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    @if (session('success'))
-                        <div class="alert alert-success alert-dismissible fade show">
-                            {{ session('success') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    @endif
-
-                    @if (session('error'))
-                        <div class="alert alert-danger alert-dismissible fade show">
-                            {{ session('error') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    @endif
-
-                    <div class="alert alert-info mb-3">
-                        <i class="ri-information-line"></i> Remplissez ce formulaire pour devenir prospect. Nous vous recontacterons rapidement.
+    <!-- Modal: Formulaire d'intérêt (Prospect) -->
+    <div class="modal fade" id="interestModal" tabindex="-1" aria-labelledby="interestModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form action="{{ route('properties.contact', $bien->slug) }}" method="POST">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="interestModalLabel">
+                            <i class="ri-message-3-line"></i> Je suis intéressé(e) par ce bien
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
+                    <div class="modal-body">
+                        @if (session('success'))
+                            <div class="alert alert-success alert-dismissible fade show">
+                                {{ session('success') }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        @endif
 
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <label for="username" class="form-label">Nom complet *</label>
-                            <input type="text" class="form-control @error('username') is-invalid @enderror" 
-                                id="username" name="username" value="{{ old('username') }}" required
-                                placeholder="Ex: Jean Kouassi">
-                            @error('username')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                        @if (session('error'))
+                            <div class="alert alert-danger alert-dismissible fade show">
+                                {{ session('error') }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        @endif
+
+                        <div class="alert alert-info mb-3">
+                            <i class="ri-information-line"></i> Remplissez ce formulaire pour devenir prospect. Nous vous
+                            recontacterons rapidement.
                         </div>
-                        <div class="col-md-6">
-                            <label for="email" class="form-label">Email *</label>
-                            <input type="email" class="form-control @error('email') is-invalid @enderror" 
-                                id="email" name="email" value="{{ old('email') }}" required>
-                            @error('email')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="col-md-6">
-                            <label for="phone" class="form-label">Téléphone *</label>
-                            <input type="text" class="form-control @error('phone') is-invalid @enderror" 
-                                id="phone" name="phone" value="{{ old('phone') }}" required
-                                placeholder="+225 XX XX XX XX XX">
-                            @error('phone')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="col-12">
-                            <label for="message_prospect" class="form-label">Message *</label>
-                            <textarea class="form-control @error('message') is-invalid @enderror" 
-                                id="message_prospect" name="message" rows="4" required
-                                placeholder="Décrivez votre intérêt pour ce bien...">{{ old('message', 'Bonjour, je suis intéressé(e) par ce bien. Pouvez-vous me contacter pour plus d\'informations ?') }}</textarea>
-                            @error('message')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="username" class="form-label">Nom complet *</label>
+                                <input type="text" class="form-control @error('username') is-invalid @enderror"
+                                    id="username" name="username" value="{{ old('username') }}" required
+                                    placeholder="Ex: Jean Kouassi">
+                                @error('username')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Email </label>
+                                <input type="email" class="form-control @error('email') is-invalid @enderror"
+                                    id="email" name="email" value="{{ old('email') }}">
+                                @error('email')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-md-6">
+                                <label for="phone" class="form-label">Téléphone *</label>
+                                <input type="number" class="form-control @error('phone') is-invalid @enderror"
+                                    id="phone" name="phone" min="0" value="{{ old('phone') }}" required
+                                    placeholder="+225 XX XX XX XX XX">
+                                @error('phone')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-12">
+                                <label for="message_prospect" class="form-label">Message *</label>
+                                <textarea class="form-control @error('message') is-invalid @enderror" id="message_prospect" name="message"
+                                    rows="4" required placeholder="Décrivez votre intérêt pour ce bien...">{{ old('message', 'Bonjour, je suis intéressé(e) par ce bien. Pouvez-vous me contacter pour plus d\'informations ?') }}</textarea>
+                                @error('message')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="ri-close-line"></i> Annuler
-                    </button>
-                    <button type="submit" class="btn btn-accent">
-                        <i class="ri-send-plane-fill"></i> Envoyer ma demande
-                    </button>
-                </div>
-            </form>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="ri-close-line"></i> Annuler
+                        </button>
+                        <button type="submit" class="btn btn-accent">
+                            <i class="ri-send-plane-fill"></i> Envoyer ma demande
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 
 @endsection
 
 @section('scripts')
     <script>
         // Rouvrir le modal si des erreurs de validation existent
-        @if($errors->any())
+        @if ($errors->any())
             document.addEventListener('DOMContentLoaded', function() {
                 var interestModal = new bootstrap.Modal(document.getElementById('interestModal'));
                 interestModal.show();
@@ -1090,10 +1098,8 @@
 
     <!-- Bouton flottant mobile -->
     <div class="mobile-cta-bar d-md-none">
-        <button type="button" class="btn btn-accent w-100 py-3 rounded-0 shadow-lg" 
-                data-bs-toggle="modal" 
-                data-bs-target="#interestModal"
-                style="font-size: 1.1rem; font-weight: 600;">
+        <button type="button" class="btn btn-accent w-100 py-3 rounded-0 shadow-lg" data-bs-toggle="modal"
+            data-bs-target="#interestModal" style="font-size: 1.1rem; font-weight: 600;">
             <i class="ri-message-3-line me-2"></i> Je suis intéressé
         </button>
     </div>
@@ -1120,6 +1126,7 @@
                 transform: translateY(100%);
                 opacity: 0;
             }
+
             to {
                 transform: translateY(0);
                 opacity: 1;

@@ -201,7 +201,7 @@
                                             </a>
                                             <br>
                                             <small class="text-muted">{{ $bien['type_bien'] }}</small>
-                                            <span class="badge bg-info">{{ $bien['adresse'] }}</span>
+                                            <span class="badge bg-info">{{ $bien['reference'] }}</span>
                                         </td>
                                         <td class="text-end">
                                             <strong class="text-info">{{ number_format($bien['encaissement_loyers']['total'], 0, ',', ' ') }} F</strong>

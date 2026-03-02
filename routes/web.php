@@ -292,7 +292,7 @@ Route::middleware(['admin'])->prefix('admin')->group(function () {
         Route::post('/', [\App\Http\Controllers\RapportController::class, 'chargesStore'])->name('store');
         Route::get('{charge}/edit', [\App\Http\Controllers\RapportController::class, 'chargesEdit'])->name('edit');
         Route::put('{charge}', [\App\Http\Controllers\RapportController::class, 'chargesUpdate'])->name('update');
-        Route::delete('{charge}', [\App\Http\Controllers\RapportController::class, 'chargesDestroy'])->name('destroy');
+        Route::delete('delete/{charge}', [\App\Http\Controllers\RapportController::class, 'chargesDestroy'])->name('destroy');
     });
 
     // Gestion des versements - ADMIN ONLY

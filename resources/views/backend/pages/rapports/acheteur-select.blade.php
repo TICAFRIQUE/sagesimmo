@@ -27,12 +27,12 @@
                 <h1 class="h3 mb-0 text-gray-800">
                     <i class="fas fa-shopping-cart"></i> Rapport Acheteurs
                     @if (isset($dateDebut) && isset($dateFin))
-                        <small class="text-success ms-2">{{ $dateDebut->format('d/m/Y') }} au {{ $dateFin->format('d/m/Y') }}</small>
+                        <small class="text-success ms-2">{{ $dateDebut?->format('d/m/Y') }} au {{ $dateFin?->format('d/m/Y') }}</small>
                     @endif
                 </h1>
             </div>
             <div class="col-md-4 text-end no-print">
-                <a href="{{ route('backend.rapports.acheteur.pdf.global', ['date_debut' => $dateDebut->format('Y-m-d'), 'date_fin' => $dateFin->format('Y-m-d')]) }}" class="btn btn-success btn-sm me-2" title="Télécharger en PDF">
+                <a href="{{ route('backend.rapports.acheteur.pdf.global', ['date_debut' => $dateDebut?->format('Y-m-d'), 'date_fin' => $dateFin?->format('Y-m-d')]) }}" class="btn btn-success btn-sm me-2" title="Télécharger en PDF">
                     <i class="fas fa-file-pdf"></i> Télécharger PDF
                 </a>
                 <button type="button" class="btn btn-primary btn-sm" onclick="window.print()" title="Imprimer">
@@ -103,7 +103,7 @@
         <div class="card mb-3 no-print">
             <div class="card-body py-3">
                 <form method="GET" action="{{ route('backend.rapports.acheteur') }}" class="row g-2 align-items-end">
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <label for="acheteur_filtre" class="form-label mb-1 small">Acheteur</label>
                         <select name="acheteur_filtre" id="acheteur_filtre" class="form-select form-select-sm">
                             <option value="">-- Tous --</option>
@@ -126,14 +126,14 @@
                     <div class="col-md-2">
                         <label for="date_debut" class="form-label mb-1 small">Date début</label>
                         <input type="date" name="date_debut" id="date_debut" class="form-control form-control-sm"
-                            value="{{ $dateDebut->format('Y-m-d') }}">
+                            value="{{ $dateDebut?->format('Y-m-d') }}">
                     </div>
                     <div class="col-md-2">
                         <label for="date_fin" class="form-label mb-1 small">Date fin</label>
                         <input type="date" name="date_fin" id="date_fin" class="form-control form-control-sm"
-                            value="{{ $dateFin->format('Y-m-d') }}">
+                            value="{{ $dateFin?->format('Y-m-d') }}">
                     </div>
-                    <div class="col-md-3 d-flex gap-2">
+                    <div class="col-md-2 d-flex gap-2">
                         <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
                             <i class="fas fa-search"></i> Filtrer
                         </button>
@@ -158,7 +158,7 @@
                                 <th class="text-end">Prix Total</th>
                                 <th class="text-end">Total Payé</th>
                                 <th class="text-end">Reste</th>
-                                <th class="text-center">Progression</th>
+                                {{-- <th class="text-center">Progression</th> --}}
                                 <th class="text-end">Payé (Période)</th>
                                 <th class="text-center">Statut</th>
                                 <th class="text-center no-print">Action</th>
@@ -187,7 +187,7 @@
                                         <td class="text-end {{ $apercu['total_restant'] > 0 ? 'text-danger fw-bold' : '' }}">
                                             {{ number_format($apercu['total_restant'], 0, ',', ' ') }} F
                                         </td>
-                                        <td class="text-center">
+                                        {{-- <td class="text-center">
                                             @php $taux = $apercu['taux_paiement']; @endphp
                                             <div class="progress" style="height: 18px; min-width: 60px;">
                                                 <div class="progress-bar {{ $taux >= 100 ? 'bg-success' : ($taux >= 50 ? 'bg-info' : ($taux > 0 ? 'bg-warning' : 'bg-danger')) }}"
@@ -195,7 +195,7 @@
                                                     {{ $taux }}%
                                                 </div>
                                             </div>
-                                        </td>
+                                        </td> --}}
                                         <td class="text-end">{{ number_format($apercu['total_paye_periode'], 0, ',', ' ') }} F</td>
                                         <td class="text-center">
                                             <span class="badge bg-{{ $apercu['statut_global']['badge'] }}">

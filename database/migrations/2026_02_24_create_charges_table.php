@@ -17,9 +17,9 @@ return new class extends Migration
             $table->enum('type_charge', ['maintenance', 'reparation', 'taxe', 'autre'])->default('autre');
             $table->double('montant');
             $table->date('date_charge');
-            $table->text('description')->nullable();
+            $table->longText('description')->nullable();
             $table->string('reference')->nullable(); // Numéro facture, etc.
-            $table->text('notes')->nullable();
+            $table->longText('notes')->nullable();
             $table->timestamps();
 
             // Clés étrangères

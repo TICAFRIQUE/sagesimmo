@@ -2,21 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Paiement;
-use App\Models\Location;
-use App\Models\Vente;
-use App\Models\User;
-use App\Models\Charge;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
 use App\Http\Controllers\Controller;
-use App\Services\RapportProprietaireService;
+use App\Models\Annonce;
+use App\Models\Charge;
+use App\Models\Location;
+use App\Models\Paiement;
+use App\Models\User;
+use App\Models\Vente;
+use App\Services\RapportAcheteurService;
 use App\Services\RapportAgenceService;
 use App\Services\RapportLocataireService;
-use App\Services\RapportAcheteurService;
+use App\Services\RapportProprietaireService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class RapportController extends Controller
 {
@@ -30,7 +32,7 @@ class RapportController extends Controller
         $dateFin = $request->input('date_fin', now()->endOfMonth()->format('Y-m-d'));
         $typeTransaction = $request->input('type_transaction', 'tous'); // tous, location, vente
         $locataire = $request->input('locataire');
-        
+
         // Commissions des locations (paiements de loyer uniquement)
         $commissionsLocations = collect();
         if (in_array($typeTransaction, ['tous', 'location'])) {
@@ -51,17 +53,17 @@ class RapportController extends Controller
                 })
                 ->map(function ($paiement) {
                     $montant = floatval($paiement->montant);
-                    
+
                     // Récupérer la commission depuis la location, pas depuis le paiement
                     $location = $paiement->payable;
                     $commissionAgence = floatval($location->commission_agence ?? 0);
                     $typeCommission = $location->type_commission ?? 'montant';
-                    
+
                     // Calculer la commission sur ce paiement de loyer
                     $commission = $typeCommission == 'pourcentage'
                         ? ($montant * $commissionAgence / 100)
                         : $commissionAgence;
-                    
+
                     return [
                         'id' => $paiement->id,
                         'location_id' => $location->id,
@@ -78,7 +80,7 @@ class RapportController extends Controller
                     ];
                 });
         }
-        
+
         // Commissions des ventes (récupérer depuis le modèle Vente)
         $commissionsVentes = collect();
         if (in_array($typeTransaction, ['tous', 'vente'])) {
@@ -91,18 +93,18 @@ class RapportController extends Controller
                         ->whereBetween('date_paiement', [$dateDebut, $dateFin]);
                 })
                 ->get();
-            
+
             $commissionsVentes = $ventes->map(function ($vente) {
                 // Utiliser la date du dernier paiement comme date de référence
                 $dernierPaiement = $vente->paiements()
                     ->where('statut', 'paye')
                     ->orderBy('date_paiement', 'desc')
                     ->first();
-                
+
                 if (!$dernierPaiement) {
                     return null;
                 }
-                
+
                 // Calculer la commission selon le type
                 $commissionAgence = floatval($vente->commission_agence);
                 if ($vente->type_commission === 'pourcentage') {
@@ -110,7 +112,7 @@ class RapportController extends Controller
                 } else {
                     $commission = $commissionAgence;
                 }
-                
+
                 return [
                     'id' => $vente->id,
                     'vente_id' => $vente->id,
@@ -127,29 +129,29 @@ class RapportController extends Controller
                 ];
             })->filter(); // Filtrer les valeurs null
         }
-        
+
         // Statistiques séparées pour chaque type
         $totalCommissionsLocations = $commissionsLocations->sum('commission_montant');
         $totalTransactionsLocations = $commissionsLocations->sum('montant_transaction');
         $nombreLocations = $commissionsLocations->count();
-        
+
         $totalCommissionsVentes = $commissionsVentes->sum('commission_montant');
         $totalTransactionsVentes = $commissionsVentes->sum('montant_transaction');
         $nombreVentes = $commissionsVentes->count();
-        
+
         // Statistiques globales
         $totalCommissions = $totalCommissionsLocations + $totalCommissionsVentes;
         $totalTransactions = $totalTransactionsLocations + $totalTransactionsVentes;
         $nombreTransactions = $nombreLocations + $nombreVentes;
         $commissionMoyenne = $nombreTransactions > 0 ? $totalCommissions / $nombreTransactions : 0;
-        
+
         // Trier chaque collection par date
         $commissionsLocations = $commissionsLocations->sortByDesc('date')->values();
         $commissionsVentes = $commissionsVentes->sortByDesc('date')->values();
-        
+
         // Liste des locataires pour le filtre
         $locataires = \App\Models\User::whereHas('locations')->get();
-        
+
         return view('backend.pages.rapports.commissions', compact(
             'commissionsLocations',
             'commissionsVentes',
@@ -170,7 +172,7 @@ class RapportController extends Controller
             'locataire'
         ));
     }
-    
+
     /**
      * Statistiques générales
      */
@@ -178,7 +180,7 @@ class RapportController extends Controller
     {
         $dateDebut = $request->input('date_debut', now()->startOfYear()->format('Y-m-d'));
         $dateFin = $request->input('date_fin', now()->endOfYear()->format('Y-m-d'));
-        
+
         // Statistiques Locations
         $locationsActives = Location::where('statut', 'actif')->count();
         $totalLoyers = Paiement::where('payable_type', Location::class)
@@ -186,7 +188,7 @@ class RapportController extends Controller
             ->where('statut', 'paye')
             ->whereBetween('date_paiement', [$dateDebut, $dateFin])
             ->sum('montant');
-        
+
         $commissionsLoyers = Paiement::where('payable_type', Location::class)
             ->where('type_paiement', 'loyer')
             ->where('statut', 'paye')
@@ -200,7 +202,7 @@ class RapportController extends Controller
                     ? ($montant * $commission / 100)
                     : $commission;
             });
-        
+
         // Statistiques Ventes
         $ventesCompletes = Vente::where('statut', 'terminee')->count();
         $totalVentes = Paiement::where('payable_type', Vente::class)
@@ -208,7 +210,7 @@ class RapportController extends Controller
             ->where('statut', 'paye')
             ->whereBetween('date_paiement', [$dateDebut, $dateFin])
             ->sum('montant');
-        
+
         $commissionsVentes = Paiement::where('payable_type', Vente::class)
             ->where('type_paiement', 'prix_achat')
             ->where('statut', 'paye')
@@ -222,19 +224,19 @@ class RapportController extends Controller
                     ? ($montant * $commission / 100)
                     : $commission;
             });
-        
+
         // Évolution mensuelle
         $evolutionMensuelle = Paiement::select(
-                DB::raw('DATE_FORMAT(date_paiement, "%Y-%m") as mois'),
-                DB::raw('SUM(montant) as total'),
-                DB::raw('COUNT(*) as nombre')
-            )
+            DB::raw('DATE_FORMAT(date_paiement, "%Y-%m") as mois'),
+            DB::raw('SUM(montant) as total'),
+            DB::raw('COUNT(*) as nombre')
+        )
             ->where('statut', 'paye')
             ->whereBetween('date_paiement', [$dateDebut, $dateFin])
             ->groupBy('mois')
             ->orderBy('mois')
             ->get();
-        
+
         // Top 5 biens les plus rentables
         $topBiens = Paiement::with(['payable.annonce'])
             ->where('statut', 'paye')
@@ -252,10 +254,10 @@ class RapportController extends Controller
                         ? ($montant * $commissionAgence / 100)
                         : $commissionAgence;
                 });
-                
+
                 $first = $group->first();
                 $bien = $first->payable?->annonce ?? null;
-                
+
                 return [
                     'bien' => $bien?->titre ?? 'N/A',
                     'reference' => $bien?->reference ?? 'N/A',
@@ -268,7 +270,7 @@ class RapportController extends Controller
             })
             ->sortByDesc('commission')
             ->take(5);
-        
+
         return view('backend.pages.rapports.statistiques', compact(
             'locationsActives',
             'totalLoyers',
@@ -307,37 +309,37 @@ class RapportController extends Controller
             // Récupérer les filtres
             $proprietaireFiltre = $request->input('proprietaire_filtre');
             $statutFiltre = $request->input('statut_filtre'); // Nouveau filtre de statut
-            $dateDebut = $request->input('date_debut') 
+            $dateDebut = $request->input('date_debut')
                 ? Carbon::parse($request->input('date_debut'))->startOfDay()
                 : now()->startOfMonth();
             $dateFin = $request->input('date_fin')
                 ? Carbon::parse($request->input('date_fin'))->endOfDay()
                 : now()->endOfMonth();
-            
+
             // Récupérer tous les propriétaires pour le select
             $allProprietaires = User::where('role', 'proprietaire')->get();
-            
+
             // Filtrer les propriétaires à afficher
             $proprietaires = $allProprietaires;
             if ($proprietaireFiltre) {
                 $proprietaires = $allProprietaires->where('id', $proprietaireFiltre);
             }
-            
+
             // Générer un aperçu du rapport pour chaque propriétaire selon les dates
             // On indexe par l'ID du propriétaire pour éviter les problèmes d'index
             $service = new RapportProprietaireService();
             $aperçus = $proprietaires->keyBy('id')->map(function ($proprietaire) use ($service, $dateDebut, $dateFin) {
                 return $service->genererRapport($proprietaire, $dateDebut, $dateFin);
             });
-            
+
             // Filtrer par statut si demandé
             if ($statutFiltre) {
                 $proprietaires = $proprietaires->filter(function ($proprietaire) use ($aperçus, $statutFiltre) {
                     $rapport = $aperçus[$proprietaire->id] ?? null;
                     if (!$rapport) return false;
-                    
+
                     $badge = $rapport['statut_versement']['badge'] ?? 'secondary';
-                    
+
                     // Mapper les badges aux statuts
                     $badgeToStatut = [
                         'warning' => 'en_attente',
@@ -345,10 +347,10 @@ class RapportController extends Controller
                         'success' => 'effectue',
                         'secondary' => 'aucun'
                     ];
-                    
+
                     return ($badgeToStatut[$badge] ?? 'aucun') === $statutFiltre;
                 });
-                
+
                 // Filtrer les aperçus pour ne garder que ceux des propriétaires restants
                 $aperçus = $aperçus->only($proprietaires->pluck('id'));
             }
@@ -360,7 +362,7 @@ class RapportController extends Controller
                 'versements_effectues' => $aperçus->sum('montant_total_verse') ?? 0, // Total versé
                 'total_commission' => $aperçus->sum('total_commission_agence') ?? 0, // Commission totale perçue
             ];
-            
+
             return view('backend.pages.rapports.proprietaire-select', compact(
                 'proprietaires',
                 'allProprietaires',
@@ -374,10 +376,10 @@ class RapportController extends Controller
         $proprietaire = User::findOrFail($proprietaireId);
 
         // Filtres de dates
-        $dateDebut = $request->input('date_debut') 
+        $dateDebut = $request->input('date_debut')
             ? Carbon::parse($request->input('date_debut'))->startOfDay()
             : now()->startOfMonth();
-        
+
         $dateFin = $request->input('date_fin')
             ? Carbon::parse($request->input('date_fin'))->endOfDay()
             : now()->endOfMonth();
@@ -425,7 +427,10 @@ class RapportController extends Controller
         $rapport = $service->genererRapport($proprietaire, $dateDebut, $dateFin);
 
         $pdf = Pdf::loadView('backend.pages.rapports.pdf.proprietaire-rapport', compact(
-            'rapport', 'proprietaire', 'dateDebut', 'dateFin'
+            'rapport',
+            'proprietaire',
+            'dateDebut',
+            'dateFin'
         ))->setPaper('a4', 'portrait');
 
         $nomFichier = 'rapport_' . str_replace(' ', '_', $proprietaire->username) . '_' . $dateDebut->format('Ymd') . '_' . $dateFin->format('Ymd') . '.pdf';
@@ -464,7 +469,11 @@ class RapportController extends Controller
         ];
 
         $pdf = Pdf::loadView('backend.pages.rapports.pdf.proprietaire-select-rapport', compact(
-            'proprietaires', 'aperçus', 'dateDebut', 'dateFin', 'kpiGlobal'
+            'proprietaires',
+            'aperçus',
+            'dateDebut',
+            'dateFin',
+            'kpiGlobal'
         ))->setPaper('a4', 'landscape');
 
         $nomFichier = 'rapport_global_proprietaires_' . $dateDebut->format('Ymd') . '_' . $dateFin->format('Ymd') . '.pdf';
@@ -491,7 +500,7 @@ class RapportController extends Controller
         $dateDebut = $request->input('date_debut')
             ? Carbon::parse($request->input('date_debut'))->startOfDay()
             : now()->startOfYear();
-        
+
         $dateFin = $request->input('date_fin')
             ? Carbon::parse($request->input('date_fin'))->endOfDay()
             : now()->endOfYear();
@@ -507,142 +516,7 @@ class RapportController extends Controller
         ));
     }
 
-    /**
-     * Gestion des charges - Liste des charges
-     */
-    public function chargesIndex(Request $request)
-    {
-        // Seul les administrateurs peuvent voir les charges
-        if (in_array(Auth::user()->role, ['client', 'proprietaire', 'acheteur', 'locataire'])) {
-            return redirect()->back()->with('error', 'Accès refusé');
-        }
-
-        $query = Charge::with('annonce');
-
-        // Filtre par bien
-        if ($request->filled('annonce_id')) {
-            $query->where('annonce_id', $request->input('annonce_id'));
-        }
-
-        // Filtre par type
-        if ($request->filled('type_charge')) {
-            $query->where('type_charge', $request->input('type_charge'));
-        }
-
-        // Filtre par date
-        if ($request->filled('date_debut') && $request->filled('date_fin')) {
-            $query->whereBetween('date_charge', [
-                $request->input('date_debut'),
-                $request->input('date_fin')
-            ]);
-        }
-
-        $charges = $query->orderBy('date_charge', 'desc')->paginate(20);
-
-        // Liste des biens
-        $biens = \App\Models\Annonce::all();
-
-        return view('backend.pages.rapports.charges.index', compact(
-            'charges',
-            'biens'
-        ));
-    }
-
-    /**
-     * Gestion des charges - Créer une charge
-     */
-    public function chargesCreate(Request $request)
-    {
-        // Seul les administrateurs peuvent créer des charges
-        if (in_array(Auth::user()->role, ['client', 'proprietaire', 'acheteur', 'locataire'])) {
-            return redirect()->back()->with('error', 'Accès refusé');
-        }
-
-        $biens = \App\Models\Annonce::all();
-
-        return view('backend.pages.rapports.charges.create', compact('biens'));
-    }
-
-    /**
-     * Gestion des charges - Enregistrer une charge
-     */
-    public function chargesStore(Request $request)
-    {
-        // Seul les administrateurs peuvent créer des charges
-        if (in_array(Auth::user()->role, ['client', 'proprietaire', 'acheteur', 'locataire'])) {
-            return redirect()->back()->with('error', 'Accès refusé');
-        }
-
-        $request->validate([
-            'annonce_id' => 'required|exists:annonces,id',
-            'type_charge' => 'required|in:maintenance,reparation,taxe,autre',
-            'montant' => 'required|numeric|min:0',
-            'date_charge' => 'required|date',
-            'description' => 'nullable|string',
-            'reference' => 'nullable|string',
-        ]);
-
-        Charge::create($request->all());
-
-        return redirect()->route('backend.charges.index')
-            ->with('success', 'Charge enregistrée avec succès');
-    }
-
-    /**
-     * Gestion des charges - Éditer une charge
-     */
-    public function chargesEdit(Charge $charge)
-    {
-        // Seul les administrateurs peuvent éditer les charges
-        if (in_array(Auth::user()->role, ['client', 'proprietaire', 'acheteur', 'locataire'])) {
-            return redirect()->back()->with('error', 'Accès refusé');
-        }
-
-        $biens = \App\Models\Annonce::all();
-
-        return view('backend.pages.rapports.charges.edit', compact('charge', 'biens'));
-    }
-
-    /**
-     * Gestion des charges - Mettre à jour une charge
-     */
-    public function chargesUpdate(Request $request, Charge $charge)
-    {
-        // Seul les administrateurs peuvent mettre à jour les charges
-        if (in_array(Auth::user()->role, ['client', 'proprietaire', 'acheteur', 'locataire'])) {
-            return redirect()->back()->with('error', 'Accès refusé');
-        }
-
-        $request->validate([
-            'annonce_id' => 'required|exists:annonces,id',
-            'type_charge' => 'required|in:maintenance,reparation,taxe,autre',
-            'montant' => 'required|numeric|min:0',
-            'date_charge' => 'required|date',
-            'description' => 'nullable|string',
-            'reference' => 'nullable|string',
-        ]);
-
-        $charge->update($request->all());
-
-        return redirect()->route('backend.charges.index')
-            ->with('success', 'Charge mise à jour avec succès');
-    }
-
-    /**
-     * Gestion des charges - Supprimer une charge
-     */
-    public function chargesDestroy(Charge $charge)
-    {
-        // Seul les administrateurs peuvent supprimer les charges
-        if (in_array(Auth::user()->role, ['client', 'proprietaire', 'acheteur', 'locataire'])) {
-            return redirect()->back()->with('error', 'Accès refusé');
-        }
-
-        $charge->delete();
-
-        return redirect()->route('backend.charges.index')
-            ->with('success', 'Charge supprimée avec succès');
-    }
+  
 
     // =====================================================
     // RAPPORT LOCATAIRES
@@ -709,7 +583,12 @@ class RapportController extends Controller
             ];
 
             return view('backend.pages.rapports.locataire-select', compact(
-                'locataires', 'allLocataires', 'aperçus', 'dateDebut', 'dateFin', 'kpiGlobal'
+                'locataires',
+                'allLocataires',
+                'aperçus',
+                'dateDebut',
+                'dateFin',
+                'kpiGlobal'
             ));
         }
 
@@ -726,7 +605,11 @@ class RapportController extends Controller
         $locataires = User::where('role', 'locataire')->get();
 
         return view('backend.pages.rapports.locataire', compact(
-            'rapport', 'locataire', 'dateDebut', 'dateFin', 'locataires'
+            'rapport',
+            'locataire',
+            'dateDebut',
+            'dateFin',
+            'locataires'
         ));
     }
 
@@ -756,7 +639,10 @@ class RapportController extends Controller
         $rapport = $service->genererRapport($locataire, $dateDebut, $dateFin);
 
         $pdf = Pdf::loadView('backend.pages.rapports.pdf.locataire-rapport', compact(
-            'rapport', 'locataire', 'dateDebut', 'dateFin'
+            'rapport',
+            'locataire',
+            'dateDebut',
+            'dateFin'
         ))->setPaper('a4', 'portrait');
 
         $nomFichier = 'rapport_locataire_' . str_replace(' ', '_', $locataire->username)
@@ -802,7 +688,11 @@ class RapportController extends Controller
         ];
 
         $pdf = Pdf::loadView('backend.pages.rapports.pdf.locataire-select-rapport', compact(
-            'locataires', 'aperçus', 'dateDebut', 'dateFin', 'kpiGlobal'
+            'locataires',
+            'aperçus',
+            'dateDebut',
+            'dateFin',
+            'kpiGlobal'
         ))->setPaper('a4', 'landscape');
 
         $nomFichier = 'rapport_global_locataires'
@@ -840,10 +730,12 @@ class RapportController extends Controller
             $statutFiltre = $request->input('statut_filtre');
             $dateDebut = $request->input('date_debut')
                 ? Carbon::parse($request->input('date_debut'))->startOfDay()
-                : now()->startOfMonth();
+                // : now()->startOfMonth();
+                : null;
             $dateFin = $request->input('date_fin')
                 ? Carbon::parse($request->input('date_fin'))->endOfDay()
-                : now()->endOfMonth();
+                // : now()->endOfMonth();
+                : null;
 
             $allAcheteurs = User::where('role', 'acheteur')
                 ->whereHas('ventes', function ($q) {
@@ -878,7 +770,12 @@ class RapportController extends Controller
             ];
 
             return view('backend.pages.rapports.acheteur-select', compact(
-                'acheteurs', 'allAcheteurs', 'aperçus', 'dateDebut', 'dateFin', 'kpiGlobal'
+                'acheteurs',
+                'allAcheteurs',
+                'aperçus',
+                'dateDebut',
+                'dateFin',
+                'kpiGlobal'
             ));
         }
 
@@ -886,16 +783,22 @@ class RapportController extends Controller
         $acheteur = User::findOrFail($acheteurId);
         $dateDebut = $request->input('date_debut')
             ? Carbon::parse($request->input('date_debut'))->startOfDay()
-            : now()->startOfMonth();
+            // : now()->startOfMonth();
+            : null;
         $dateFin = $request->input('date_fin')
             ? Carbon::parse($request->input('date_fin'))->endOfDay()
-            : now()->endOfMonth();
+            // : now()->endOfMonth();
+            : null;
 
         $rapport = $service->genererRapport($acheteur, $dateDebut, $dateFin);
         $acheteurs = User::where('role', 'acheteur')->get();
 
         return view('backend.pages.rapports.acheteur', compact(
-            'rapport', 'acheteur', 'dateDebut', 'dateFin', 'acheteurs'
+            'rapport',
+            'acheteur',
+            'dateDebut',
+            'dateFin',
+            'acheteurs'
         ));
     }
 
@@ -925,7 +828,10 @@ class RapportController extends Controller
         $rapport = $service->genererRapport($acheteur, $dateDebut, $dateFin);
 
         $pdf = Pdf::loadView('backend.pages.rapports.pdf.acheteur-rapport', compact(
-            'rapport', 'acheteur', 'dateDebut', 'dateFin'
+            'rapport',
+            'acheteur',
+            'dateDebut',
+            'dateFin'
         ))->setPaper('a4', 'portrait');
 
         $nomFichier = 'rapport_acheteur_' . str_replace(' ', '_', $acheteur->username) . '_' . $dateDebut->format('Ymd') . '_' . $dateFin->format('Ymd') . '.pdf';
@@ -966,10 +872,171 @@ class RapportController extends Controller
         ];
 
         $pdf = Pdf::loadView('backend.pages.rapports.pdf.acheteur-select-rapport', compact(
-            'acheteurs', 'aperçus', 'dateDebut', 'dateFin', 'kpiGlobal'
+            'acheteurs',
+            'aperçus',
+            'dateDebut',
+            'dateFin',
+            'kpiGlobal'
         ))->setPaper('a4', 'landscape');
 
         $nomFichier = 'rapport_global_acheteurs_' . $dateDebut->format('Ymd') . '_' . $dateFin->format('Ymd') . '.pdf';
         return $pdf->download($nomFichier);
+    }
+
+
+
+    // =====================================================
+    // GESTION DES CHARGES
+    // =====================================================
+
+    /**
+     * Gestion des charges - Liste des charges
+     */
+    public function chargesIndex(Request $request)
+    {
+        // Seul les administrateurs peuvent voir les charges
+        if (in_array(Auth::user()->role, ['client', 'proprietaire', 'acheteur', 'locataire'])) {
+            return redirect()->back()->with('error', 'Accès refusé');
+        }
+
+        $query = Charge::with('annonce');
+
+        // Filtre par bien
+        if ($request->filled('annonce_id')) {
+            $query->where('annonce_id', $request->input('annonce_id'));
+        }
+
+        // Filtre par type
+        if ($request->filled('type_charge')) {
+            $query->where('type_charge', $request->input('type_charge'));
+        }
+
+        // Filtre par date
+        if ($request->filled('date_debut') && $request->filled('date_fin')) {
+            $query->whereBetween('date_charge', [
+                $request->input('date_debut'),
+                $request->input('date_fin')
+            ]);
+        }
+
+        $charges = $query->orderBy('date_charge', 'desc')->get();
+
+        // Liste des biens
+        $biens = \App\Models\Annonce::all();
+
+        return view('backend.pages.rapports.charges.index', compact(
+            'charges',
+            'biens'
+        ));
+    }
+
+
+
+
+
+    /**
+     * Gestion des charges - Créer une charge
+     */
+    public function chargesCreate(Request $request)
+    {
+        // Seul les administrateurs peuvent créer des charges
+        if (in_array(Auth::user()->role, ['client', 'proprietaire', 'acheteur', 'locataire'])) {
+            return redirect()->back()->with('error', 'Accès refusé');
+        }
+
+        $biens = Annonce::all();
+
+        return view('backend.pages.rapports.charges.create', compact('biens'));
+    }
+
+    /**
+     * Gestion des charges - Enregistrer une charge
+     */
+    public function chargesStore(Request $request)
+    {
+        // Seul les administrateurs peuvent créer des charges
+        if (in_array(Auth::user()->role, ['client', 'proprietaire', 'acheteur', 'locataire'])) {
+            return redirect()->back()->with('error', 'Accès refusé');
+        }
+
+        $request->validate([
+            'annonce_id' => 'required|exists:annonces,id',
+            'type_charge' => 'required|in:maintenance,reparation,taxe,autre',
+            'montant' => 'required|numeric|min:0',
+            'date_charge' => 'required|date',
+            'description' => 'nullable|string',
+            'reference' => 'nullable|string',
+        ]);
+        //generer la reference si elle n'est pas fournie
+        if (!$request->input('reference')) {
+            $request->merge([
+                'reference' => 'FAC-' . strtoupper(Str::random(8))
+            ]);
+        }
+
+        Charge::create($request->all());
+
+        return redirect()->route('backend.charges.index')
+            ->with('success', 'Charge enregistrée avec succès');
+    }
+
+    /**
+     * Gestion des charges - Éditer une charge
+     */
+    public function chargesEdit(Charge $charge)
+    {
+        // Seul les administrateurs peuvent éditer les charges
+        if (in_array(Auth::user()->role, ['client', 'proprietaire', 'acheteur', 'locataire'])) {
+            return redirect()->back()->with('error', 'Accès refusé');
+        }
+
+        $biens = Annonce::all();
+
+        return view('backend.pages.rapports.charges.edit', compact('charge', 'biens'));
+    }
+
+    /**
+     * Gestion des charges - Mettre à jour une charge
+     */
+    public function chargesUpdate(Request $request, Charge $charge)
+    {
+        // Seul les administrateurs peuvent mettre à jour les charges
+        if (in_array(Auth::user()->role, ['client', 'proprietaire', 'acheteur', 'locataire'])) {
+            return redirect()->back()->with('error', 'Accès refusé');
+        }
+
+        $request->validate([
+            'annonce_id' => 'required|exists:annonces,id',
+            'type_charge' => 'required|in:maintenance,reparation,taxe,autre',
+            'montant' => 'required|numeric|min:0',
+            'date_charge' => 'required|date',
+            'description' => 'nullable|string',
+            'reference' => 'nullable|string',
+        ]);
+
+        //generer la reference si elle n'est pas fournie
+        if (!$request->input('reference')) {
+            $request->merge([
+                'reference' => 'FAC-' . strtoupper(Str::random(8))
+            ]);
+        }
+
+        $charge->update($request->all());
+
+        return redirect()->route('backend.charges.index')
+            ->with('success', 'Charge mise à jour avec succès');
+    }
+
+    /**
+     * Gestion des charges - Supprimer une charge
+     */
+    public function chargesDestroy(Charge $charge)
+    {
+
+        $charge->delete();
+
+        return response()->json([
+            'status' => 200
+        ], 200);
     }
 }

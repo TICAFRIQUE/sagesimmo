@@ -54,7 +54,7 @@
             @if($acheteur->email) — {{ $acheteur->email }} @endif
             @if($acheteur->telephone) — {{ $acheteur->telephone }} @endif
         </p>
-        <p style="font-size: 12px; color: #666;">Période : {{ $dateDebut->format('d/m/Y') }} au {{ $dateFin->format('d/m/Y') }}</p>
+        <p style="font-size: 12px; color: #666;">Période : {{ $dateDebut?->format('d/m/Y') }} au {{ $dateFin?->format('d/m/Y') }}</p>
         <p style="font-size: 10px; color: #999;">Généré le {{ now()->format('d/m/Y à H:i') }}</p>
     </div>
 

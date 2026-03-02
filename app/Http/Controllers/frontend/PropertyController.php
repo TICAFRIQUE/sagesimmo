@@ -133,7 +133,7 @@ class PropertyController extends Controller
         // Validation des champs du formulaire prospect
         $request->validate([
             'username' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
+            'email' => 'nullable|email|max:255',
             'phone' => 'required|string|max:20',
             'message' => 'required|string',
         ]);

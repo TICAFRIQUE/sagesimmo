@@ -37,20 +37,7 @@
                     </li>
                 @endcan
 
-                <!-- Alertes et Retards -->
-                <li class="nav-item">
-                    <a class="nav-link menu-link {{ Route::is('backend.alertes.*') ? 'active' : '' }}" 
-                        href="{{ route('backend.alertes.index') }}">
-                        <i class="ri-alarm-warning-line"></i> 
-                        <span>Alertes et Retards</span>
-                        @php
-                            $nbAlertes = \App\Models\Echeance::enRetard()->count();
-                        @endphp
-                        @if($nbAlertes > 0)
-                            <span class="badge bg-danger rounded-pill ms-1">{{ $nbAlertes }}</span>
-                        @endif
-                    </a>
-                </li>
+
 
                 <!-- Configuration Immobilière -->
                 <li class="nav-item">
@@ -79,12 +66,12 @@
 
                 <!-- Annonces -->
                 {{-- @can('voir-annonce') --}}
-                    <li class="nav-item">
-                        <a class="nav-link menu-link {{ Route::is('backend.annonces.*') ? 'active' : '' }} "
-                            href="{{ route('backend.annonces.index') }}">
-                            <i class="ri-home-4-line"></i> <span>Annonces</span>
-                        </a>
-                    </li>
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ Route::is('backend.annonces.*') ? 'active' : '' }} "
+                        href="{{ route('backend.annonces.index') }}">
+                        <i class="ri-home-4-line"></i> <span>Annonces</span>
+                    </a>
+                </li>
                 {{-- @endcan --}}
 
                 <!-- Utilisateurs -->
@@ -101,7 +88,7 @@
                         href="{{ route('backend.notifications.index') }}">
                         <i class="ri-notification-3-line"></i> 
                         <span>Notifications</span>
-                        @if(auth()->user()->unreadNotifications->count() > 0)
+                        @if (auth()->user()->unreadNotifications->count() > 0)
                             <span class="badge rounded-pill bg-danger ms-auto">{{ auth()->user()->unreadNotifications->count() }}</span>
                         @endif
                     </a>
@@ -111,13 +98,14 @@
                 <li class="nav-item">
                     <a class="nav-link menu-link" href="#sidebarSuivi" data-bs-toggle="collapse" role="button"
                         aria-expanded="false" aria-controls="sidebarSuivi">
-                        <i class="ri-line-chart-line me-2"></i> 
-                        <span>Demandes Location/Vente</span>
+                        <i class="ri-line-chart-line me-2"></i>
+                        <span>Gestion des Demandes</span>
                         @php
-                            $nouvellesDemandes = \App\Models\Vente::where('statut', 'demande_client')->count() + 
-                                                 \App\Models\Location::where('statut', 'demande_client')->count();
+                            $nouvellesDemandes =
+                                \App\Models\Vente::where('statut', 'demande_client')->count() +
+                                \App\Models\Location::where('statut', 'demande_client')->count();
                         @endphp
-                        @if($nouvellesDemandes > 0)
+                        @if ($nouvellesDemandes > 0)
                             <span class="badge rounded-pill bg-danger ms-auto">{{ $nouvellesDemandes }}</span>
                         @endif
                     </a>
@@ -129,9 +117,12 @@
                                     class="nav-link {{ Route::is('backend.ventes.*') ? 'active' : '' }}">
                                     <i class="ri-shopping-bag-line me-2"></i> Ventes
                                     @php
-                                        $nouvellesVentes = \App\Models\Vente::where('statut', 'demande_client')->count();
+                                        $nouvellesVentes = \App\Models\Vente::where(
+                                            'statut',
+                                            'demande_client',
+                                        )->count();
                                     @endphp
-                                    @if($nouvellesVentes > 0)
+                                    @if ($nouvellesVentes > 0)
                                         <span class="badge rounded-pill bg-danger ms-2">{{ $nouvellesVentes }}</span>
                                     @endif
                                 </a>
@@ -141,15 +132,34 @@
                                     class="nav-link {{ Route::is('backend.locations.*') ? 'active' : '' }}">
                                     <i class="ri-key-line me-2"></i> Locations
                                     @php
-                                        $nouvellesLocations = \App\Models\Location::where('statut', 'demande_client')->count();
+                                        $nouvellesLocations = \App\Models\Location::where(
+                                            'statut',
+                                            'demande_client',
+                                        )->count();
                                     @endphp
-                                    @if($nouvellesLocations > 0)
-                                        <span class="badge rounded-pill bg-danger ms-2">{{ $nouvellesLocations }}</span>
+                                    @if ($nouvellesLocations > 0)
+                                        <span
+                                            class="badge rounded-pill bg-danger ms-2">{{ $nouvellesLocations }}</span>
                                     @endif
                                 </a>
                             </li>
                         </ul>
                     </div>
+                </li>
+
+                <!-- Alertes et Retards -->
+                <li class="nav-item">
+                    <a class="nav-link menu-link {{ Route::is('backend.alertes.*') ? 'active' : '' }}"
+                        href="{{ route('backend.alertes.index') }}">
+                        <i class="ri-alarm-warning-line"></i>
+                        <span>Alertes et Retards</span>
+                        @php
+                            $nbAlertes = \App\Models\Echeance::enRetard()->count();
+                        @endphp
+                        @if ($nbAlertes > 0)
+                            <span class="badge bg-danger rounded-pill ms-1">{{ $nbAlertes }}</span>
+                        @endif
+                    </a>
                 </li>
 
                 <!-- Rapports & Gestions -->
@@ -158,7 +168,7 @@
                         aria-expanded="false" aria-controls="sidebarRapports">
                         <i class="ri-bar-chart-box-line me-2"></i> <span>Rapports & Gestions</span>
                     </a>
-                    <div class="collapse menu-dropdown {{ Route::is('backend.versements.*') ||Route::is('backend.rapports.*') || Route::is('rapports.*') || Route::is('backend.charges.*') ? 'show' : '' }}"
+                    <div class="collapse menu-dropdown {{ Route::is('backend.versements.*') || Route::is('backend.rapports.*') || Route::is('rapports.*') || Route::is('backend.charges.*') ? 'show' : '' }}"
                         id="sidebarRapports">
                         <ul class="nav nav-sm flex-column">
                             {{-- <li class="nav-item">
@@ -176,19 +186,19 @@
                             <li class="nav-item">
                                 <a href="{{ route('backend.rapports.proprietaire') }}"
                                     class="nav-link {{ Route::is('backend.rapports.proprietaire') ? 'active' : '' }}">
-                                    <i class="ri-home-heart-line me-2"></i> Rapport Propriétaire
+                                    <i class="ri-home-heart-line me-2"></i> Propriétaire
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a href="{{ route('backend.rapports.locataire') }}"
                                     class="nav-link {{ Route::is('backend.rapports.locataire') ? 'active' : '' }}">
-                                    <i class="ri-user-location-line me-2"></i> Rapport Locataire
+                                    <i class="ri-user-location-line me-2"></i> Locataire
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a href="{{ route('backend.rapports.acheteur') }}"
                                     class="nav-link {{ Route::is('backend.rapports.acheteur') ? 'active' : '' }}">
-                                    <i class="ri-shopping-bag-line me-2"></i> Rapport Acheteur
+                                    <i class="ri-shopping-bag-line me-2"></i> Acheteur
                                 </a>
                             </li>
                             {{-- <li class="nav-item">
@@ -200,13 +210,13 @@
                             <li class="nav-item">
                                 <a href="{{ route('backend.charges.index') }}"
                                     class="nav-link {{ Route::is('backend.charges.*') ? 'active' : '' }}">
-                                    <i class="ri-tools-line me-2"></i> Gestion des Charges
+                                    <i class="ri-tools-line me-2"></i> Charges
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a href="{{ route('backend.versements.index') }}"
                                     class="nav-link {{ Route::is('backend.versements.*') ? 'active' : '' }}">
-                                    <i class="ri-money-dollar-circle-line me-2"></i> Gestion des Versements
+                                    <i class="ri-money-dollar-circle-line me-2"></i> Historique des Versements
                                 </a>
                             </li>
                         </ul>

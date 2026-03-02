@@ -137,7 +137,7 @@
         <div class="card mb-3 no-print">
             <div class="card-body py-3">
                 <form method="GET" action="{{ route('backend.rapports.locataire') }}" class="row g-2 align-items-end">
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <label for="locataire_filtre" class="form-label mb-1 small">Locataire</label>
                         <select name="locataire_filtre" id="locataire_filtre" class="form-select form-select-sm">
                             <option value="">-- Tous --</option>
@@ -168,7 +168,7 @@
                         <input type="date" name="date_fin" id="date_fin" class="form-control form-control-sm"
                             value="{{ $dateFin?->format('Y-m-d') }}">
                     </div>
-                    <div class="col-md-3 d-flex gap-2">
+                    <div class="col-md-2 d-flex gap-2">
                         <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
                             <i class="fas fa-search"></i> Filtrer
                         </button>
@@ -193,7 +193,7 @@
                                 <th class="text-end">Total Dû</th>
                                 <th class="text-end">Total Payé</th>
                                 <th class="text-end">Restant</th>
-                                <th class="text-center">Taux</th>
+                                {{-- <th class="text-center">Taux</th> --}}
                                 <th class="text-center">En Retard</th>
                                 <th class="text-center">Impayées</th>
                                 <th class="text-center">Prochaine Éch.</th>
@@ -224,7 +224,7 @@
                                         <td class="text-end {{ $apercu['total_restant'] > 0 ? 'text-danger fw-bold' : '' }}">
                                             {{ number_format($apercu['total_restant'], 0, ',', ' ') }} F
                                         </td>
-                                        <td class="text-center">
+                                        {{-- <td class="text-center">
                                             @php $taux = $apercu['taux_paiement']; @endphp
                                             <div class="progress" style="height: 18px; min-width: 60px;">
                                                 <div class="progress-bar {{ $taux >= 100 ? 'bg-success' : ($taux >= 50 ? 'bg-info' : 'bg-danger') }}"
@@ -232,7 +232,7 @@
                                                     {{ $taux }}%
                                                 </div>
                                             </div>
-                                        </td>
+                                        </td> --}}
                                         <td class="text-center">
                                             @if($apercu['nb_en_retard'] > 0)
                                                 <span class="badge bg-warning text-dark">{{ $apercu['nb_en_retard'] }}</span>

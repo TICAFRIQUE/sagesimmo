@@ -7,13 +7,13 @@
 @section('content')
 <div class="container-fluid">
     <!-- Header -->
-    <div class="row mb-4">
+    {{-- <div class="row mb-4">
         <div class="col-md-8">
             <h1 class="h3 mb-0 text-gray-800">
                 <i class="fas fa-edit"></i> Éditer la Charge
             </h1>
         </div>
-    </div>
+    </div> --}}
 
     @if($errors->any())
     <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -40,12 +40,12 @@
                             <label for="annonce_id" class="form-label">
                                 <strong>Bien immobilier</strong> <span class="text-danger">*</span>
                             </label>
-                            <select name="annonce_id" id="annonce_id" class="form-select @error('annonce_id') is-invalid @enderror"
+                            <select name="annonce_id" id="annonce_id" class="form-control @error('annonce_id') is-invalid @enderror"
                                 required>
                                 <option value="">-- Sélectionner un bien --</option>
                                 @foreach($biens as $bien)
                                     <option value="{{ $bien->id }}" @selected(old('annonce_id', $charge->annonce_id) == $bien->id)>
-                                        {{ $bien->titre }} - {{ $bien->adresse }}
+                                        {{ $bien->titre }} * {{ $bien->reference }}
                                     </option>
                                 @endforeach
                             </select>

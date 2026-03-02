@@ -54,6 +54,7 @@
 
     <!-- JAVASCRIPT -->
     @include('backend.layouts.vendor-scripts')
+    @stack('scripts')
 </body>
 
 </html>

@@ -42,14 +42,14 @@
                 </h5>
                 <small class="text-muted">
                     <i class="fas fa-calendar-alt me-1"></i>
-                    {{ $dateDebut->format('d/m/Y') }} au {{ $dateFin->format('d/m/Y') }}
+                    {{ $dateDebut?->format('d/m/Y') }} au {{ $dateFin?->format('d/m/Y') }}
                 </small>
             </div>
             <div class="col-md-5 text-end">
                 <a href="{{ route('backend.rapports.acheteur') }}" class="btn btn-outline-secondary btn-sm me-2 no-print">
                     <i class="fas fa-arrow-left"></i> Retour
                 </a>
-                <a href="{{ route('backend.rapports.acheteur.pdf', ['acheteur_id' => $acheteur->id, 'date_debut' => $dateDebut->format('Y-m-d'), 'date_fin' => $dateFin->format('Y-m-d')]) }}" class="btn btn-success btn-sm me-2 no-print" title="Télécharger en PDF">
+                <a href="{{ route('backend.rapports.acheteur.pdf', ['acheteur_id' => $acheteur->id, 'date_debut' => $dateDebut?->format('Y-m-d'), 'date_fin' => $dateFin?->format('Y-m-d')]) }}" class="btn btn-success btn-sm me-2 no-print" title="Télécharger en PDF">
                     <i class="fas fa-file-pdf"></i> Télécharger PDF
                 </a>
                 <button type="button" class="btn btn-primary btn-sm no-print" onclick="window.print()" title="Imprimer">
@@ -72,11 +72,11 @@
                     </div>
                     <div class="col-md-3">
                         <label class="form-label mb-1 small">Date début</label>
-                        <input type="date" name="date_debut" class="form-control form-control-sm" value="{{ $dateDebut->format('Y-m-d') }}">
+                        <input type="date" name="date_debut" class="form-control form-control-sm" value="{{ $dateDebut?->format('Y-m-d') }}">
                     </div>
                     <div class="col-md-3">
                         <label class="form-label mb-1 small">Date fin</label>
-                        <input type="date" name="date_fin" class="form-control form-control-sm" value="{{ $dateFin->format('Y-m-d') }}">
+                        <input type="date" name="date_fin" class="form-control form-control-sm" value="{{ $dateFin?->format('Y-m-d') }}">
                     </div>
                     <div class="col-md-3 d-flex gap-2">
                         <button type="submit" class="btn btn-primary btn-sm flex-grow-1"><i class="fas fa-search"></i> Filtrer</button>

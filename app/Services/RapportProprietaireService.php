@@ -93,6 +93,7 @@ class RapportProprietaireService
             'adresse' => $bien->adresse ?? 'N/A',
             'ville' => $bien->ville ?? 'N/A',
             'type_bien' => $bien->typeBien?->nom ?? 'N/A',
+            'reference' => $bien->reference ?? 'N/A',
             'type_transaction' => $bien->type_transaction ?? 'N/A',
             
             

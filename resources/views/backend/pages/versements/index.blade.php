@@ -13,11 +13,11 @@
                 <i class="fas fa-money-check-alt"></i> Versements aux Propriétaires
             </h1>
         </div>
-        <div class="col-md-4 text-end">
+        {{-- <div class="col-md-4 text-end">
             <a href="{{ route('backend.versements.create') }}" class="btn btn-primary btn-sm">
                 <i class="fas fa-plus"></i> Ajouter un versement
             </a>
-        </div>
+        </div> --}}
     </div>
 
     <!-- Filtres -->

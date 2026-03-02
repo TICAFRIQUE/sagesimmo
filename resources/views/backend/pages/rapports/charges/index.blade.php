@@ -1,203 +1,131 @@
 @extends('backend.layouts.master')
-
 @section('title')
-   Gestion des Charges
+    Charges
 @endsection
-
+@section('css')
+    <!--datatable css-->
+    <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet" type="text/css" />
+    <!--datatable responsive css-->
+    <link href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap.min.css" rel="stylesheet"
+        type="text/css" />
+    <link href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css" rel="stylesheet" type="text/css" />
+    <!--select2 css-->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css"
+        rel="stylesheet" type="text/css" />
+@endsection
 @section('content')
-<div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h1 class="h3 mb-0 text-gray-800">
-                <i class="fas fa-tools"></i> Gestion des Charges
-            </h1>
-        </div>
-        <div class="col-md-4 text-end">
-            <a href="{{ route('backend.charges.create') }}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Ajouter une charge
-            </a>
-        </div>
-    </div>
+    @component('backend.components.breadcrumb')
+        @slot('li_1')
+            Liste
+        @endslot
+        @slot('title')
+            Charges
+        @endslot
+    @endcomponent
 
-    @if($errors->any())
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <strong>Erreurs :</strong>
-        <ul class="mb-0">
-            @foreach($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
 
-    @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        {{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
 
-    <!-- Filtres -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <form method="GET" action="{{ route('backend.charges.index') }}" class="row g-3">
-                <div class="col-md-3">
-                    <label for="annonce_id" class="form-label">Bien</label>
-                    <select name="annonce_id" id="annonce_id" class="form-select">
-                        <option value="">-- Tous les biens --</option>
-                        @foreach($biens as $bien)
-                            <option value="{{ $bien->id }}" @selected(request('annonce_id') == $bien->id)>
-                                {{ $bien->titre }}
-                            </option>
-                        @endforeach
-                    </select>
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between">
+                    <h5 class="card-title mb-0">Liste des charges</h5>
+                    <a href="{{ route('backend.charges.create') }}" class="btn btn-primary ">Créer
+                        une charge</a>
                 </div>
+                @include('backend.components.alertMessage')
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table id="buttons-datatables" class="display table table-bordered" style="width:100%">
+                            <thead>
+                                <tr class="table-light">
+                                    <th class="text-center">Référence</th>
+                                    <th>Date</th>
+                                    <th>Proprietaire</th>
+                                    <th>Bien</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                    <th>Montant</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($charges as $key => $charge)
+                                    <tr id="row_{{ $charge->id }}">
+                                        <td class="text-center"> {{ $charge->reference }} </td>
+                                        <td> {{ $charge->date_charge }} </td>
+                                        <td><a
+                                                href="{{ route('backend.rapports.proprietaire', ['proprietaire_id' => $charge->annonce->proprietaire->id]) }}">{{ $charge->annonce->proprietaire->username }}</a>
+                                        </td>
+                                        <td> {{ $charge->annonce->titre }} - <span
+                                                class="badge bg-info">{{ $charge->annonce->reference }}</span></td>
+                                        <td> {{ $charge->type_charge }} </td>
+                                        <td> {{ $charge->description }} </td>
+                                        <td class="text-end"> {{ number_format($charge->montant, 0, ',', ' ') }} </td>
+                                        <td class="text-center">
+                                            <div class="dropdown d-inline-block">
+                                                <button class="btn btn-soft-secondary btn-sm dropdown" type="button"
+                                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <i class="ri-more-fill align-middle"></i>
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end">
+                                                    {{-- <li><a href="#!" class="dropdown-item"><i
+                                                                class="ri-eye-fill align-bottom me-2 text-muted"></i>
+                                                            View</a>
+                                                    </li> --}}
+                                                    <li><a class="dropdown-item"
+                                                            href="{{ route('backend.charges.edit', $charge->id) }}"><i
+                                                                class="ri-pencil-fill align-bottom me-2 text-muted"></i>
+                                                            Modifier</a></li>
+                                                    <li>
+                                                        <a href="#" class="dropdown-item remove-item-btn delete"
+                                                            data-id={{ $charge->id }}>
+                                                            <i class="ri-delete-bin-fill align-bottom me-2 text-muted"></i>
+                                                            Supprimer
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {{-- <!-- MODAL : ÉDITER UNE CHARGE -->
+                                    @include('backend.pages.rapports.charges.modal.edit', [
+                                        'charge' => $charge,
+                                    ]) --}}
+                                @endforeach
 
-                <div class="col-md-3">
-                    <label for="type_charge" class="form-label">Type</label>
-                    <select name="type_charge" id="type_charge" class="form-select">
-                        <option value="">-- Tous --</option>
-                        <option value="maintenance" @selected(request('type_charge') === 'maintenance')>Maintenance</option>
-                        <option value="reparation" @selected(request('type_charge') === 'reparation')>Réparation</option>
-                        <option value="taxe" @selected(request('type_charge') === 'taxe')>Taxe</option>
-                        <option value="autre" @selected(request('type_charge') === 'autre')>Autre</option>
-                    </select>
+
+                        </table>
+                    </div>
                 </div>
-
-                <div class="col-md-3">
-                    <label for="date_debut" class="form-label">Date début</label>
-                    <input type="date" name="date_debut" id="date_debut" class="form-control"
-                        value="{{ request('date_debut') }}">
-                </div>
-
-                <div class="col-md-3">
-                    <label for="date_fin" class="form-label">Date fin</label>
-                    <input type="date" name="date_fin" id="date_fin" class="form-control"
-                        value="{{ request('date_fin') }}">
-                </div>
-
-                <div class="col-12">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-search"></i> Filtrer
-                    </button>
-                    <a href="{{ route('backend.charges.index') }}" class="btn btn-secondary">
-                        <i class="fas fa-redo"></i> Réinitialiser
-                    </a>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Tableau des charges -->
-    <div class="card">
-        <div class="card-header">
-            <h5 class="mb-0">
-                Liste des charges ({{ $charges->total() }} au total)
-            </h5>
-        </div>
-        <div class="card-body">
-            @if($charges->count() > 0)
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr class="table-light">
-                            <th>Date</th>
-                            <th>Bien</th>
-                            <th>Type</th>
-                            <th>Description</th>
-                            <th class="text-end">Montant</th>
-                            <th class="text-center">Référence</th>
-                            <th class="text-center">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($charges as $charge)
-                        <tr>
-                            <td>
-                                <strong>{{ $charge->date_charge->format('d/m/Y') }}</strong>
-                            </td>
-                            <td>
-                                <div>
-                                    <strong>{{ $charge->annonce->titre }}</strong><br>
-                                    <small class="text-muted">{{ $charge->annonce->adresse }}</small>
-                                </div>
-                            </td>
-                            <td>
-                                @switch($charge->type_charge)
-                                    @case('maintenance')
-                                        <span class="badge bg-info">
-                                            <i class="fas fa-wrench"></i> Maintenance
-                                        </span>
-                                        @break
-                                    @case('reparation')
-                                        <span class="badge bg-warning">
-                                            <i class="fas fa-hammer"></i> Réparation
-                                        </span>
-                                        @break
-                                    @case('taxe')
-                                        <span class="badge bg-danger">
-                                            <i class="fas fa-percent"></i> Taxe
-                                        </span>
-                                        @break
-                                    @default
-                                        <span class="badge bg-secondary">
-                                            <i class="fas fa-ellipsis-h"></i> Autre
-                                        </span>
-                                @endswitch
-                            </td>
-                            <td>
-                                {{ $charge->description ?? '-' }}
-                                @if($charge->reference)
-                                    <br>
-                                    <small class="text-muted">Réf: {{ $charge->reference }}</small>
-                                @endif
-                            </td>
-                            <td class="text-end font-weight-bold">
-                                {{ number_format($charge->montant, 0, ',', ' ') }} F
-                            </td>
-                            <td class="text-center">
-                                @if($charge->reference)
-                                    <span class="badge bg-light text-dark">{{ $charge->reference }}</span>
-                                @else
-                                    <span class="text-muted">-</span>
-                                @endif
-                            </td>
-                            <td class="text-center">
-                                <div class="btn-group btn-group-sm" role="group">
-                                    <a href="{{ route('backend.charges.edit', $charge) }}" class="btn btn-outline-primary"
-                                        title="Éditer">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <form action="{{ route('backend.charges.destroy', $charge) }}" method="POST"
-                                        style="display: inline;">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-outline-danger"
-                                            onclick="return confirm('Confirmer la suppression ?')"
-                                            title="Supprimer">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
             </div>
-
-            <!-- Pagination -->
-            <nav aria-label="Page navigation">
-                {{ $charges->links() }}
-            </nav>
-            @else
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle"></i> Aucune charge trouvée pour les critères sélectionnés.
-            </div>
-            @endif
         </div>
     </div>
-</div>
+    <!--end row-->
+
+
+    <!-- MODAL : CRÉER UNE CHARGE -->
+    {{-- @include('backend.pages.rapports.charges.modal.create') --}}
+@endsection
+@section('script')
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+
+    <script src="{{ URL::asset('build/js/pages/datatables.init.js') }}"></script>
+
+    <script src="{{ URL::asset('build/js/app.js') }}"></script>
+
+    <!--select2 cdn-->
+
+    <script>
+        window.routeName = "charges";
+    </script>
 @endsection

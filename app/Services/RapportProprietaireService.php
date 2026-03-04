@@ -28,6 +28,9 @@ class RapportProprietaireService
         $totalBrutEncaisse = $rapportParBien->sum('total_brut_encaisse');
         $totalCharges = $rapportParBien->sum('total_charges');
         $totalCommissionAgence = $rapportParBien->sum('total_commission_agence');
+        $totalFraisAgence = $rapportParBien->sum('total_frais_agence');
+        $totalCautions = $rapportParBien->sum('encaissement_cautions.total');
+        // Les frais d'agence appartiennent à l'agence (payés par le client), ils ne se déduisent pas du revenu du propriétaire
         $revenueNet = $totalBrutEncaisse - $totalCommissionAgence - $totalCharges;
 
         // Récupérer les versements
@@ -53,6 +56,8 @@ class RapportProprietaireService
             'total_brut_encaisse' => $totalBrutEncaisse,
             'total_charges' => $totalCharges,
             'total_commission_agence' => $totalCommissionAgence,
+            'total_frais_agence' => $totalFraisAgence,
+            'total_cautions' => $totalCautions,
             'revenue_net' => $revenueNet,
             'detail_charges' => $this->detailChargesParProprietaire($proprietaire, $dateDebut, $dateFin),
             
@@ -75,18 +80,29 @@ class RapportProprietaireService
         // 1. Encaissements (Loyers + Ventes)
         $encaissementLoyers = $this->calculerEncaissementLoyers($bien, $dateDebut, $dateFin);
         $encaissementVentes = $this->calculerEncaissementVentes($bien, $dateDebut, $dateFin);
-        $totalBrutEncaisse = $encaissementLoyers['total'] + $encaissementVentes['total'];
+        
+        // 2. Cautions (revient au propriétaire)
+        $encaissementCautions = $this->calculerEncaissementCautions($bien, $dateDebut, $dateFin);
+        
+        // 3. Frais d'agence (revient à l'agence)
+        $encaissementFraisAgence = $this->calculerEncaissementFraisAgence($bien, $dateDebut, $dateFin);
+        
+        // Total brut encaissé = Loyers + Cautions + Ventes (ce qui revient au propriétaire)
+        $totalBrutEncaisse = $encaissementLoyers['total'] + $encaissementCautions['total'] + $encaissementVentes['total'];
 
-        // 2. Charges
+        // 4. Charges
         $chargesDetails = $this->chargesByBien($bien, $dateDebut, $dateFin);
         $totalCharges = $chargesDetails->sum('montant');
 
-        // 3. Commission agence
+        // 5. Commission agence
         $commissionDetails = $this->commissionsByBien($bien, $dateDebut, $dateFin);
         $totalCommission = $commissionDetails->sum('commission_agence');
+        
+        // 6. Total frais agence
+        $totalFraisAgence = $encaissementFraisAgence['total'];
 
-        // 4. Revenu net
-        $revenueNet = $totalBrutEncaisse - $totalCharges - $totalCommission;
+        // 7. Revenu net = Total brut - Commission - Charges (les frais d'agence appartiennent à l'agence, pas au propriétaire)
+        $revenueNet = $totalBrutEncaisse - $totalCommission - $totalCharges;
 
         return [
             'bien' => $bien,
@@ -96,9 +112,10 @@ class RapportProprietaireService
             'reference' => $bien->reference ?? 'N/A',
             'type_transaction' => $bien->type_transaction ?? 'N/A',
             
-            
             // Encaissements
             'encaissement_loyers' => $encaissementLoyers,
+            'encaissement_cautions' => $encaissementCautions,
+            'encaissement_frais_agence' => $encaissementFraisAgence,
             'encaissement_ventes' => $encaissementVentes,
             'total_brut_encaisse' => $totalBrutEncaisse,
             
@@ -110,6 +127,9 @@ class RapportProprietaireService
             // Commission
             'commissions' => $commissionDetails,
             'total_commission_agence' => $totalCommission,
+            
+            // Frais Agence
+            'total_frais_agence' => $totalFraisAgence,
             
             // Résultat
             'revenue_net' => $revenueNet,
@@ -137,6 +157,78 @@ class RapportProprietaireService
             'nombre' => $paiements->count(),
             'total' => $total,
             'type' => 'location',
+        ];
+    }
+
+    /**
+     * Calculer les encaissements de cautions (revient au propriétaire)
+     */
+    private function calculerEncaissementCautions(Annonce $bien, Carbon $dateDebut, Carbon $dateFin): array
+    {
+        // Cautions des locations
+        $cautionsLocations = Paiement::where('payable_type', Location::class)
+            ->where('type_paiement', 'caution')
+            ->where('statut', 'paye')
+            ->whereBetween('date_paiement', [$dateDebut, $dateFin])
+            ->whereHas('payable', function ($q) use ($bien) {
+                $q->where('annonce_id', $bien->id);
+            })
+            ->get();
+
+        // Cautions des ventes
+        $cautionsVentes = Paiement::where('payable_type', \App\Models\Vente::class)
+            ->where('type_paiement', 'caution')
+            ->where('statut', 'paye')
+            ->whereBetween('date_paiement', [$dateDebut, $dateFin])
+            ->whereHas('payable', function ($q) use ($bien) {
+                $q->where('annonce_id', $bien->id);
+            })
+            ->get();
+
+        $paiements = $cautionsLocations->concat($cautionsVentes);
+        $total = $paiements->sum('montant');
+
+        return [
+            'paiements' => $paiements,
+            'nombre' => $paiements->count(),
+            'total' => $total,
+            'type' => 'caution',
+        ];
+    }
+
+    /**
+     * Calculer les encaissements de frais d'agence (revient à l'agence)
+     */
+    private function calculerEncaissementFraisAgence(Annonce $bien, Carbon $dateDebut, Carbon $dateFin): array
+    {
+        // Frais agence des locations
+        $fraisLocations = Paiement::where('payable_type', Location::class)
+            ->where('type_paiement', 'frais_agence')
+            ->where('statut', 'paye')
+            ->whereBetween('date_paiement', [$dateDebut, $dateFin])
+            ->whereHas('payable', function ($q) use ($bien) {
+                $q->where('annonce_id', $bien->id);
+            })
+            ->get();
+
+        // Frais agence des ventes
+        $fraisVentes = Paiement::where('payable_type', \App\Models\Vente::class)
+            ->where('type_paiement', 'frais_agence')
+            ->where('statut', 'paye')
+            ->whereBetween('date_paiement', [$dateDebut, $dateFin])
+            ->whereHas('payable', function ($q) use ($bien) {
+                $q->where('annonce_id', $bien->id);
+            })
+            ->get();
+
+        $paiements = $fraisLocations->concat($fraisVentes);
+        $total = $paiements->sum('montant');
+
+        return [
+            'paiements' => $paiements,
+            'nombre' => $paiements->count(),
+            'total' => $total,
+            'type' => 'frais_agence',
         ];
     }
 

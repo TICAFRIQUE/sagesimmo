@@ -92,8 +92,16 @@
                     <div class="kpi-value kpi-blue">{{ number_format($rapport['total_brut_encaisse'], 0, ',', ' ') }} F</div>
                 </td>
                 <td class="kpi-box">
-                    <div class="kpi-label">Commission Agence</div>
+                    <div class="kpi-label">Cautions (Propriétaire)</div>
+                    <div class="kpi-value" style="color: #17a2b8;">{{ number_format($rapport['total_cautions'] ?? 0, 0, ',', ' ') }} F</div>
+                </td>
+                <td class="kpi-box">
+                    <div class="kpi-label">Commission (Agence)</div>
                     <div class="kpi-value kpi-red">{{ number_format($rapport['total_commission_agence'], 0, ',', ' ') }} F</div>
+                </td>
+                <td class="kpi-box">
+                    <div class="kpi-label">Frais Agence</div>
+                    <div class="kpi-value" style="color: #e83e8c;">{{ number_format($rapport['total_frais_agence'] ?? 0, 0, ',', ' ') }} F</div>
                 </td>
                 <td class="kpi-box">
                     <div class="kpi-label">Charges</div>
@@ -123,7 +131,9 @@
                     <tr>
                         <th>Bien</th>
                         <th class="text-end">Loyers Encaissés</th>
+                        <th class="text-end">Cautions</th>
                         <th class="text-end">Commission</th>
+                        <th class="text-end">Frais Agence</th>
                         <th class="text-end">Charges</th>
                         <th class="text-end">Revenu Net</th>
                     </tr>
@@ -139,13 +149,15 @@
                                 <strong>{{ number_format($bien['encaissement_loyers']['total'], 0, ',', ' ') }} F</strong><br>
                                 <span style="font-size: 9px; color: #888;">{{ $bien['encaissement_loyers']['nombre'] }} paiement(s)</span>
                             </td>
+                            <td class="text-end" style="color: #17a2b8;">{{ number_format($bien['encaissement_cautions']['total'] ?? 0, 0, ',', ' ') }} F</td>
                             <td class="text-end" style="color: #dc3545;">{{ number_format($bien['total_commission_agence'], 0, ',', ' ') }} F</td>
+                            <td class="text-end" style="color: #e83e8c;">{{ number_format($bien['total_frais_agence'] ?? 0, 0, ',', ' ') }} F</td>
                             <td class="text-end" style="color: #e6a800;">{{ number_format($bien['total_charges'], 0, ',', ' ') }} F</td>
                             <td class="text-end"><strong style="color: #28a745;">{{ number_format($bien['revenue_net'], 0, ',', ' ') }} F</strong></td>
                         </tr>
                         @if($bien['charges']->isNotEmpty())
                             <tr class="charges-row">
-                                <td colspan="5">
+                                <td colspan="7">
                                     <strong>Charges :</strong>
                                     @foreach($bien['charges'] as $charge)
                                         <span class="charge-badge">{{ $charge->type_charge_libelle }}: {{ number_format($charge->montant, 0, ',', ' ') }} F</span>
@@ -159,7 +171,9 @@
                     <tr>
                         <td><strong>TOTAL LOCATIONS</strong></td>
                         <td class="text-end">{{ number_format($biensLocation->sum('encaissement_loyers.total'), 0, ',', ' ') }} F</td>
+                        <td class="text-end">{{ number_format($biensLocation->sum('encaissement_cautions.total'), 0, ',', ' ') }} F</td>
                         <td class="text-end">{{ number_format($biensLocation->sum('total_commission_agence'), 0, ',', ' ') }} F</td>
+                        <td class="text-end">{{ number_format($biensLocation->sum('total_frais_agence'), 0, ',', ' ') }} F</td>
                         <td class="text-end">{{ number_format($biensLocation->sum('total_charges'), 0, ',', ' ') }} F</td>
                         <td class="text-end">{{ number_format($biensLocation->sum('revenue_net'), 0, ',', ' ') }} F</td>
                     </tr>
@@ -179,7 +193,9 @@
                     <tr>
                         <th>Bien</th>
                         <th class="text-end">Prix de Vente</th>
+                        <th class="text-end">Cautions</th>
                         <th class="text-end">Commission</th>
+                        <th class="text-end">Frais Agence</th>
                         <th class="text-end">Charges</th>
                         <th class="text-end">Revenu Net</th>
                     </tr>
@@ -195,13 +211,15 @@
                                 <strong>{{ number_format($bien['encaissement_ventes']['total'], 0, ',', ' ') }} F</strong><br>
                                 <span style="font-size: 9px; color: #888;">{{ $bien['encaissement_ventes']['nombre'] }} paiement(s)</span>
                             </td>
+                            <td class="text-end" style="color: #17a2b8;">{{ number_format($bien['encaissement_cautions']['total'] ?? 0, 0, ',', ' ') }} F</td>
                             <td class="text-end" style="color: #dc3545;">{{ number_format($bien['total_commission_agence'], 0, ',', ' ') }} F</td>
+                            <td class="text-end" style="color: #e83e8c;">{{ number_format($bien['total_frais_agence'] ?? 0, 0, ',', ' ') }} F</td>
                             <td class="text-end" style="color: #e6a800;">{{ number_format($bien['total_charges'], 0, ',', ' ') }} F</td>
                             <td class="text-end"><strong style="color: #28a745;">{{ number_format($bien['revenue_net'], 0, ',', ' ') }} F</strong></td>
                         </tr>
                         @if($bien['charges']->isNotEmpty())
                             <tr class="charges-row">
-                                <td colspan="5">
+                                <td colspan="7">
                                     <strong>Charges :</strong>
                                     @foreach($bien['charges'] as $charge)
                                         <span class="charge-badge">{{ $charge->type_charge_libelle }}: {{ number_format($charge->montant, 0, ',', ' ') }} F</span>
@@ -215,7 +233,9 @@
                     <tr>
                         <td><strong>TOTAL VENTES</strong></td>
                         <td class="text-end">{{ number_format($biensVente->sum('encaissement_ventes.total'), 0, ',', ' ') }} F</td>
+                        <td class="text-end">{{ number_format($biensVente->sum('encaissement_cautions.total'), 0, ',', ' ') }} F</td>
                         <td class="text-end">{{ number_format($biensVente->sum('total_commission_agence'), 0, ',', ' ') }} F</td>
+                        <td class="text-end">{{ number_format($biensVente->sum('total_frais_agence'), 0, ',', ' ') }} F</td>
                         <td class="text-end">{{ number_format($biensVente->sum('total_charges'), 0, ',', ' ') }} F</td>
                         <td class="text-end">{{ number_format($biensVente->sum('revenue_net'), 0, ',', ' ') }} F</td>
                     </tr>
@@ -243,12 +263,24 @@
         </div>
         <table class="calcul-table">
             <tr>
-                <td><strong>Total Encaissé (Loyers + Ventes)</strong></td>
+                <td><strong>Total Loyers / Ventes Encaissés</strong></td>
+                <td class="text-end"><strong>{{ number_format($rapport['total_brut_encaisse'] - ($rapport['total_cautions'] ?? 0), 0, ',', ' ') }} F</strong></td>
+            </tr>
+            <tr>
+                <td><strong>+ Cautions</strong> <span style="font-size: 9px; color: #28a745;">(Revient au Propriétaire)</span></td>
+                <td class="text-end" style="color: #17a2b8;">{{ number_format($rapport['total_cautions'] ?? 0, 0, ',', ' ') }} F</td>
+            </tr>
+            <tr style="background: #e3f2fd;">
+                <td><strong>= Total Encaissé (Loyers + Cautions + Ventes)</strong></td>
                 <td class="text-end"><strong>{{ number_format($rapport['total_brut_encaisse'], 0, ',', ' ') }} F</strong></td>
             </tr>
             <tr style="background: #f8f9fa;">
-                <td><strong>- Commission Agence</strong></td>
+                <td><strong>- Commission Agence</strong> <span style="font-size: 9px; color: #dc3545;">(Revient à l'Agence)</span></td>
                 <td class="text-end" style="color: #dc3545;">({{ number_format($rapport['total_commission_agence'], 0, ',', ' ') }} F)</td>
+            </tr>
+            <tr style="background: #f8f9fa;">
+                <td><strong>- Frais d'Agence</strong> <span style="font-size: 9px; color: #e83e8c;">(Revient à l'Agence)</span></td>
+                <td class="text-end" style="color: #e83e8c;">({{ number_format($rapport['total_frais_agence'] ?? 0, 0, ',', ' ') }} F)</td>
             </tr>
             <tr style="background: #f8f9fa;">
                 <td><strong>- Total des Charges</strong></td>

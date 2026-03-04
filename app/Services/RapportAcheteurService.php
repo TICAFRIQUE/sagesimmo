@@ -12,28 +12,32 @@ class RapportAcheteurService
 {
     /**
      * Générer le rapport complet d'un acheteur
+     * Si $dateDebut et $dateFin sont null → toutes les données (pas de filtre)
+     * Si des dates sont fournies → on filtre les paiements sur la période
      */
-    public function genererRapport(User $acheteur, Carbon $dateDebut, Carbon $dateFin): array
+    public function genererRapport(User $acheteur, ?Carbon $dateDebut = null, ?Carbon $dateFin = null): array
     {
+        $hasPeriode = $dateDebut && $dateFin;
+
         $ventes = $acheteur->ventes()
             ->with(['annonce.typeBien', 'paiements'])
             ->whereIn('statut', ['offre_acceptee', 'terminee'])
             ->get();
 
-        $rapportParVente = $ventes->map(function (Vente $vente) use ($dateDebut, $dateFin) {
-            return $this->calculerRapportVente($vente, $dateDebut, $dateFin);
+        $rapportParVente = $ventes->map(function (Vente $vente) use ($dateDebut, $dateFin, $hasPeriode) {
+            return $this->calculerRapportVente($vente, $dateDebut, $dateFin, $hasPeriode);
         });
 
-        // KPI globaux
+        // KPI globaux (all-time)
         $totalAPayer = $rapportParVente->sum('prix_vente');
         $totalPaye = $rapportParVente->sum('total_paye');
         $totalRestant = $rapportParVente->sum('reste_a_payer');
-        
-        // Paiements de la période
-        $paiementsPeriode = $rapportParVente->pluck('paiements_periode')->flatten(1);
-        $totalPayePeriode = $paiementsPeriode->sum('montant');
-        
-        // Compteurs paiements par statut
+
+        // KPI de la période (si filtre actif, sinon = total payé)
+        $totalPayePeriode = $rapportParVente->sum('total_paye_periode');
+        $nbPaiementsPeriode = $rapportParVente->sum(fn($r) => $r['paiements_periode']->count());
+
+        // Compteurs
         $ventesEnCours = $rapportParVente->filter(fn($r) => $r['reste_a_payer'] > 0);
         $ventesTerminees = $rapportParVente->filter(fn($r) => $r['reste_a_payer'] <= 0);
 
@@ -44,24 +48,27 @@ class RapportAcheteurService
             'acheteur' => $acheteur,
             'date_debut' => $dateDebut,
             'date_fin' => $dateFin,
-            'periode' => $dateDebut->format('d/m/Y') . ' au ' . $dateFin->format('d/m/Y'),
+            'has_periode' => $hasPeriode,
+            'periode' => $hasPeriode
+                ? $dateDebut->format('d/m/Y') . ' au ' . $dateFin->format('d/m/Y')
+                : 'Toutes les périodes',
             'ventes' => $rapportParVente,
             'nombre_ventes' => $ventes->count(),
-            
-            // KPI financiers globaux
+
+            // KPI financiers
             'total_a_payer' => $totalAPayer,
             'total_paye' => $totalPaye,
             'total_restant' => $totalRestant,
             'taux_paiement' => $totalAPayer > 0 ? round(($totalPaye / $totalAPayer) * 100, 1) : 0,
-            
+
             // Période
             'total_paye_periode' => $totalPayePeriode,
-            'nb_paiements_periode' => $paiementsPeriode->count(),
-            
+            'nb_paiements_periode' => $nbPaiementsPeriode,
+
             // Compteurs
             'nb_ventes_en_cours' => $ventesEnCours->count(),
             'nb_ventes_terminees' => $ventesTerminees->count(),
-            
+
             // Statut
             'statut_global' => $statutGlobal,
         ];
@@ -69,9 +76,12 @@ class RapportAcheteurService
 
     /**
      * Générer un aperçu rapide pour la liste
+     * Si $dateDebut/$dateFin sont null → pas de filtre période
      */
-    public function genererApercu(User $acheteur, Carbon $dateDebut, Carbon $dateFin): array
+    public function genererApercu(User $acheteur, ?Carbon $dateDebut = null, ?Carbon $dateFin = null): array
     {
+        $hasPeriode = $dateDebut && $dateFin;
+
         $ventes = $acheteur->ventes()
             ->with(['annonce', 'paiements'])
             ->whereIn('statut', ['offre_acceptee', 'terminee'])
@@ -82,11 +92,22 @@ class RapportAcheteurService
         $totalRestant = $totalAPayer - $totalPaye;
 
         // Paiements de la période
-        $paiementsPeriode = Paiement::where('payable_type', Vente::class)
-            ->whereIn('payable_id', $ventes->pluck('id'))
-            ->where('statut', 'paye')
-            ->whereBetween('date_paiement', [$dateDebut, $dateFin])
-            ->get();
+        if ($hasPeriode) {
+            $paiementsPeriode = Paiement::where('payable_type', Vente::class)
+                ->whereIn('payable_id', $ventes->pluck('id'))
+                ->where('statut', 'paye')
+                ->whereBetween('date_paiement', [$dateDebut, $dateFin])
+                ->get();
+            $totalPayePeriode = $paiementsPeriode->sum('montant');
+            $nbPaiementsPeriode = $paiementsPeriode->count();
+        } else {
+            // Pas de filtre → période = tout
+            $totalPayePeriode = $totalPaye;
+            $nbPaiementsPeriode = Paiement::where('payable_type', Vente::class)
+                ->whereIn('payable_id', $ventes->pluck('id'))
+                ->where('statut', 'paye')
+                ->count();
+        }
 
         $statutGlobal = $this->determinerStatutGlobal($totalPaye, $totalAPayer, $ventes);
 
@@ -96,8 +117,8 @@ class RapportAcheteurService
             'total_paye' => $totalPaye,
             'total_restant' => $totalRestant,
             'taux_paiement' => $totalAPayer > 0 ? round(($totalPaye / $totalAPayer) * 100, 1) : 0,
-            'total_paye_periode' => $paiementsPeriode->sum('montant'),
-            'nb_paiements_periode' => $paiementsPeriode->count(),
+            'total_paye_periode' => $totalPayePeriode,
+            'nb_paiements_periode' => $nbPaiementsPeriode,
             'statut_global' => $statutGlobal,
             'ventes' => $ventes,
         ];
@@ -106,34 +127,14 @@ class RapportAcheteurService
     /**
      * Calculer le rapport pour une vente spécifique
      */
-    private function calculerRapportVente(Vente $vente, Carbon $dateDebut, Carbon $dateFin): array
+    private function calculerRapportVente(Vente $vente, ?Carbon $dateDebut, ?Carbon $dateFin, bool $hasPeriode): array
     {
         $prixVente = $vente->prix_vente;
         $totalPaye = $vente->montantTotalPaye();
         $resteAPayer = $vente->resteAPayer();
         $pourcentage = $vente->pourcentagePaiement();
 
-        // Paiements sur la période
-        $paiementsPeriode = $vente->paiements
-            ->filter(function ($p) use ($dateDebut, $dateFin) {
-                $datePaiement = Carbon::parse($p->date_paiement);
-                return $p->statut === 'paye' && $datePaiement->between($dateDebut, $dateFin);
-            })
-            ->map(function ($p) {
-                return [
-                    'id' => $p->id,
-                    'date' => $p->date_paiement,
-                    'montant' => $p->montant,
-                    'type' => $p->type_paiement,
-                    'methode' => $p->methode_paiement,
-                    'reference' => $p->reference,
-                    'statut' => $p->statut,
-                ];
-            })
-            ->sortBy('date')
-            ->values();
-
-        // Tous les paiements
+        // Tous les paiements payés
         $tousPaiements = $vente->paiements
             ->where('statut', 'paye')
             ->map(function ($p) {
@@ -149,6 +150,34 @@ class RapportAcheteurService
             })
             ->sortBy('date')
             ->values();
+
+        // Paiements sur la période
+        if ($hasPeriode) {
+            $paiementsPeriode = $vente->paiements
+                ->filter(function ($p) use ($dateDebut, $dateFin) {
+                    if ($p->statut !== 'paye') return false;
+                    $datePaiement = Carbon::parse($p->date_paiement);
+                    return $datePaiement->between($dateDebut, $dateFin);
+                })
+                ->map(function ($p) {
+                    return [
+                        'id' => $p->id,
+                        'date' => $p->date_paiement,
+                        'montant' => $p->montant,
+                        'type' => $p->type_paiement,
+                        'methode' => $p->methode_paiement,
+                        'reference' => $p->reference,
+                        'statut' => $p->statut,
+                    ];
+                })
+                ->sortBy('date')
+                ->values();
+        } else {
+            // Pas de filtre → paiements_periode = tous les paiements
+            $paiementsPeriode = $tousPaiements;
+        }
+
+        $totalPayePeriode = $paiementsPeriode->sum('montant');
 
         // Déterminer statut paiement de cette vente
         $statutPaiement = $this->determinerStatutVente($totalPaye, $prixVente, $vente);
@@ -168,9 +197,10 @@ class RapportAcheteurService
 
             // Paiements
             'paiements_periode' => $paiementsPeriode,
-            'total_paye_periode' => $paiementsPeriode->sum('montant'),
+            'total_paye_periode' => $totalPayePeriode,
             'tous_paiements' => $tousPaiements,
-            
+            'has_periode' => $hasPeriode,
+
             // Statut
             'statut_paiement' => $statutPaiement,
         ];

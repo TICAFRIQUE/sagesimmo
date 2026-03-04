@@ -41,7 +41,7 @@
 <body>
     <div class="header">
         <h1>RAPPORT ACHETEURS - SUIVI DES PAIEMENTS</h1>
-        <p style="font-size: 11px;"><strong>Période :</strong> {{ $dateDebut?->format('d/m/Y') }} au {{ $dateFin?->format('d/m/Y') }}</p>
+        <p style="font-size: 11px;"><strong>Période :</strong> {{ $dateDebut ? $dateDebut->format('d/m/Y') : 'Début' }} au {{ $dateFin ? $dateFin->format('d/m/Y') : 'Fin' }}</p>
         <p style="font-size: 9px; color: #999;">Généré le {{ now()->format('d/m/Y à H:i') }} — {{ $acheteurs->count() }} acheteur(s)</p>
     </div>
 

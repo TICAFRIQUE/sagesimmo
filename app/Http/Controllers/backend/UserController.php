@@ -266,29 +266,6 @@ class UserController extends Controller
         return redirect()->route('backend.users.index')->with('success', 'Utilisateur modifié avec succès');
     }
 
-    /**
-     * Supprimer un utilisateur
-     */
-    public function destroy(User $user)
-    {
-        // Supprimer tous les médias
-        $user->clearMediaCollection('avatar');
-        $user->clearMediaCollection('piece_identite');
-        $user->clearMediaCollection('documents');
-
-        $user->delete();
-
-        //utiliser toast
-        // toast('Utilisateur supprimé avec succès', 'success');
-
-
-        // return redirect()->route('backend.users.index')->with('success', 'Utilisateur supprimé avec succès');
-
-        return response()->json(['status' => 200, 'message' => 'Utilisateur supprimé avec succès'], 200);
-
-        // Alert::success('Utilisateur supprimé avec succès', 'Succès');
-        // return redirect()->route('backend.users.index');
-    }
 
     /**
      * Supprimer un média spécifique
@@ -304,4 +281,29 @@ class UserController extends Controller
 
         return response()->json(['success' => true, 'message' => 'Document supprimé avec succès']);
     }
+
+        /**
+     * Supprimer un utilisateur
+     */
+    public function destroy(User $user)
+    {
+        // Supprimer tous les médias
+        $user->clearMediaCollection('avatar');
+        $user->clearMediaCollection('piece_identite');
+        $user->clearMediaCollection('documents');
+
+        $user->forceDelete();
+
+        //utiliser toast
+        // toast('Utilisateur supprimé avec succès', 'success');
+
+
+        // return redirect()->route('backend.users.index')->with('success', 'Utilisateur supprimé avec succès');
+
+        return response()->json(['status' => 200, 'message' => 'Utilisateur supprimé avec succès'], 200);
+
+        // Alert::success('Utilisateur supprimé avec succès', 'Succès');
+        // return redirect()->route('backend.users.index');
+    }
+
 }

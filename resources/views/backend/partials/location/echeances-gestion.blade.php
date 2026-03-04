@@ -11,6 +11,7 @@
 --}}
 
 @php
+// Suffixe unique pour éviter les conflits d'ID dans les modals
     $_suffix = $suffix ?? $location->id;
     
     // Récupérer les échéances triées

@@ -39,6 +39,9 @@
                     <a href="{{ route('backend.locations.create') }}" class="btn btn-info">
                         <i class="ri-home-heart-line me-1"></i>Nouvelle location
                     </a>
+                    <a href="{{ route('backend.ventes.create') }}" class="btn btn-danger">
+                        <i class="ri-home-heart-line me-1"></i>Nouvelle vente
+                    </a>
                 </div>
             </div>
         </div>

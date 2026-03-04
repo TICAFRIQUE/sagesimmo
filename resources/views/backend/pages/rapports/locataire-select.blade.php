@@ -41,11 +41,11 @@
             </div>
             <div class="col-md-4 text-end no-print">
                 <a href="{{ route('backend.rapports.locataire.pdf.global', array_filter(['date_debut' => $dateDebut?->format('Y-m-d'), 'date_fin' => $dateFin?->format('Y-m-d')])) }}" class="btn btn-success btn-sm me-2" title="Télécharger en PDF">
-                    <i class="fas fa-file-pdf"></i> Télécharger PDF
+                    <i class="fas fa-file-pdf"></i> Télécharger PDF & Imprimer
                 </a>
-                <button type="button" class="btn btn-primary btn-sm" onclick="window.print()" title="Imprimer le rapport">
+                {{-- <button type="button" class="btn btn-primary btn-sm" onclick="window.print()" title="Imprimer le rapport">
                     <i class="fas fa-print"></i> Imprimer
-                </button>
+                </button> --}}
             </div>
         </div>
 
@@ -160,16 +160,16 @@
                     </div>
                     <div class="col-md-2">
                         <label for="date_debut" class="form-label mb-1 small">Date début</label>
-                        <input type="date" name="date_debut" id="date_debut" class="form-control form-control-sm"
+                        <input type="date" name="date_debut" id="date_debut" class="form-control form-control"
                             value="{{ $dateDebut?->format('Y-m-d') }}">
                     </div>
                     <div class="col-md-2">
                         <label for="date_fin" class="form-label mb-1 small">Date fin</label>
-                        <input type="date" name="date_fin" id="date_fin" class="form-control form-control-sm"
+                        <input type="date" name="date_fin" id="date_fin" class="form-control form-control"
                             value="{{ $dateFin?->format('Y-m-d') }}">
                     </div>
                     <div class="col-md-2 d-flex gap-2">
-                        <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
+                        <button type="submit" class="btn btn-primary btn-sm flex-grow-1 py-2">
                             <i class="fas fa-search"></i> Filtrer
                         </button>
                         <a href="{{ route('backend.rapports.locataire') }}" class="btn btn-outline-secondary btn-sm" title="Réinitialiser">
@@ -189,7 +189,7 @@
                             <tr>
                                 <th style="width: 30px;">#</th>
                                 <th>Locataire</th>
-                                <th class="text-center">Locations</th>
+                                {{-- <th class="text-center">Locations</th> --}}
                                 <th class="text-end">Total Dû</th>
                                 <th class="text-end">Total Payé</th>
                                 <th class="text-end">Restant</th>
@@ -216,9 +216,9 @@
                                                 <br><small class="text-muted"><i class="fas fa-phone fa-xs"></i> {{ $locataire->telephone }}</small>
                                             @endif
                                         </td>
-                                        <td class="text-center">
+                                        {{-- <td class="text-center">
                                             <span class="badge bg-secondary">{{ $apercu['nb_locations'] }}</span>
-                                        </td>
+                                        </td> --}}
                                         <td class="text-end fw-bold">{{ number_format($apercu['total_du'], 0, ',', ' ') }} F</td>
                                         <td class="text-end text-success fw-bold">{{ number_format($apercu['total_paye'], 0, ',', ' ') }} F</td>
                                         <td class="text-end {{ $apercu['total_restant'] > 0 ? 'text-danger fw-bold' : '' }}">

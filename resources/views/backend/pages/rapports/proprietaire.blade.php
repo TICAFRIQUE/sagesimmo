@@ -47,18 +47,18 @@
                     <i class="fas fa-arrow-left"></i> Retour
                 </a>
                 <a href="{{ route('backend.rapports.proprietaire.pdf', ['proprietaire_id' => $proprietaire->id, 'date_debut' => $dateDebut->format('Y-m-d'), 'date_fin' => $dateFin->format('Y-m-d')]) }}" class="btn btn-success btn-sm me-2 no-print" title="Télécharger en PDF">
-                    <i class="fas fa-file-pdf"></i> Télécharger PDF
+                    <i class="fas fa-file-pdf"></i> Télécharger PDF & Imprimer
                 </a>
-                <button type="button" class="btn btn-primary btn-sm no-print" onclick="window.print()" title="Imprimer le rapport financier">
+                {{-- <button type="button" class="btn btn-primary btn-sm no-print" onclick="window.print()" title="Imprimer le rapport financier">
                     <i class="fas fa-print"></i> Imprimer
-                </button>
+                </button> --}}
             </div>
         </div>
 
         <!-- Filtres compacts -->
         <div class="card mb-3 no-print">
             <div class="card-body py-2">
-                <form method="GET" action="{{ route('backend.rapports.proprietaire') }}" class="row g-2 align-items-end">
+                <form method="GET" action="{{ route('backend.rapports.proprietaire') }}" class="row g-2 align-items-end justify-content-center ">
                     <input type="hidden" name="proprietaire_id" value="{{ $proprietaire->id }}">
 
                     <div class="col-md-3">
@@ -88,57 +88,111 @@
 
         <!-- KPI améliorés -->
         <div class="row mb-3">
-            <div class="col-md-3 mb-2">
+            <div class="col-md-2 mb-2">
                 <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #0d6efd !important;">
                     <div class="card-body py-3 d-flex align-items-center">
-                        <div class="me-3 text-primary" style="font-size: 2rem; opacity: 0.6;">
+                        <div class="me-3 text-primary" style="font-size: 1.8rem; opacity: 0.6;">
                             <i class="fas fa-coins"></i>
                         </div>
                         <div>
                             <small class="text-muted d-block mb-1" style="font-size: 11px;">Total Encaissé</small>
-                            <h5 class="mb-0 fw-bold text-primary">{{ number_format($rapport['total_brut_encaisse'], 0, ',', ' ') }} F</h5>
+                            <h5 class="mb-0 fw-bold text-primary" style="font-size: 1rem;">{{ number_format($rapport['total_brut_encaisse'], 0, ',', ' ') }} F</h5>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-3 mb-2">
+            <div class="col-md-2 mb-2">
+                <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #17a2b8 !important;">
+                    <div class="card-body py-3 d-flex align-items-center">
+                        <div class="me-3 text-info" style="font-size: 1.8rem; opacity: 0.6;">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div>
+                            <small class="text-muted d-block mb-1" style="font-size: 11px;">Cautions <small class="text-success">(Propriétaire)</small></small>
+                            <h5 class="mb-0 fw-bold text-info" style="font-size: 1rem;">{{ number_format($rapport['total_cautions'] ?? 0, 0, ',', ' ') }} F</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-2 mb-2">
                 <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #dc3545 !important;">
                     <div class="card-body py-3 d-flex align-items-center">
-                        <div class="me-3 text-danger" style="font-size: 2rem; opacity: 0.6;">
+                        <div class="me-3 text-danger" style="font-size: 1.8rem; opacity: 0.6;">
                             <i class="fas fa-percentage"></i>
                         </div>
                         <div>
-                            <small class="text-muted d-block mb-1" style="font-size: 11px;">Commission Agence</small>
-                            <h5 class="mb-0 fw-bold text-danger">{{ number_format($rapport['total_commission_agence'], 0, ',', ' ') }} F</h5>
+                            <small class="text-muted d-block mb-1" style="font-size: 11px;">Commission <small class="text-danger">(Agence)</small></small>
+                            <h5 class="mb-0 fw-bold text-danger" style="font-size: 1rem;">{{ number_format($rapport['total_commission_agence'], 0, ',', ' ') }} F</h5>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-3 mb-2">
+            <div class="col-md-2 mb-2">
+                <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #e83e8c !important;">
+                    <div class="card-body py-3 d-flex align-items-center">
+                        <div class="me-3" style="font-size: 1.8rem; opacity: 0.6; color: #e83e8c;">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                        </div>
+                        <div>
+                            <small class="text-muted d-block mb-1" style="font-size: 11px;">Frais Agence <small class="text-danger">(Agence)</small></small>
+                            <h5 class="mb-0 fw-bold" style="font-size: 1rem; color: #e83e8c;">{{ number_format($rapport['total_frais_agence'] ?? 0, 0, ',', ' ') }} F</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-2 mb-2">
                 <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #ffc107 !important;">
                     <div class="card-body py-3 d-flex align-items-center">
-                        <div class="me-3 text-warning" style="font-size: 2rem; opacity: 0.6;">
+                        <div class="me-3 text-warning" style="font-size: 1.8rem; opacity: 0.6;">
                             <i class="fas fa-tools"></i>
                         </div>
                         <div>
                             <small class="text-muted d-block mb-1" style="font-size: 11px;">Charges</small>
-                            <h5 class="mb-0 fw-bold text-warning">{{ number_format($rapport['total_charges'], 0, ',', ' ') }} F</h5>
+                            <h5 class="mb-0 fw-bold text-warning" style="font-size: 1rem;">{{ number_format($rapport['total_charges'], 0, ',', ' ') }} F</h5>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-3 mb-2">
+            <div class="col-md-2 mb-2">
                 <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #28a745 !important;">
                     <div class="card-body py-3 d-flex align-items-center">
-                        <div class="me-3 text-success" style="font-size: 2rem; opacity: 0.6;">
+                        <div class="me-3 text-success" style="font-size: 1.8rem; opacity: 0.6;">
                             <i class="fas fa-hand-holding-usd"></i>
                         </div>
                         <div>
-                            <small class="text-muted d-block mb-1" style="font-size: 11px;">Revenu Net</small>
-                            <h5 class="mb-0 fw-bold text-success">{{ number_format($rapport['revenue_net'], 0, ',', ' ') }} F</h5>
+                            <small class="text-muted d-block mb-1" style="font-size: 11px;">Revenu Net <small class="text-success">(Propriétaire)</small></small>
+                            <h5 class="mb-0 fw-bold text-success" style="font-size: 1rem;">{{ number_format($rapport['revenue_net'], 0, ',', ' ') }} F</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI Revenu Net Agence -->
+        <div class="row mb-3">
+            <div class="col-md-12">
+                @php
+                    $revenueNetAgence = ($rapport['total_commission_agence'] ?? 0) + ($rapport['total_frais_agence'] ?? 0);
+                @endphp
+                <div class="card border-0 shadow-sm" style="border-left: 4px solid #6f42c1 !important; background: linear-gradient(135deg, #f8f4ff 0%, #fff 100%);">
+                    <div class="card-body py-3 d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3" style="font-size: 2rem; opacity: 0.7; color: #6f42c1;">
+                                <i class="fas fa-building"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block mb-1" style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Revenu Net Agence</small>
+                                <h4 class="mb-0 fw-bold" style="color: #6f42c1;">{{ number_format($revenueNetAgence, 0, ',', ' ') }} F</h4>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted d-block"><i class="fas fa-percentage me-1 text-danger"></i> Commission : <strong>{{ number_format($rapport['total_commission_agence'] ?? 0, 0, ',', ' ') }} F</strong></small>
+                            <small class="text-muted d-block"><i class="fas fa-file-invoice-dollar me-1" style="color:#e83e8c"></i> Frais Agence : <strong>{{ number_format($rapport['total_frais_agence'] ?? 0, 0, ',', ' ') }} F</strong></small>
                         </div>
                     </div>
                 </div>
@@ -167,7 +221,9 @@
                                 <tr>
                                     <th>Bien</th>
                                     <th class="text-end">Loyers Encaissés</th>
-                                    <th class="text-end">Commission</th>
+                                    <th class="text-end">Cautions <small class="text-success">(Propriétaire)</small></th>
+                                    <th class="text-end">Commission <small class="text-danger">(Agence)</small></th>
+                                    <th class="text-end">Frais Agence <small class="text-danger">(Agence)</small></th>
                                     <th class="text-end">Charges</th>
                                     <th class="text-end">Revenu Net</th>
                                     <th class="text-center">Actions</th>
@@ -177,7 +233,13 @@
                                 @foreach($biensLocation as $bien)
                                     @php
                                         $paiements_loyers = $bien['encaissement_loyers']['paiements'] ?? collect();
-                                        $paiements_combined = $paiements_loyers->map(function ($p) {
+                                        $paiements_cautions = $bien['encaissement_cautions']['paiements'] ?? collect();
+                                        $paiements_frais = $bien['encaissement_frais_agence']['paiements'] ?? collect();
+                                        
+                                        // Combiner tous les paiements (loyers + cautions + frais agence)
+                                        $all_paiements = $paiements_loyers->concat($paiements_cautions)->concat($paiements_frais);
+                                        
+                                        $paiements_combined = $all_paiements->map(function ($p) {
                                             $clientName = null;
                                             if (!empty($p->payable)) {
                                                 $clientName = $p->payable->locataire->name ?? null;
@@ -191,7 +253,7 @@
                                                 'type' => $p->type_paiement ?? '-',
                                                 'client' => $clientName ?? '-',
                                             ];
-                                        })->values();
+                                        })->sortByDesc('date')->values();
                                     @endphp
                                     <tr>
                                         <td>
@@ -208,8 +270,17 @@
                                             <br>
                                             <small class="text-muted">{{ $bien['encaissement_loyers']['nombre'] }} paiement(s)</small>
                                         </td>
+                                        <td class="text-end">
+                                            <strong class="text-info">{{ number_format($bien['encaissement_cautions']['total'] ?? 0, 0, ',', ' ') }} F</strong>
+                                            @if(($bien['encaissement_cautions']['nombre'] ?? 0) > 0)
+                                                <br><small class="text-muted">{{ $bien['encaissement_cautions']['nombre'] }} paiement(s)</small>
+                                            @endif
+                                        </td>
                                         <td class="text-end text-danger">
                                             {{ number_format($bien['total_commission_agence'], 0, ',', ' ') }} F
+                                        </td>
+                                        <td class="text-end" style="color: #e83e8c;">
+                                            {{ number_format($bien['total_frais_agence'] ?? 0, 0, ',', ' ') }} F
                                         </td>
                                         <td class="text-end text-warning">
                                             {{ number_format($bien['total_charges'], 0, ',', ' ') }} F
@@ -227,7 +298,7 @@
                                     </tr>
                                     @if ($bien['charges']->isNotEmpty())
                                         <tr class="table-light">
-                                            <td colspan="6" class="py-2">
+                                            <td colspan="8" class="py-2">
                                                 <small class="text-muted">
                                                     <strong><i class="fas fa-tools me-1"></i> Charges :</strong>
                                                     @foreach ($bien['charges'] as $charge)
@@ -245,7 +316,9 @@
                                 <tr>
                                     <td><strong>TOTAL LOCATIONS</strong></td>
                                     <td class="text-end"><strong>{{ number_format($biensLocation->sum('encaissement_loyers.total'), 0, ',', ' ') }} F</strong></td>
+                                    <td class="text-end"><strong>{{ number_format($biensLocation->sum('encaissement_cautions.total'), 0, ',', ' ') }} F</strong></td>
                                     <td class="text-end"><strong>{{ number_format($biensLocation->sum('total_commission_agence'), 0, ',', ' ') }} F</strong></td>
+                                    <td class="text-end"><strong>{{ number_format($biensLocation->sum('total_frais_agence'), 0, ',', ' ') }} F</strong></td>
                                     <td class="text-end"><strong>{{ number_format($biensLocation->sum('total_charges'), 0, ',', ' ') }} F</strong></td>
                                     <td class="text-end"><strong>{{ number_format($biensLocation->sum('revenue_net'), 0, ',', ' ') }} F</strong></td>
                                     <td></td>
@@ -273,7 +346,9 @@
                                 <tr>
                                     <th>Bien</th>
                                     <th class="text-end">Prix de Vente</th>
-                                    <th class="text-end">Commission</th>
+                                    <th class="text-end">Cautions <small class="text-success">(Propriétaire)</small></th>
+                                    <th class="text-end">Commission <small class="text-danger">(Agence)</small></th>
+                                    <th class="text-end">Frais Agence <small class="text-danger">(Agence)</small></th>
                                     <th class="text-end">Charges</th>
                                     <th class="text-end">Revenu Net</th>
                                     <th class="text-center">Actions</th>
@@ -283,7 +358,13 @@
                                 @foreach($biensVente as $bien)
                                     @php
                                         $paiements_ventes = $bien['encaissement_ventes']['paiements'] ?? collect();
-                                        $paiements_combined = $paiements_ventes->map(function ($p) {
+                                        $paiements_cautions_v = $bien['encaissement_cautions']['paiements'] ?? collect();
+                                        $paiements_frais_v = $bien['encaissement_frais_agence']['paiements'] ?? collect();
+                                        
+                                        // Combiner tous les paiements (ventes + cautions + frais agence)
+                                        $all_paiements_v = $paiements_ventes->concat($paiements_cautions_v)->concat($paiements_frais_v);
+                                        
+                                        $paiements_combined = $all_paiements_v->map(function ($p) {
                                             $clientName = null;
                                             if (!empty($p->payable)) {
                                                 $clientName = $p->payable->client->name ?? null;
@@ -297,7 +378,7 @@
                                                 'type' => $p->type_paiement ?? '-',
                                                 'client' => $clientName ?? '-',
                                             ];
-                                        })->values();
+                                        })->sortByDesc('date')->values();
                                     @endphp
                                     <tr>
                                         <td>
@@ -314,8 +395,17 @@
                                             <br>
                                             <small class="text-muted">{{ $bien['encaissement_ventes']['nombre'] }} paiement(s)</small>
                                         </td>
+                                        <td class="text-end">
+                                            <strong class="text-info">{{ number_format($bien['encaissement_cautions']['total'] ?? 0, 0, ',', ' ') }} F</strong>
+                                            @if(($bien['encaissement_cautions']['nombre'] ?? 0) > 0)
+                                                <br><small class="text-muted">{{ $bien['encaissement_cautions']['nombre'] }} paiement(s)</small>
+                                            @endif
+                                        </td>
                                         <td class="text-end text-danger">
                                             {{ number_format($bien['total_commission_agence'], 0, ',', ' ') }} F
+                                        </td>
+                                        <td class="text-end" style="color: #e83e8c;">
+                                            {{ number_format($bien['total_frais_agence'] ?? 0, 0, ',', ' ') }} F
                                         </td>
                                         <td class="text-end text-warning">
                                             {{ number_format($bien['total_charges'], 0, ',', ' ') }} F
@@ -333,7 +423,7 @@
                                     </tr>
                                     @if ($bien['charges']->isNotEmpty())
                                         <tr class="table-light">
-                                            <td colspan="6" class="py-2">
+                                            <td colspan="8" class="py-2">
                                                 <small class="text-muted">
                                                     <strong><i class="fas fa-tools me-1"></i> Charges :</strong>
                                                     @foreach ($bien['charges'] as $charge)
@@ -351,7 +441,9 @@
                                 <tr>
                                     <td><strong>TOTAL VENTES</strong></td>
                                     <td class="text-end"><strong>{{ number_format($biensVente->sum('encaissement_ventes.total'), 0, ',', ' ') }} F</strong></td>
+                                    <td class="text-end"><strong>{{ number_format($biensVente->sum('encaissement_cautions.total'), 0, ',', ' ') }} F</strong></td>
                                     <td class="text-end"><strong>{{ number_format($biensVente->sum('total_commission_agence'), 0, ',', ' ') }} F</strong></td>
+                                    <td class="text-end"><strong>{{ number_format($biensVente->sum('total_frais_agence'), 0, ',', ' ') }} F</strong></td>
                                     <td class="text-end"><strong>{{ number_format($biensVente->sum('total_charges'), 0, ',', ' ') }} F</strong></td>
                                     <td class="text-end"><strong>{{ number_format($biensVente->sum('revenue_net'), 0, ',', ' ') }} F</strong></td>
                                     <td></td>
@@ -382,13 +474,25 @@
                     <div class="col-md-8">
                         <table class="table table-sm">
                             <tr>
-                                <td><strong>Total Encaissé (Loyers + Ventes)</strong></td>
+                                <td><strong>Total Loyers / Ventes Encaissés</strong></td>
                                 <td class="text-end" width="30%">
+                                    <strong>{{ number_format($rapport['total_brut_encaisse'] - ($rapport['total_cautions'] ?? 0), 0, ',', ' ') }} F</strong>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>+ Cautions</strong> <small class="text-success">(Revient au Propriétaire)</small></td>
+                                <td class="text-end text-info">
+                                    {{ number_format($rapport['total_cautions'] ?? 0, 0, ',', ' ') }} F
+                                </td>
+                            </tr>
+                            <tr class="table-primary">
+                                <td><strong>= Total Encaissé (Loyers + Cautions + Ventes)</strong></td>
+                                <td class="text-end">
                                     <strong>{{ number_format($rapport['total_brut_encaisse'], 0, ',', ' ') }} F</strong>
                                 </td>
                             </tr>
                             <tr class="table-light">
-                                <td><strong>- Commission Agence</strong></td>
+                                <td><strong>- Commission Agence</strong> <small class="text-danger">(Revient à l'Agence)</small></td>
                                 <td class="text-end text-danger">
                                     ({{ number_format($rapport['total_commission_agence'], 0, ',', ' ') }} F)
                                 </td>
@@ -404,6 +508,12 @@
                                 <td class="text-end text-success">
                                     <strong class="h5">{{ number_format($rapport['revenue_net'], 0, ',', ' ') }}
                                         F</strong>
+                                </td>
+                            </tr>
+                            <tr style="background-color: #f0ebff;">
+                                <td><strong class="h5" style="color: #6f42c1;">= REVENU NET AGENCE</strong> <small class="text-muted">(Commission + Frais Agence)</small></td>
+                                <td class="text-end" style="color: #6f42c1;">
+                                    <strong class="h5">{{ number_format(($rapport['total_commission_agence'] ?? 0) + ($rapport['total_frais_agence'] ?? 0), 0, ',', ' ') }} F</strong>
                                 </td>
                             </tr>
                         </table>
@@ -1176,21 +1286,69 @@
                     if (paiements.length === 0) {
                         const tr = document.createElement('tr');
                         tr.innerHTML =
-                            '<td colspan="5" class="text-center text-muted">Aucun paiement pour cette période</td>';
+                            '<td colspan="6" class="text-center text-muted">Aucun paiement pour cette période</td>';
                         tbody.appendChild(tr);
                     } else {
+                        // Totaux par type
+                        let totalLoyer = 0, totalCaution = 0, totalFraisAgence = 0, totalAutre = 0;
+                        
                         paiements.forEach(function(p) {
+                            const type = (p.type ?? '-').toLowerCase();
+                            const montant = p.montant || 0;
+                            
+                            // Badges colorés selon le type
+                            let typeBadge = '';
+                            if (type === 'loyer') {
+                                typeBadge = '<span class="badge bg-info">LOYER</span>';
+                                totalLoyer += montant;
+                            } else if (type === 'caution') {
+                                typeBadge = '<span class="badge bg-success">CAUTION</span>';
+                                totalCaution += montant;
+                            } else if (type === 'frais_agence') {
+                                typeBadge = '<span class="badge bg-danger">FRAIS AGENCE</span>';
+                                totalFraisAgence += montant;
+                            } else if (type === 'avance') {
+                                typeBadge = '<span class="badge bg-warning text-dark">AVANCE</span>';
+                                totalAutre += montant;
+                            } else if (type === 'acompte' || type === 'solde' || type === 'prix_achat') {
+                                typeBadge = '<span class="badge bg-primary">' + type.toUpperCase() + '</span>';
+                                totalAutre += montant;
+                            } else {
+                                typeBadge = '<span class="badge bg-secondary">' + type.toUpperCase() + '</span>';
+                                totalAutre += montant;
+                            }
+                            
                             const tr = document.createElement('tr');
                             tr.innerHTML = `
                                 <td>${p.date ?? '-'}</td>
-                                <td>${(p.type ?? '-').toUpperCase()}</td>
+                                <td>${typeBadge}</td>
                                 <td>${p.client ?? '-'}</td>
-                                <td class="text-end">${(p.montant || 0).toLocaleString('fr-FR')} F</td>
+                                <td class="text-end">${montant.toLocaleString('fr-FR')} F</td>
                                 <td>${p.methode ?? '-'}</td>
                                 <td>${p.reference ?? '-'}</td>
                             `;
                             tbody.appendChild(tr);
                         });
+                        
+                        // Ajouter une ligne de séparation et les totaux
+                        const totalGeneral = totalLoyer + totalCaution + totalFraisAgence + totalAutre;
+                        let summaryHtml = '<tr class="table-light"><td colspan="6"><hr class="my-1"></td></tr>';
+                        
+                        if (totalLoyer > 0) {
+                            summaryHtml += `<tr class="table-light"><td colspan="3"><strong><span class="badge bg-info">LOYER</span> Total Loyers</strong></td><td class="text-end"><strong>${totalLoyer.toLocaleString('fr-FR')} F</strong></td><td colspan="2"></td></tr>`;
+                        }
+                        if (totalCaution > 0) {
+                            summaryHtml += `<tr class="table-light"><td colspan="3"><strong><span class="badge bg-success">CAUTION</span> Total Cautions</strong> <small class="text-success">(Propriétaire)</small></td><td class="text-end"><strong>${totalCaution.toLocaleString('fr-FR')} F</strong></td><td colspan="2"></td></tr>`;
+                        }
+                        if (totalFraisAgence > 0) {
+                            summaryHtml += `<tr class="table-light"><td colspan="3"><strong><span class="badge bg-danger">FRAIS AGENCE</span> Total Frais Agence</strong> <small class="text-danger">(Agence)</small></td><td class="text-end"><strong>${totalFraisAgence.toLocaleString('fr-FR')} F</strong></td><td colspan="2"></td></tr>`;
+                        }
+                        if (totalAutre > 0) {
+                            summaryHtml += `<tr class="table-light"><td colspan="3"><strong>Autres paiements</strong></td><td class="text-end"><strong>${totalAutre.toLocaleString('fr-FR')} F</strong></td><td colspan="2"></td></tr>`;
+                        }
+                        summaryHtml += `<tr class="table-primary"><td colspan="3"><strong class="h6 mb-0">TOTAL GÉNÉRAL</strong></td><td class="text-end"><strong class="h6 mb-0">${totalGeneral.toLocaleString('fr-FR')} F</strong></td><td colspan="2"></td></tr>`;
+                        
+                        tbody.insertAdjacentHTML('beforeend', summaryHtml);
                     }
 
                     const modalEl = document.getElementById('modalPaiements');

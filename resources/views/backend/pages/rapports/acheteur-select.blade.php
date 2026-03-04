@@ -10,9 +10,13 @@
         <div id="print-header">
             <div style="text-align: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 3px solid #198754;">
                 <h1 style="font-size: 24px; margin-bottom: 8px; color: #000;">RAPPORT ACHETEURS - SUIVI DES PAIEMENTS</h1>
-                @if (isset($dateDebut) && isset($dateFin))
+                @if ($dateDebut && $dateFin)
                     <p style="font-size: 14px; margin: 5px 0; color: #333;">
                         <strong>Période :</strong> {{ $dateDebut->format('d/m/Y') }} au {{ $dateFin->format('d/m/Y') }}
+                    </p>
+                @else
+                    <p style="font-size: 14px; margin: 5px 0; color: #333;">
+                        <strong>Toutes les périodes</strong>
                     </p>
                 @endif
                 <p style="font-size: 11px; margin: 5px 0; color: #999;">
@@ -26,8 +30,10 @@
             <div class="col-md-8">
                 <h1 class="h3 mb-0 text-gray-800">
                     <i class="fas fa-shopping-cart"></i> Rapport Acheteurs
-                    @if (isset($dateDebut) && isset($dateFin))
-                        <small class="text-success ms-2">{{ $dateDebut?->format('d/m/Y') }} au {{ $dateFin?->format('d/m/Y') }}</small>
+                    @if ($dateDebut && $dateFin)
+                        <small class="text-success ms-2">{{ $dateDebut->format('d/m/Y') }} au {{ $dateFin->format('d/m/Y') }}</small>
+                    @else
+                        <small class="text-muted ms-2">Toutes les périodes</small>
                     @endif
                 </h1>
             </div>
@@ -90,7 +96,7 @@
                                 <i class="fas fa-money-bill-wave"></i>
                             </div>
                             <div>
-                                <small class="text-muted d-block mb-1" style="font-size: 11px;">Payé sur Période</small>
+                                <small class="text-muted d-block mb-1" style="font-size: 11px;">{{ ($dateDebut && $dateFin) ? 'Payé sur Période' : 'Total Payé' }}</small>
                                 <h5 class="mb-0 fw-bold text-info">{{ number_format($kpiGlobal['total_paye_periode'], 0, ',', ' ') }} F</h5>
                             </div>
                         </div>
@@ -159,7 +165,9 @@
                                 <th class="text-end">Total Payé</th>
                                 <th class="text-end">Reste</th>
                                 {{-- <th class="text-center">Progression</th> --}}
-                                <th class="text-end">Payé (Période)</th>
+                                @if($dateDebut && $dateFin)
+                                    <th class="text-end">Payé (Période)</th>
+                                @endif
                                 <th class="text-center">Statut</th>
                                 <th class="text-center no-print">Action</th>
                             </tr>
@@ -196,14 +204,16 @@
                                                 </div>
                                             </div>
                                         </td> --}}
-                                        <td class="text-end">{{ number_format($apercu['total_paye_periode'], 0, ',', ' ') }} F</td>
+                                        @if($dateDebut && $dateFin)
+                                            <td class="text-end">{{ number_format($apercu['total_paye_periode'], 0, ',', ' ') }} F</td>
+                                        @endif
                                         <td class="text-center">
                                             <span class="badge bg-{{ $apercu['statut_global']['badge'] }}">
                                                 {{ $apercu['statut_global']['label'] }}
                                             </span>
                                         </td>
                                         <td class="text-center no-print">
-                                            <a href="{{ route('backend.rapports.acheteur', ['acheteur_id' => $acheteur->id, 'date_debut' => $dateDebut->format('Y-m-d'), 'date_fin' => $dateFin->format('Y-m-d')]) }}"
+                                            <a href="{{ route('backend.rapports.acheteur', ['acheteur_id' => $acheteur->id, 'date_debut' => $dateDebut?->format('Y-m-d'), 'date_fin' => $dateFin?->format('Y-m-d')]) }}"
                                                 class="btn btn-outline-success btn-sm" title="Voir détail">
                                                 <i class="fas fa-eye"></i>
                                             </a>
@@ -225,7 +235,7 @@
                                     <td class="text-end">{{ number_format($aperçus->sum('total_a_payer'), 0, ',', ' ') }} F</td>
                                     <td class="text-end text-success">{{ number_format($aperçus->sum('total_paye'), 0, ',', ' ') }} F</td>
                                     <td class="text-end text-danger">{{ number_format($aperçus->sum('total_restant'), 0, ',', ' ') }} F</td>
-                                    <td colspan="4"></td>
+                                    <td colspan="{{ ($dateDebut && $dateFin) ? 4 : 3 }}"></td>
                                 </tr>
                             </tfoot>
                         @endif

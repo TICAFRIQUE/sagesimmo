@@ -27,17 +27,19 @@
                 <h1 class="h3 mb-0 text-gray-800">
                     <i class="fas fa-file-invoice-dollar"></i> Rapport Financier Propriétaires
                     @if (isset($dateDebut) && isset($dateFin))
-                        <small class="text-primary ms-2">{{ $dateDebut->format('d/m/Y') }} au {{ $dateFin->format('d/m/Y') }}</small>
+                        <small class="text-primary ms-2">{{ $dateDebut->format('d/m/Y') }} au
+                            {{ $dateFin->format('d/m/Y') }}</small>
                     @endif
                 </h1>
             </div>
             <div class="col-md-4 text-end no-print">
-                <a href="{{ route('backend.rapports.proprietaire.pdf.global', ['date_debut' => $dateDebut->format('Y-m-d'), 'date_fin' => $dateFin->format('Y-m-d')]) }}" class="btn btn-success btn-sm me-2" title="Télécharger en PDF">
-                    <i class="fas fa-file-pdf"></i> Télécharger PDF
+                <a href="{{ route('backend.rapports.proprietaire.pdf.global', ['date_debut' => $dateDebut->format('Y-m-d'), 'date_fin' => $dateFin->format('Y-m-d')]) }}"
+                    class="btn btn-success btn-sm me-2" title="Télécharger en PDF">
+                    <i class="fas fa-file-pdf"></i> Télécharger PDF & Imprimer
                 </a>
-                <button type="button" class="btn btn-primary btn-sm" onclick="window.print()" title="Imprimer le rapport global">
+                {{-- <button type="button" class="btn btn-primary btn-sm" onclick="window.print()" title="Imprimer le rapport global">
                     <i class="fas fa-print"></i> Imprimer
-                </button>
+                </button> --}}
             </div>
         </div>
 
@@ -51,8 +53,10 @@
                                 <i class="fas fa-hand-holding-usd"></i>
                             </div>
                             <div>
-                                <small class="text-muted d-block mb-1" style="font-size: 11px;">Versements Disponibles</small>
-                                <h5 class="mb-0 fw-bold text-warning">{{ number_format($kpiGlobal['versements_disponibles'], 0, ',', ' ') }} F</h5>
+                                <small class="text-muted d-block mb-1" style="font-size: 11px;">Versements
+                                    Disponibles</small>
+                                <h5 class="mb-0 fw-bold text-warning">
+                                    {{ number_format($kpiGlobal['versements_disponibles'], 0, ',', ' ') }} F</h5>
                             </div>
                         </div>
                     </div>
@@ -65,7 +69,8 @@
                             </div>
                             <div>
                                 <small class="text-muted d-block mb-1" style="font-size: 11px;">Versements Partiels</small>
-                                <h5 class="mb-0 fw-bold text-info">{{ number_format($kpiGlobal['versements_partiels'], 0, ',', ' ') }} F</h5>
+                                <h5 class="mb-0 fw-bold text-info">
+                                    {{ number_format($kpiGlobal['versements_partiels'], 0, ',', ' ') }} F</h5>
                             </div>
                         </div>
                     </div>
@@ -78,7 +83,8 @@
                             </div>
                             <div>
                                 <small class="text-muted d-block mb-1" style="font-size: 11px;">Versements Effectués</small>
-                                <h5 class="mb-0 fw-bold text-success">{{ number_format($kpiGlobal['versements_effectues'], 0, ',', ' ') }} F</h5>
+                                <h5 class="mb-0 fw-bold text-success">
+                                    {{ number_format($kpiGlobal['versements_effectues'], 0, ',', ' ') }} F</h5>
                             </div>
                         </div>
                     </div>
@@ -90,12 +96,31 @@
                                 <i class="fas fa-percentage"></i>
                             </div>
                             <div>
-                                <small class="text-muted d-block mb-1" style="font-size: 11px;">Commission Perçue</small>
-                                <h5 class="mb-0 fw-bold text-primary">{{ number_format($kpiGlobal['total_commission'], 0, ',', ' ') }} F</h5>
+                                <small class="text-muted d-block mb-1" style="font-size: 11px;">Revenus Agence</small>
+                                 <small>commissions :</small><h5 class="mb-0 fw-bold text-primary">
+                                    {{ number_format($kpiGlobal['total_commission'], 0, ',', ' ') }} F</h5>
+                                     <small>frais agence :</small>
+                                <h5 class="mb-0 fw-bold" style="color: #e83e8c;">
+                                   {{ number_format($kpiGlobal['total_frais_agence'] ?? 0, 0, ',', ' ') }} F</h5>
+
                             </div>
                         </div>
                     </div>
                 </div>
+                {{-- <div class="col-md-3 col-sm-6 mb-2">
+                    <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #e83e8c !important;">
+                        <div class="card-body py-3 d-flex align-items-center">
+                            <div class="me-3" style="font-size: 2rem; opacity: 0.6; color: #e83e8c;">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block mb-1" style="font-size: 11px;">Frais Agence Perçus</small>
+                                <h5 class="mb-0 fw-bold" style="color: #e83e8c;">
+                                    {{ number_format($kpiGlobal['total_frais_agence'] ?? 0, 0, ',', ' ') }} F</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div> --}}
             </div>
         @endif
 
@@ -128,21 +153,22 @@
 
                     <div class="col-md-2">
                         <label for="date_debut" class="form-label mb-1 small">Date début</label>
-                        <input type="date" name="date_debut" id="date_debut" class="form-control form-control-sm"
+                        <input type="date" name="date_debut" id="date_debut" class="form-control form-control"
                             value="{{ isset($dateDebut) ? $dateDebut->format('Y-m-d') : now()->startOfMonth()->format('Y-m-d') }}">
                     </div>
 
                     <div class="col-md-2">
                         <label for="date_fin" class="form-label mb-1 small">Date fin</label>
-                        <input type="date" name="date_fin" id="date_fin" class="form-control form-control-sm"
+                        <input type="date" name="date_fin" id="date_fin" class="form-control form-control"
                             value="{{ isset($dateFin) ? $dateFin->format('Y-m-d') : now()->endOfMonth()->format('Y-m-d') }}">
                     </div>
 
                     <div class="col-md-3 d-flex gap-2">
-                        <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
+                        <button type="submit" class="btn btn-primary btn-sm flex-grow-1 py-2">
                             <i class="fas fa-search"></i> Filtrer
                         </button>
-                        <a href="{{ route('backend.rapports.proprietaire') }}" class="btn btn-outline-secondary btn-sm" title="Réinitialiser">
+                        <a href="{{ route('backend.rapports.proprietaire') }}" class="btn btn-outline-secondary btn-sm"
+                            title="Réinitialiser">
                             <i class="fas fa-redo"></i>
                         </a>
                     </div>
@@ -170,6 +196,7 @@
                                     <th class="text-center">Biens</th>
                                     <th class="text-end">Total Encaissé</th>
                                     <th class="text-end">Commission</th>
+                                    <th class="text-end">Frais Agence</th>
                                     <th class="text-end">Charges</th>
                                     <th class="text-end">Net (À Verser)</th>
                                     <th class="text-end">Déjà Versé</th>
@@ -181,7 +208,7 @@
                             <tbody>
                                 @php
                                     // Trier : propriétaires agence en premier
-                                    $proprietairesTries = $proprietaires->sortByDesc(function($p) {
+                                    $proprietairesTries = $proprietaires->sortByDesc(function ($p) {
                                         return $p->type_proprietaire === 'agence' ? 1 : 0;
                                     });
                                 @endphp
@@ -219,10 +246,14 @@
                                             <span class="badge bg-info">{{ $rapport['nombre_biens'] ?? 0 }}</span>
                                         </td>
                                         <td class="text-end">
-                                            <strong>{{ number_format($rapport['total_brut_encaisse'] ?? 0, 0, ',', ' ') }} F</strong>
+                                            <strong>{{ number_format($rapport['total_brut_encaisse'] ?? 0, 0, ',', ' ') }}
+                                                F</strong>
                                         </td>
                                         <td class="text-end text-primary">
                                             {{ number_format($rapport['total_commission_agence'] ?? 0, 0, ',', ' ') }} F
+                                        </td>
+                                        <td class="text-end" style="color: #e83e8c;">
+                                            {{ number_format($rapport['total_frais_agence'] ?? 0, 0, ',', ' ') }} F
                                         </td>
                                         <td class="text-end text-warning">
                                             {{ number_format($rapport['total_charges'] ?? 0, 0, ',', ' ') }} F
@@ -233,7 +264,8 @@
                                         <td class="text-end text-info">
                                             {{ number_format($rapport['montant_total_verse'] ?? 0, 0, ',', ' ') }} F
                                         </td>
-                                        <td class="text-end fw-bold {{ ($rapport['reste_a_verser'] ?? 0) > 0 ? 'text-danger' : 'text-muted' }}">
+                                        <td
+                                            class="text-end fw-bold {{ ($rapport['reste_a_verser'] ?? 0) > 0 ? 'text-danger' : 'text-muted' }}">
                                             {{ number_format($rapport['reste_a_verser'] ?? 0, 0, ',', ' ') }} F
                                         </td>
                                         <td class="text-center">
@@ -271,6 +303,7 @@
         }
 
         @media print {
+
             /* Afficher l'en-tête d'impression */
             #print-header {
                 display: block !important;
@@ -420,11 +453,27 @@
             }
 
             /* Couleurs texte pour impression */
-            .text-success { color: #000 !important; font-weight: bold !important; }
-            .text-danger { color: #333 !important; font-weight: bold !important; }
-            .text-warning { color: #555 !important; }
-            .text-info { color: #444 !important; }
-            .text-primary { color: #222 !important; }
+            .text-success {
+                color: #000 !important;
+                font-weight: bold !important;
+            }
+
+            .text-danger {
+                color: #333 !important;
+                font-weight: bold !important;
+            }
+
+            .text-warning {
+                color: #555 !important;
+            }
+
+            .text-info {
+                color: #444 !important;
+            }
+
+            .text-primary {
+                color: #222 !important;
+            }
 
             /* Liens */
             a {

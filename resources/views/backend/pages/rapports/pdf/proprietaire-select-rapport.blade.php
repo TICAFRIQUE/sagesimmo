@@ -75,6 +75,10 @@
                         <div class="kpi-label">Commission Perçue</div>
                         <div class="kpi-value kpi-blue">{{ number_format($kpiGlobal['total_commission'], 0, ',', ' ') }} F</div>
                     </td>
+                    <td class="kpi-box">
+                        <div class="kpi-label">Frais Agence Perçus</div>
+                        <div class="kpi-value" style="color: #e83e8c;">{{ number_format($kpiGlobal['total_frais_agence'] ?? 0, 0, ',', ' ') }} F</div>
+                    </td>
                 </tr>
             </table>
         </div>
@@ -88,6 +92,7 @@
                 <th class="text-center">Biens</th>
                 <th class="text-end">Total Encaissé</th>
                 <th class="text-end">Commission</th>
+                <th class="text-end">Frais Agence</th>
                 <th class="text-end">Charges</th>
                 <th class="text-end">Net (À Verser)</th>
                 <th class="text-end">Déjà Versé</th>
@@ -121,6 +126,9 @@
                     </td>
                     <td class="text-end" style="color: #0d6efd;">
                         {{ number_format($rapport['total_commission_agence'] ?? 0, 0, ',', ' ') }} F
+                    </td>
+                    <td class="text-end" style="color: #e83e8c;">
+                        {{ number_format($rapport['total_frais_agence'] ?? 0, 0, ',', ' ') }} F
                     </td>
                     <td class="text-end text-warning">
                         {{ number_format($rapport['total_charges'] ?? 0, 0, ',', ' ') }} F

@@ -361,6 +361,7 @@ class RapportController extends Controller
                 'versements_partiels' => $aperçus->sum('total_versements_partiels') ?? 0, // Montant partiel
                 'versements_effectues' => $aperçus->sum('montant_total_verse') ?? 0, // Total versé
                 'total_commission' => $aperçus->sum('total_commission_agence') ?? 0, // Commission totale perçue
+                'total_frais_agence' => $aperçus->sum('total_frais_agence') ?? 0, // Frais agence perçus
             ];
 
             return view('backend.pages.rapports.proprietaire-select', compact(
@@ -466,6 +467,7 @@ class RapportController extends Controller
             'versements_partiels' => $aperçus->sum('total_versements_partiels') ?? 0,
             'versements_effectues' => $aperçus->sum('montant_total_verse') ?? 0,
             'total_commission' => $aperçus->sum('total_commission_agence') ?? 0,
+            'total_frais_agence' => $aperçus->sum('total_frais_agence') ?? 0,
         ];
 
         $pdf = Pdf::loadView('backend.pages.rapports.pdf.proprietaire-select-rapport', compact(
@@ -730,11 +732,9 @@ class RapportController extends Controller
             $statutFiltre = $request->input('statut_filtre');
             $dateDebut = $request->input('date_debut')
                 ? Carbon::parse($request->input('date_debut'))->startOfDay()
-                // : now()->startOfMonth();
                 : null;
             $dateFin = $request->input('date_fin')
                 ? Carbon::parse($request->input('date_fin'))->endOfDay()
-                // : now()->endOfMonth();
                 : null;
 
             $allAcheteurs = User::where('role', 'acheteur')
@@ -769,6 +769,7 @@ class RapportController extends Controller
                 'total_paye_periode' => $aperçus->sum('total_paye_periode'),
             ];
 
+
             return view('backend.pages.rapports.acheteur-select', compact(
                 'acheteurs',
                 'allAcheteurs',
@@ -783,11 +784,9 @@ class RapportController extends Controller
         $acheteur = User::findOrFail($acheteurId);
         $dateDebut = $request->input('date_debut')
             ? Carbon::parse($request->input('date_debut'))->startOfDay()
-            // : now()->startOfMonth();
             : null;
         $dateFin = $request->input('date_fin')
             ? Carbon::parse($request->input('date_fin'))->endOfDay()
-            // : now()->endOfMonth();
             : null;
 
         $rapport = $service->genererRapport($acheteur, $dateDebut, $dateFin);
@@ -819,10 +818,10 @@ class RapportController extends Controller
         $acheteur = User::findOrFail($acheteurId);
         $dateDebut = $request->input('date_debut')
             ? Carbon::parse($request->input('date_debut'))->startOfDay()
-            : now()->startOfMonth();
+            : null;
         $dateFin = $request->input('date_fin')
             ? Carbon::parse($request->input('date_fin'))->endOfDay()
-            : now()->endOfMonth();
+            : null;
 
         $service = new RapportAcheteurService();
         $rapport = $service->genererRapport($acheteur, $dateDebut, $dateFin);
@@ -834,7 +833,7 @@ class RapportController extends Controller
             'dateFin'
         ))->setPaper('a4', 'portrait');
 
-        $nomFichier = 'rapport_acheteur_' . str_replace(' ', '_', $acheteur->username) . '_' . $dateDebut->format('Ymd') . '_' . $dateFin->format('Ymd') . '.pdf';
+        $nomFichier = 'rapport_acheteur_' . str_replace(' ', '_', $acheteur->username) . '_' . ($dateDebut ? $dateDebut->format('Ymd') : 'debut') . '_' . ($dateFin ? $dateFin->format('Ymd') : 'fin') . '.pdf';
         return $pdf->download($nomFichier);
     }
 
@@ -849,10 +848,10 @@ class RapportController extends Controller
 
         $dateDebut = $request->input('date_debut')
             ? Carbon::parse($request->input('date_debut'))->startOfDay()
-            : now()->startOfMonth();
+            : null;
         $dateFin = $request->input('date_fin')
             ? Carbon::parse($request->input('date_fin'))->endOfDay()
-            : now()->endOfMonth();
+            : null;
 
         $acheteurs = User::where('role', 'acheteur')
             ->whereHas('ventes', function ($q) {
@@ -879,7 +878,7 @@ class RapportController extends Controller
             'kpiGlobal'
         ))->setPaper('a4', 'landscape');
 
-        $nomFichier = 'rapport_global_acheteurs_' . $dateDebut->format('Ymd') . '_' . $dateFin->format('Ymd') . '.pdf';
+        $nomFichier = 'rapport_global_acheteurs_' . ($dateDebut ? $dateDebut->format('Ymd') : 'debut') . '_' . ($dateFin ? $dateFin->format('Ymd') : 'fin') . '.pdf';
         return $pdf->download($nomFichier);
     }
 

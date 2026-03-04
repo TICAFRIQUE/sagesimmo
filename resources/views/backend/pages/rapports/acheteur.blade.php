@@ -17,7 +17,11 @@
                     @endif
                 </p>
                 <p style="font-size: 14px; margin: 5px 0; color: #666;">
-                    Période : {{ $dateDebut->format('d/m/Y') }} au {{ $dateFin->format('d/m/Y') }}
+                    @if($dateDebut && $dateFin)
+                        Période : {{ $dateDebut->format('d/m/Y') }} au {{ $dateFin->format('d/m/Y') }}
+                    @else
+                        Toutes les périodes
+                    @endif
                 </p>
                 <p style="font-size: 12px; margin: 5px 0; color: #999;">
                     Document généré le {{ now()->format('d/m/Y à H:i') }}
@@ -42,7 +46,11 @@
                 </h5>
                 <small class="text-muted">
                     <i class="fas fa-calendar-alt me-1"></i>
-                    {{ $dateDebut?->format('d/m/Y') }} au {{ $dateFin?->format('d/m/Y') }}
+                    @if($dateDebut && $dateFin)
+                        {{ $dateDebut->format('d/m/Y') }} au {{ $dateFin->format('d/m/Y') }}
+                    @else
+                        Toutes les périodes
+                    @endif
                 </small>
             </div>
             <div class="col-md-5 text-end">
@@ -112,6 +120,7 @@
                     </div>
                 </div>
             </div>
+            @if($rapport['has_periode'])
             <div class="col-md-2 col-sm-4 mb-2">
                 <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #17a2b8 !important;">
                     <div class="card-body py-2 text-center">
@@ -120,6 +129,7 @@
                     </div>
                 </div>
             </div>
+            @endif
             <div class="col-md-2 col-sm-4 mb-2">
                 <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #ffc107 !important;">
                     <div class="card-body py-2 text-center">
@@ -206,13 +216,144 @@
                             <small class="text-muted d-block">Reste</small>
                             <strong class="text-danger">{{ number_format($rapportVente['reste_a_payer'], 0, ',', ' ') }} F</strong>
                         </div>
+                        @if($rapportVente['has_periode'])
                         <div class="col text-center py-2">
                             <small class="text-muted d-block">Payé (Période)</small>
                             <strong class="text-info">{{ number_format($rapportVente['total_paye_periode'], 0, ',', ' ') }} F</strong>
                         </div>
+                        @endif
                     </div>
 
-                    <!-- Historique des paiements -->
+                    @if($rapportVente['has_periode'])
+                    {{-- MODE FILTRE ACTIF: paiements période + toggle vers tout --}}
+                    <!-- Paiements de la période -->
+                    <div class="px-3 py-2 border-bottom d-flex justify-content-between align-items-center">
+                        <strong style="font-size: 12px;">
+                            <i class="fas fa-filter me-1 text-info"></i> Paiements de la période
+                            <span class="badge bg-info ms-1">{{ $rapportVente['paiements_periode']->count() }}</span>
+                        </strong>
+                        @if($rapportVente['tous_paiements']->count() > $rapportVente['paiements_periode']->count())
+                            <button class="btn btn-outline-secondary btn-sm py-0 px-2 btnToggleAll" 
+                                    data-target="allPaiements{{ $loop->index }}" 
+                                    data-period="periodPaiements{{ $loop->index }}"
+                                    data-total="{{ $rapportVente['tous_paiements']->count() }}" style="font-size: 11px;">
+                                <i class="fas fa-history"></i> Voir tout ({{ $rapportVente['tous_paiements']->count() }})
+                            </button>
+                        @endif
+                    </div>
+
+                    <!-- Tableau Paiements Période -->
+                    <div class="table-responsive" id="periodPaiements{{ $loop->index }}">
+                        <table class="table table-sm table-hover mb-0" style="font-size: 12px;">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 30px;">#</th>
+                                    <th>Date Paiement</th>
+                                    <th>Type</th>
+                                    <th class="text-end">Montant</th>
+                                    <th>Méthode</th>
+                                    <th>Référence</th>
+                                    <th class="text-center">Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($rapportVente['paiements_periode'] as $idx => $paiement)
+                                    @php $datePaiement = \Carbon\Carbon::parse($paiement['date']); @endphp
+                                    <tr class="table-info-soft">
+                                        <td>{{ $idx + 1 }}</td>
+                                        <td><i class="fas fa-calendar fa-xs text-muted me-1"></i> {{ $datePaiement->format('d/m/Y') }}</td>
+                                        <td>
+                                            @php
+                                                $typeLabels = ['prix_achat' => 'Prix achat', 'arrhes' => 'Arrhes', 'frais_agence' => 'Frais agence', 'acompte' => 'Acompte', 'solde' => 'Solde', 'caution' => 'Caution'];
+                                            @endphp
+                                            {{ $typeLabels[$paiement['type']] ?? ucfirst($paiement['type']) }}
+                                        </td>
+                                        <td class="text-end fw-bold text-success">{{ number_format($paiement['montant'], 0, ',', ' ') }} F</td>
+                                        <td>{{ ucfirst($paiement['methode'] ?? '-') }}</td>
+                                        <td><small class="text-muted">{{ $paiement['reference'] ?? '-' }}</small></td>
+                                        <td class="text-center"><span class="badge bg-{{ $paiement['statut'] === 'paye' ? 'success' : 'warning' }}">{{ ucfirst($paiement['statut']) }}</span></td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted py-3">
+                                            <i class="fas fa-info-circle me-1"></i> Aucun paiement sur cette période.
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                            @if($rapportVente['paiements_periode']->count() > 0)
+                                <tfoot class="table-light">
+                                    <tr class="fw-bold">
+                                        <td colspan="3" class="text-end">Total période :</td>
+                                        <td class="text-end text-info">{{ number_format($rapportVente['total_paye_periode'], 0, ',', ' ') }} F</td>
+                                        <td colspan="3"></td>
+                                    </tr>
+                                </tfoot>
+                            @endif
+                        </table>
+                    </div>
+
+                    <!-- Tableau Tous Paiements (caché par défaut, toggle) -->
+                    <div class="table-responsive d-none" id="allPaiements{{ $loop->index }}">
+                        <table class="table table-sm table-hover mb-0" style="font-size: 12px;">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 30px;">#</th>
+                                    <th>Date Paiement</th>
+                                    <th>Type</th>
+                                    <th class="text-end">Montant</th>
+                                    <th>Méthode</th>
+                                    <th>Référence</th>
+                                    <th class="text-center">Période</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($rapportVente['tous_paiements'] as $idx => $paiement)
+                                    @php
+                                        $datePaiement = \Carbon\Carbon::parse($paiement['date']);
+                                        $estDansPeriode = ($dateDebut && $dateFin) ? $datePaiement->between($dateDebut, $dateFin) : true;
+                                    @endphp
+                                    <tr class="{{ $estDansPeriode ? 'table-info-soft' : '' }}">
+                                        <td>{{ $idx + 1 }}</td>
+                                        <td><i class="fas fa-calendar fa-xs text-muted me-1"></i> {{ $datePaiement->format('d/m/Y') }}</td>
+                                        <td>
+                                            @php $typeLabels = ['prix_achat' => 'Prix achat', 'arrhes' => 'Arrhes', 'frais_agence' => 'Frais agence', 'acompte' => 'Acompte', 'solde' => 'Solde', 'caution' => 'Caution']; @endphp
+                                            {{ $typeLabels[$paiement['type']] ?? ucfirst($paiement['type']) }}
+                                        </td>
+                                        <td class="text-end fw-bold text-success">{{ number_format($paiement['montant'], 0, ',', ' ') }} F</td>
+                                        <td>{{ ucfirst($paiement['methode'] ?? '-') }}</td>
+                                        <td><small class="text-muted">{{ $paiement['reference'] ?? '-' }}</small></td>
+                                        <td class="text-center">
+                                            @if($estDansPeriode)
+                                                <span class="badge bg-info" style="font-size: 9px;">Dans période</span>
+                                            @else
+                                                <span class="badge bg-secondary" style="font-size: 9px;">Hors période</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                            @if($rapportVente['tous_paiements']->count() > 0)
+                                <tfoot class="table-light">
+                                    <tr class="fw-bold">
+                                        <td colspan="3" class="text-end">Total global :</td>
+                                        <td class="text-end text-success">{{ number_format($rapportVente['total_paye'], 0, ',', ' ') }} F</td>
+                                        <td colspan="3"></td>
+                                    </tr>
+                                </tfoot>
+                            @endif
+                        </table>
+                    </div>
+
+                    @else
+                    {{-- MODE SANS FILTRE: afficher tous les paiements directement --}}
+                    <div class="px-3 py-2 border-bottom">
+                        <strong style="font-size: 12px;">
+                            <i class="fas fa-list me-1"></i> Historique des paiements
+                            <span class="badge bg-success ms-1">{{ $rapportVente['tous_paiements']->count() }}</span>
+                        </strong>
+                    </div>
+
                     <div class="table-responsive">
                         <table class="table table-sm table-hover mb-0" style="font-size: 12px;">
                             <thead class="table-light">
@@ -228,43 +369,22 @@
                             </thead>
                             <tbody>
                                 @forelse($rapportVente['tous_paiements'] as $idx => $paiement)
-                                    @php
-                                        $datePaiement = \Carbon\Carbon::parse($paiement['date']);
-                                        $estDansPeriode = $datePaiement->between($dateDebut, $dateFin);
-                                    @endphp
-                                    <tr class="{{ $estDansPeriode ? 'table-info-soft' : '' }}">
+                                    @php $datePaiement = \Carbon\Carbon::parse($paiement['date']); @endphp
+                                    <tr>
                                         <td>{{ $idx + 1 }}</td>
+                                        <td><i class="fas fa-calendar fa-xs text-muted me-1"></i> {{ $datePaiement->format('d/m/Y') }}</td>
                                         <td>
-                                            <i class="fas fa-calendar fa-xs text-muted me-1"></i>
-                                            {{ $datePaiement->format('d/m/Y') }}
-                                            @if($estDansPeriode)
-                                                <span class="badge bg-info" style="font-size: 8px;">Période</span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @php
-                                                $typeLabels = [
-                                                    'prix_achat' => 'Prix achat',
-                                                    'arrhes' => 'Arrhes',
-                                                    'frais_agence' => 'Frais agence',
-                                                ];
-                                            @endphp
+                                            @php $typeLabels = ['prix_achat' => 'Prix achat', 'arrhes' => 'Arrhes', 'frais_agence' => 'Frais agence', 'acompte' => 'Acompte', 'solde' => 'Solde', 'caution' => 'Caution']; @endphp
                                             {{ $typeLabels[$paiement['type']] ?? ucfirst($paiement['type']) }}
                                         </td>
                                         <td class="text-end fw-bold text-success">{{ number_format($paiement['montant'], 0, ',', ' ') }} F</td>
                                         <td>{{ ucfirst($paiement['methode'] ?? '-') }}</td>
                                         <td><small class="text-muted">{{ $paiement['reference'] ?? '-' }}</small></td>
-                                        <td class="text-center">
-                                            <span class="badge bg-{{ $paiement['statut'] === 'paye' ? 'success' : 'warning' }}">
-                                                {{ ucfirst($paiement['statut']) }}
-                                            </span>
-                                        </td>
+                                        <td class="text-center"><span class="badge bg-{{ $paiement['statut'] === 'paye' ? 'success' : 'warning' }}">{{ ucfirst($paiement['statut']) }}</span></td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="text-center text-muted py-3">
-                                            Aucun paiement enregistré.
-                                        </td>
+                                        <td colspan="7" class="text-center text-muted py-3">Aucun paiement enregistré.</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -278,6 +398,8 @@
                                 </tfoot>
                             @endif
                         </table>
+                    </div>
+                    @endif
                     </div>
                 </div>
             </div>
@@ -306,4 +428,31 @@
             .badge { border: 1px solid #999; -webkit-print-color-adjust: exact !important; }
         }
     </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.btnToggleAll').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var targetId = this.getAttribute('data-target');
+                    var periodId = this.getAttribute('data-period');
+                    var targetEl = document.getElementById(targetId);
+                    var periodEl = document.getElementById(periodId);
+                    
+                    if (targetEl.classList.contains('d-none')) {
+                        targetEl.classList.remove('d-none');
+                        periodEl.classList.add('d-none');
+                        this.innerHTML = '<i class="fas fa-filter"></i> Voir période';
+                        this.classList.remove('btn-outline-secondary');
+                        this.classList.add('btn-outline-info');
+                    } else {
+                        targetEl.classList.add('d-none');
+                        periodEl.classList.remove('d-none');
+                        this.innerHTML = '<i class="fas fa-history"></i> Voir tout (' + this.dataset.total + ')';
+                        this.classList.remove('btn-outline-info');
+                        this.classList.add('btn-outline-secondary');
+                    }
+                });
+            });
+        });
+    </script>
 @endsection

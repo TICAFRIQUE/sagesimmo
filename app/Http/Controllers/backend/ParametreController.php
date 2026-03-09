@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\backend;
+namespace App\Http\Controllers\Backend;
 
 use App\Models\Parametre;
 use Illuminate\Http\Request;
@@ -179,3 +179,4 @@ class ParametreController extends Controller
         return response()->json(['message' => 'mode maintenance activé', 'status' => 200], 200);
     }
 }
+

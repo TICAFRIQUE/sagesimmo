@@ -975,6 +975,10 @@ class RapportController extends Controller
 
         Charge::create($request->all());
 
+        if ($request->input('_redirect_back')) {
+            return redirect()->back()->with('success', 'Charge enregistrée avec succès');
+        }
+
         return redirect()->route('backend.charges.index')
             ->with('success', 'Charge enregistrée avec succès');
     }

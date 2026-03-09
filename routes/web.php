@@ -1,24 +1,26 @@
 <?php
 
-use App\Http\Controllers\backend\AdminController;
-use App\Http\Controllers\backend\AnnonceController;
-use App\Http\Controllers\backend\DashboardController;
-use App\Http\Controllers\backend\EquipementController;
-use App\Http\Controllers\backend\ModuleController;
-use App\Http\Controllers\backend\NewsLettersController;
-use App\Http\Controllers\backend\ParametreController;
-use App\Http\Controllers\backend\PermissionController;
-use App\Http\Controllers\backend\RoleController;
-use App\Http\Controllers\backend\TypeBienController;
-use App\Http\Controllers\backend\CommandeServiceController;
-use App\Http\Controllers\backend\UserController;
-use App\Http\Controllers\backend\NotificationController;
-
-use App\Http\Controllers\frontend\BaseController;
-use App\Http\Controllers\frontend\HebergementController;
-use App\Http\Controllers\frontend\NomDomaineController;use App\Http\Controllers\frontend\DashboardClientController;use App\Http\Controllers\frontend\HomeController;
-use App\Http\Controllers\frontend\PropertyController;
+use App\Http\Controllers\Backend\AdminController;
+use App\Http\Controllers\Backend\AlerteController;
+use App\Http\Controllers\Backend\AnnonceController;
+// use App\Http\Controllers\Backend\CommandeServiceController;
+use App\Http\Controllers\Backend\DashboardController;
+use App\Http\Controllers\Backend\EquipementController;
+use App\Http\Controllers\Backend\ModuleController;
+// use App\Http\Controllers\Backend\NewsLettersController;
+use App\Http\Controllers\Backend\NotificationController;
+use App\Http\Controllers\Backend\ParametreController;
+use App\Http\Controllers\Backend\PermissionController;
+use App\Http\Controllers\Backend\RoleController;
+use App\Http\Controllers\Backend\TypeBienController;
+use App\Http\Controllers\Backend\UserController;
 use App\Http\Controllers\frontend\AuthController;
+// use App\Http\Controllers\frontend\BaseController;
+// use App\Http\Controllers\frontend\HebergementController;
+// use App\Http\Controllers\frontend\NomDomaineController;
+use App\Http\Controllers\frontend\DashboardClientController;
+use App\Http\Controllers\frontend\HomeController;
+use App\Http\Controllers\frontend\PropertyController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -46,11 +48,11 @@ Route::controller(AuthController::class)->group(function () {
     // Connexion
     Route::get('/connexion', 'showLoginForm')->name('login')->middleware('guest');
     Route::post('/connexion', 'login')->middleware('guest');
-    
+
     // Inscription
     Route::get('/inscription', 'showRegisterForm')->name('register')->middleware('guest');
     Route::post('/inscription', 'register')->middleware('guest');
-    
+
     // Déconnexion
     Route::post('/deconnexion', 'logout')->name('logout')->middleware('auth');
 });
@@ -64,17 +66,17 @@ Route::middleware(['auth'])->prefix('mon-espace')->controller(DashboardClientCon
     Route::get('/demandes', 'demandes')->name('client.demandes');
     Route::get('/demandes/{id}', 'showDemande')->name('client.demandes.show');
     Route::delete('/demandes/{id}', 'cancelDemande')->name('client.demandes.cancel');
-    
+
     // Espaces spécifiques par rôle
     Route::get('/proprietaire', 'espaceProprietaire')->name('client.proprietaire');
     Route::get('/proprietaire/locations', 'espaceProprietaireLocations')->name('client.proprietaire.locations');
     Route::get('/proprietaire/ventes', 'espaceProprietaireVentes')->name('client.proprietaire.ventes');
     Route::get('/proprietaire/historique', 'espaceProprietaireHistorique')->name('client.proprietaire.historique');
-    
+
     Route::get('/locataire', 'espaceLocataire')->name('client.locataire');
     Route::get('/locataire/location/{id}/workflow', 'workflowLocation')->name('client.locataire.workflow');
     Route::get('/locataire/location/{id}/echeances', 'echeancesLocation')->name('client.locataire.echeances');
-    
+
     Route::get('/acheteur', 'espaceAcheteur')->name('client.acheteur');
     Route::get('/acheteur/vente/{id}/workflow', 'workflowVente')->name('client.acheteur.workflow');
     Route::get('/acheteur/vente/{id}/situation-financiere', 'situationFinanciereVente')->name('client.acheteur.situation-financiere');
@@ -106,7 +108,7 @@ Route::middleware(['admin'])->prefix('admin')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard.index');
 
     // Alertes et retards
-    Route::prefix('alertes')->name('backend.alertes.')->controller(App\Http\Controllers\Backend\AlerteController::class)->group(function () {
+    Route::prefix('alertes')->name('backend.alertes.')->controller(AlerteController::class)->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('mettre-a-jour', 'mettreAJourStatuts')->name('mettre-a-jour');
     });
@@ -227,7 +229,7 @@ Route::middleware(['admin'])->prefix('admin')->group(function () {
         route::put('{vente}', 'update')->name('backend.ventes.update');
         route::delete('{vente}', 'destroy')->name('backend.ventes.destroy');
         route::post('{vente}/paiement', 'addPaiement')->name('backend.ventes.add-paiement');
-        
+
         // Actions du workflow
         route::post('{vente}/envoyer-fiche', 'envoyerFiche')->name('backend.ventes.envoyer-fiche');
         route::post('{vente}/confirmer-retour-prospect', 'confirmerRetourProspect')->name('backend.ventes.confirmer-retour-prospect');
@@ -247,7 +249,7 @@ Route::middleware(['admin'])->prefix('admin')->group(function () {
         route::get('{location}/edit', 'edit')->name('backend.locations.edit');
         route::put('{location}', 'update')->name('backend.locations.update');
         route::delete('{location}', 'destroy')->name('backend.locations.destroy');
-        
+
         // Actions du workflow
         route::post('{location}/envoyer-fiche', 'envoyerFiche')->name('backend.locations.envoyer-fiche');
         route::post('{location}/marquer-fiche-envoyee', 'marquerFicheEnvoyee')->name('backend.locations.marquer-fiche-envoyee');
@@ -267,7 +269,7 @@ Route::middleware(['admin'])->prefix('admin')->group(function () {
     Route::prefix('rapports')->group(function () {
         Route::get('commissions', [\App\Http\Controllers\RapportController::class, 'commissions'])->name('backend.rapports.commissions');
         Route::get('statistiques', [\App\Http\Controllers\RapportController::class, 'statistiques'])->name('backend.rapports.statistiques');
-        
+
         // Rapports propriétaire et agence - ADMIN ONLY
         Route::get('proprietaire/pdf', [\App\Http\Controllers\RapportController::class, 'telechargerRapportProprietaire'])->name('backend.rapports.proprietaire.pdf');
         Route::get('proprietaire/pdf-global', [\App\Http\Controllers\RapportController::class, 'telechargerRapportGlobal'])->name('backend.rapports.proprietaire.pdf.global');
@@ -306,3 +308,4 @@ Route::middleware(['admin'])->prefix('admin')->group(function () {
         Route::delete('{versement}', [\App\Http\Controllers\VersementController::class, 'destroy'])->name('destroy');
     });
 });
+

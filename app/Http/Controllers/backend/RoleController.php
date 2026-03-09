@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\backend;
+namespace App\Http\Controllers\Backend;
 
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
@@ -63,3 +63,4 @@ class RoleController extends Controller
         ]);
     }
 }
+

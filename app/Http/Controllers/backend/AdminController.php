@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\backend;
+namespace App\Http\Controllers\Backend;
 
 use App\Models\User;
 use App\Models\Caisse;
@@ -311,3 +311,4 @@ class AdminController extends Controller
         }
     }
 }
+

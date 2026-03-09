@@ -1002,6 +1002,12 @@
                                                 <i class="ri-list-check me-1"></i>Suivi
                                             </a>
                                         @endif
+                                        <button type="button"
+                                            class="btn btn-sm btn-outline-danger"
+                                            onclick="openChargeModal({{ $annonce->id }}, '{{ addslashes($annonce->titre) }}')"
+                                            title="Ajouter une charge">
+                                            <i class="ri-money-dollar-circle-line me-1"></i>Charge
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -1014,8 +1020,91 @@
     </div>
 @endsection
 
+{{-- Modal Créer une Charge depuis la fiche propriétaire --}}
+<div class="modal fade" id="chargeProprietaireModal" tabindex="-1" aria-labelledby="chargeProprietaireModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form action="{{ route('backend.charges.store') }}" method="POST">
+                @csrf
+                <input type="hidden" name="_redirect_back" value="1">
+                <input type="hidden" name="annonce_id" id="charge_annonce_id">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title" id="chargeProprietaireModalLabel">
+                        <i class="ri-money-dollar-circle-line me-1"></i> Ajouter une charge
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted mb-3">Bien : <strong id="charge_bien_titre"></strong></p>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Type de charge</strong> <span class="text-danger">*</span></label>
+                                <select name="type_charge" class="form-control" required>
+                                    <option value="">-- Sélectionner --</option>
+                                    <option value="maintenance">Maintenance</option>
+                                    <option value="reparation">Réparation</option>
+                                    <option value="taxe">Taxe</option>
+                                    <option value="autre">Autre</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Montant (FCFA)</strong> <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="number" name="montant" class="form-control" step="1" min="0" required>
+                                    <span class="input-group-text">F</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Date de la charge</strong> <span class="text-danger">*</span></label>
+                                <input type="date" name="date_charge" class="form-control" value="{{ today()->format('Y-m-d') }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Référence</strong> <span class="text-muted">(Facture, numéro)</span></label>
+                                <input type="text" name="reference" class="form-control" placeholder="Ex: FAC-2026-001">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Description</strong></label>
+                        <input type="text" name="description" class="form-control" placeholder="Détails de la charge">
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label"><strong>Notes</strong></label>
+                        <textarea name="notes" class="form-control" rows="2" placeholder="Remarques additionnelles..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="ri-close-line me-1"></i> Annuler
+                    </button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="ri-save-line me-1"></i> Enregistrer la charge
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @section('script')
     <script>
+        // Ouvrir le modal de création de charge pour un bien donné
+        function openChargeModal(annonceId, titreBien) {
+            document.getElementById('charge_annonce_id').value = annonceId;
+            document.getElementById('charge_bien_titre').textContent = titreBien;
+            var modal = new bootstrap.Modal(document.getElementById('chargeProprietaireModal'));
+            modal.show();
+        }
+
         // Fonction pour supprimer un document
         function deleteDocument(mediaId) {
             if (!confirm('Êtes-vous sûr de vouloir supprimer ce document ?')) {

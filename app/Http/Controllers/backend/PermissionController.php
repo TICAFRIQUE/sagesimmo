@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\backend;
+namespace App\Http\Controllers\Backend;
 
 use App\Models\User;
 use App\Models\Module;
@@ -191,3 +191,4 @@ class PermissionController extends Controller
         }
     }
 }
+

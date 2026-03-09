@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\backend;
+namespace App\Http\Controllers\Backend;
 
 use App\Models\Module;
 use Illuminate\Http\Request;
@@ -124,3 +124,4 @@ class ModuleController extends Controller
         ]);
     }
 }
+
